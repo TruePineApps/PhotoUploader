@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-import photouploader.composeapp.generated.resources.Res
-import photouploader.composeapp.generated.resources.compose_multiplatform
+import com.truepine.photouploader.resources.Res
+import com.truepine.photouploader.resources.compose_multiplatform
 
 @Composable
 @Preview
