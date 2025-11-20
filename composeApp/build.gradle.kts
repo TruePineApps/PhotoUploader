@@ -1,6 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -19,9 +19,14 @@ ksp {
 
 kotlin {
     // Select the JDK to run the Kotlin compiler
-    jvmToolchain(11)
+    jvmToolchain(21)
 
-    androidTarget()
+    androidTarget {
+        compilerOptions {
+            // Bytecode version for Android
+            jvmTarget.set(JvmTarget.JVM_18)
+        }
+    }
 
     listOf(
         iosX64(),
@@ -34,7 +39,12 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+    jvm("desktop") {
+        compilerOptions {
+            // Bytecode version for desktop - PocketBase-kotlin lib needs Java 18
+            jvmTarget.set(JvmTarget.JVM_18)
+        }
+    }
 
     js(IR) { // Regular JS target (for Safari)
         // Add support for the ES2015 features
@@ -65,10 +75,25 @@ kotlin {
                 }
             }
         }
-        // Define nodejs to get tests working
-        nodejs {
-            testTask {
-                // No special configuration needed here.
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs { // WebAssembly target
+        outputModuleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        binaries.executable()
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions.freeCompilerArgs.addAll(
+                    listOf(
+                        "-Xir-per-module",
+                        "-Xwasm-attach-js-exception",
+                    )
+                )
             }
         }
     }
@@ -113,7 +138,7 @@ kotlin {
 
             // Dependency injection
             implementation(libs.koin.core)
-            api(libs.koin.annotations)
+            implementation(libs.koin.annotations)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
@@ -134,6 +159,13 @@ kotlin {
             implementation(libs.multiplatform.settings)
             // DateTime
             implementation(libs.kotlinx.dateTime)
+            // Google
+            implementation(libs.google.api.client)
+            // File System
+//            implementation(libs.wavesonics.filepicker)
+            implementation(libs.calf.file.picker)
+            implementation(libs.kotlinx.io.core)
+
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -218,16 +250,6 @@ kotlin {
 
         val desktopTest by getting
 
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(libs.kotlinx.browser)
-                // Networking & Serialization
-                implementation(libs.ktor.client.wasm)
-            }
-        }
-
-        val wasmJsTest by getting
-
         val jsMain by getting {
             dependencies {
                 implementation(compose.html.core)
@@ -239,6 +261,24 @@ kotlin {
 
         val jsTest by getting
 
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+                // Networking & Serialization
+                implementation(libs.ktor.client.wasm)
+                // Wavesonics filepicker not available in wasmJs
+//                implementation(npm("mpfilepicker", "3.1.0"))
+                //implementation(libs.wavesonics.filepicker)
+            }
+        }
+
+        val wasmJsTest by getting
+
+    }
+
+    // KSP Common sourceSet
+    sourceSets.named("commonMain").configure {
+        kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
     }
 }
 
@@ -254,9 +294,16 @@ android {
         versionName = "1.0"
     }
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+
+    // Resolve duplicate file exception:
+    // - META-INF/INDEX.LIST from google-auth-library-oauth2-http and google-auth-library-credentials.
+    // - META-INF/DEPENDENCIES from org.apache.httpcomponents:httpclient:4.5.14/httpclient-4.5.14.jar
+    // and org.apache.httpcomponents:httpcore:4.4.16/httpcore-4.4.16.jar
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
         }
     }
     dependencies {
@@ -275,15 +322,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_18
+        targetCompatibility = JavaVersion.VERSION_18
         isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
-
 }
 
 dependencies {
@@ -373,13 +419,6 @@ tasks.matching { it.name.startsWith("ksp") }.configureEach {
     }
 }
 
-// Task kspCommonMainKotlinMetadata is not automatically triggered, it needs a manual instruction to do so
-tasks.withType<KotlinCompile>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
-}
-
 compose.desktop {
     application {
         mainClass = "com.truepine.photouploader.MainKt"
@@ -432,7 +471,7 @@ tasks.register("printKotlinDetails") {
                 println("  DependsOn: ${dep.name}")
             }
         }
-        println(">>> Kotlin Compilations <<<")
+        println("\n>>> Kotlin Compilations <<<")
         kotlin.targets.forEach { target ->
             target.compilations.forEach { compilation ->
                 println("Compilation: ${compilation.name} on Target: ${target.name}")
@@ -443,7 +482,7 @@ tasks.register("printKotlinDetails") {
                 }
             }
         }
-        println(">>> KSP Related Configurations (if any exist explicitly) <<<")
+        println("\n>>> KSP Related Configurations (if any exist explicitly) <<<")
         project.configurations.filter { it.name.startsWith("ksp") }.forEach {
             println("Configuration: ${it.name}")
             // if (it.isCanBeResolved) {

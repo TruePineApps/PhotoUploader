@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.1"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
@@ -9,10 +9,12 @@ androidx-core = "1.17.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.5"
 androidx-test-junit = "1.3.0"
+calfFilePicker = "0.9.0"
 composeHotReload = "1.0.0-rc02"
 composeMultiplatform = "1.9.2"
 datastore = "1.1.7"
 desugar_jdk_libs = "2.1.5"
+googleApiClient = "2.8.1"
 junit = "4.13.2"
 koin = "4.1.1"
 koin-annotations = "2.3.0"
@@ -21,8 +23,9 @@ kotlinBrowser = "2025.11.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinxBrowser = "0.5.0"
+kotlinxIoCore = "0.8.0"
 kotlinxSerialization = "1.9.0"
-ksp = "2.2.10-2.0.2" # Must match ksp version
+ksp = "2.2.10-2.0.2" # Must match kotlin version
 ktor = "3.3.1"
 leakcanaryAndroid = "2.14"
 multiplatform-settings = "1.3.0"
@@ -33,6 +36,7 @@ runner = "1.7.0"
 size = "0.5.0"
 skie = "0.10.6"
 turbine = "1.2.1"
+wavesonics-filepicker = "3.1.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -46,7 +50,9 @@ androidx-preference-ktx = { module = "androidx.preference:preference-ktx", versi
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
 androidx-rules = { module = "androidx.test:rules", version.ref = "rules" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }
+calf-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calfFilePicker" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
 junit = { module = "junit:junit", version.ref = "junit" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
@@ -63,6 +69,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-dateTime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIoCore" }
 kotlinx-serialization-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-bom", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core" } # No version here, BOM handles it
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" } # No version here, BOM handles it
@@ -84,6 +91,7 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 screen-size = { module = "dev.chrisbanes.material3:material3-window-size-class-multiplatform", version.ref = "size" }
 touchlab-skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+wavesonics-filepicker = { group = "com.darkrockstudios", name = "mpfilepicker", version.ref = "wavesonics-filepicker" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
