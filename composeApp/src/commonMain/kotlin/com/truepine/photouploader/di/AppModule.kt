@@ -5,5 +5,4 @@ import org.koin.core.annotation.Module
 
 @Module
 @ComponentScan("com.truepine.photouploader")
-class AppModule {
-}
+class AppModule

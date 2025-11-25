@@ -15,13 +15,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 
 @Composable
-fun PlatformFilePickerScreen(filePicker: PlatformPicker) {
+fun PlatformFilePickerScreen(filePicker: PlatformPicker, modifier : Modifier = Modifier, viewModel: PhotoUploadViewModel) {
     val fileType = listOf("jpg", "png")
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
             .safeContentPadding()
             .fillMaxSize(),
@@ -66,6 +69,7 @@ fun PlatformFilePickerScreen(filePicker: PlatformPicker) {
 
         var showDirPicker by remember { mutableStateOf(false) }
         var dirChosen by remember { mutableStateOf("") }
+        var validDir by remember { mutableStateOf(false) }
 
         Button(onClick = {
             showDirPicker = true
@@ -75,8 +79,16 @@ fun PlatformFilePickerScreen(filePicker: PlatformPicker) {
         Text("Directory Chosen: $dirChosen")
 
         filePicker.PlatformDirectoryPicker(showDirPicker) { path ->
+            validDir = path != null
             dirChosen = path ?: "none selected"
             showDirPicker = false
+        }
+
+        if (validDir) {
+            viewModel.viewModelScope.launch {
+                UploadPhotosViewModel().uploadPhotos(dirChosen)
+                SecondViewModel("123123123").uploadPhotos(dirChosen)
+            }
         }
     }
 }

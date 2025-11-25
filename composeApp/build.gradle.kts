@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -46,79 +45,6 @@ kotlin {
         }
     }
 
-    js(IR) { // Regular JS target (for Safari)
-        // Add support for the ES2015 features
-        useEsModules()
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js" // Replace with your desired output file name
-                output?.library = "composeApp" // Replace with your desired library name
-                cssSupport {
-                    enabled.set(true)
-                }
-            }
-            webpackTask {
-                // We don't need to do anything special here.
-                // The default webpack task is sufficient.
-            }
-        }
-        binaries.executable()
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.addAll(
-                        listOf(
-                            "-Xir-per-module",
-                            "-opt-in=kotlin.ExperimentalStdlibApi"
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs { // WebAssembly target
-        outputModuleName = "composeApp"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-            }
-        }
-        binaries.executable()
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions.freeCompilerArgs.addAll(
-                    listOf(
-                        "-Xir-per-module",
-                        "-Xwasm-attach-js-exception",
-                    )
-                )
-            }
-        }
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs { // WebAssembly target
-        outputModuleName = "composeApp"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-            }
-        }
-        binaries.executable()
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions.freeCompilerArgs.addAll(
-                    listOf(
-                        "-Xir-per-module",
-                        "-Xwasm-attach-js-exception",
-                    )
-                )
-            }
-        }
-    }
-
     applyDefaultHierarchyTemplate()
 
     sourceSets {
@@ -159,17 +85,19 @@ kotlin {
             implementation(libs.multiplatform.settings)
             // DateTime
             implementation(libs.kotlinx.dateTime)
-            // Google
-            implementation(libs.google.api.client)
             // File System
-//            implementation(libs.wavesonics.filepicker)
             implementation(libs.calf.file.picker)
-            implementation(libs.kotlinx.io.core)
+            implementation(libs.okio) // Check for the latest version
+
 
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.bundles.shared.commonTest)
+            // File System
+            implementation(libs.okio.fakefilesystem)
+            // Networking
+            implementation(libs.ktor.client.mock)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -187,6 +115,8 @@ kotlin {
             // Preferences
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.androidx.preference.ktx)
+            // Google Auth
+            implementation(libs.play.services.auth)
         }
 
         val androidUnitTest by getting {
@@ -245,34 +175,13 @@ kotlin {
                 // Networking & Serialization
                 // Choose lightweight CIO engine, if not sufficient move to OkHttp
                 implementation(libs.ktor.client.cio)
+                // Google Auth
+                implementation(libs.google.oauth.client.jetty)
+                implementation(libs.google.api.client)
             }
         }
 
         val desktopTest by getting
-
-        val jsMain by getting {
-            dependencies {
-                implementation(compose.html.core)
-                implementation(libs.kotlin.browser)
-                // Networking & Serialization
-                implementation(libs.ktor.client.js)
-            }
-        }
-
-        val jsTest by getting
-
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(libs.kotlinx.browser)
-                // Networking & Serialization
-                implementation(libs.ktor.client.wasm)
-                // Wavesonics filepicker not available in wasmJs
-//                implementation(npm("mpfilepicker", "3.1.0"))
-                //implementation(libs.wavesonics.filepicker)
-            }
-        }
-
-        val wasmJsTest by getting
 
     }
 
@@ -348,8 +257,6 @@ dependencies {
     // The configuration name is usually ksp<TargetName> or ksp<CapitalizedSourceSetName>
     add("kspAndroid", libs.koin.ksp.compiler)
     add("kspDesktop", libs.koin.ksp.compiler)
-    add("kspJs", libs.koin.ksp.compiler)
-    add("kspWasmJs", libs.koin.ksp.compiler)
 
     // For Apple targets (iOS, macOS, etc.), KSP configurations can be per-target
     add("kspIosX64", libs.koin.ksp.compiler)
@@ -360,6 +267,7 @@ dependencies {
     // highest level. Other platforms builds will ignore the dependency.
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
+
 
 // Configure KSP tasks to depend on kspCommonMainKotlinMetadata,to be able to use annotations in
 // commonMain. This is not done implicitly.
@@ -375,8 +283,6 @@ dependencies {
 //         "kspKotlinIosX64",
 //         "kspKotlinIosArm64",
 //         "kspKotlinIosSimulatorArm64",
-//         "kspKotlinJs",
-//         "kspKotlinWasmJs"
 //     )
 // For less maintenance when adding platforms, we examine if the task name matches a pattern.
 // This is done by name matching because accurately identifying these tasks by a common supertype
@@ -404,12 +310,9 @@ tasks.matching { it.name.startsWith("ksp") }.configureEach {
     // e.g., kspKotlinDesktop, kspDebugKotlinAndroid, kspReleaseKotlinIosX64
     val isKotlinPlatformKspTask =
             this.name.matches(Regex("ksp([A-Z][a-zA-Z0-9]*)?Kotlin([A-Z][a-zA-Z0-9_]+)"))
-    // Regex for JS-based platform KSP tasks (JS, WasmJs)
-    // e.g., kspJs, kspSomeVariantJs, kspWasmJs, kspSomeVariantWasmJs
-    val isJsBasedPlatformKspTask = this.name.matches(Regex("ksp([A-Z][a-zA-Z0-9]*)?(Wasm)?Js"))
 
     // 3. If the current KSP task matches one of our platform patterns, add the dependency.
-    if (isKotlinPlatformKspTask || isJsBasedPlatformKspTask) {
+    if (isKotlinPlatformKspTask) {
         project.logger.info("Configuring task '${this.name}' (name match) to depend on 'kspCommonMainKotlinMetadata'")
         this.dependsOn("kspCommonMainKotlinMetadata")
     } else {

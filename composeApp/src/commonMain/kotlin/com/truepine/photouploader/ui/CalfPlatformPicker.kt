@@ -2,6 +2,7 @@ package com.truepine.photouploader.ui
 
 import androidx.compose.runtime.Composable
 import com.mohamedrejeb.calf.core.LocalPlatformContext
+import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerLauncher
@@ -72,6 +73,19 @@ open class CalfPlatformPicker : PlatformPicker {
             type = FilePickerFileType.Folder,
             selectionMode = FilePickerSelectionMode.Single,
             onResult = { files -> if (files.isNotEmpty()) onDirectorySelected(files[0].getPath(context)) }
+        )
+        launchFilePicker(show = show, pickerLauncher = pickerLauncher)
+    }
+
+    @Composable
+    fun PlatformFolderPicker(
+        show: Boolean,
+        onFolderSelected: (KmpFile) -> Unit,
+    ) {
+        val pickerLauncher = rememberFilePickerLauncher(
+            type = FilePickerFileType.Folder,
+            selectionMode = FilePickerSelectionMode.Single,
+            onResult = { files -> if (files.isNotEmpty()) onFolderSelected(files[0]) }
         )
         launchFilePicker(show = show, pickerLauncher = pickerLauncher)
     }
