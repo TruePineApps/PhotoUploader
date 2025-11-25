@@ -23,7 +23,7 @@ kotlin {
     androidTarget {
         compilerOptions {
             // Bytecode version for Android
-            jvmTarget.set(JvmTarget.JVM_18)
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
@@ -40,8 +40,8 @@ kotlin {
 
     jvm("desktop") {
         compilerOptions {
-            // Bytecode version for desktop - PocketBase-kotlin lib needs Java 18
-            jvmTarget.set(JvmTarget.JVM_18)
+            // Bytecode version for desktop
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
@@ -231,8 +231,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_18
-        targetCompatibility = JavaVersion.VERSION_18
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
