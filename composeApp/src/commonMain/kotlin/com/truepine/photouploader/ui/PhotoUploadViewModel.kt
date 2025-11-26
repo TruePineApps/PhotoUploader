@@ -21,7 +21,6 @@ class PhotoUploadViewModel(
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
 
-
     init {
         // Automatically check for existing sign-in when the ViewModel is created
         checkInitialAuth()
@@ -51,7 +50,6 @@ class PhotoUploadViewModel(
             _isAuthenticated.value = false
         }
     }
-
 
     /**
      * Uploads photos from a directory structure to Google Photos.
@@ -132,7 +130,6 @@ class PhotoUploadViewModel(
         // Handle all directories on this path
         val titlePrefix = "$albumName - "
         for (topicDir in topicDirs) {
-            val topic = topicDir.name
             handleDirectory(topicDir, fileSystem, photoUploader, titlePrefix)
         }
 
@@ -183,115 +180,4 @@ class PhotoUploadViewModel(
         return true
     }
 
-    /**
-     * Uploads photos from a directory structure to Google Photos.
-     * Expected structure: path/year/topic/photos
-     *
-     * @param path Root directory path containing year folders
-     */
-    suspend fun uploadPhotosYearTopic(path: String, fileSystem: FileSystem = FileSystem.SYSTEM) {
-
-        val rootPath = path.toPath()
-
-        require(fileSystem.exists(rootPath)) {
-            "Root path does not exist: $path"
-        }
-        require(fileSystem.metadata(rootPath).isDirectory) {
-            "Root path is not a directory: $path"
-        }
-        try {
-            val accessToken = authService.signIn()
-            require(accessToken != null) {
-                "Failed to sign in"
-            }
-
-            val photoUploader = PhotoUploader(accessToken)
-
-            // List all year directories
-            val yearDirs = fileSystem.list(rootPath)
-                .filter { fileSystem.metadata(it).isDirectory }
-                .sortedBy { it.name }
-
-            println("Found ${yearDirs.size} year directories")
-
-            for (yearDir in yearDirs) {
-                val year = yearDir.name
-                println("\nProcessing year: $year")
-
-                // List all topic directories within the year
-                val topicDirs = fileSystem.list(yearDir)
-                    .filter { fileSystem.metadata(it).isDirectory }
-                    .sortedBy { it.name }
-
-                println("  Found ${topicDirs.size} topic directories in $year")
-
-                for (topicDir in topicDirs) {
-                    val topic = topicDir.name
-                    val albumName = "$year - $topic"
-
-                    println("  Processing topic: $topic")
-                    println("    Album name: $albumName")
-
-                    // List all photo files in the topic directory
-                    val photoFiles = fileSystem.list(topicDir)
-                        .filter {
-                            val metadata = fileSystem.metadata(it)
-                            metadata.isRegularFile && photoUploader.isPhotoFile(
-                                it.name
-                            )
-                        }
-                        .sortedBy { it.name }
-
-                    println("    Found ${photoFiles.size} photos in $topic")
-
-                    if (photoFiles.isEmpty()) {
-                        println("    WARNING: No photos found in directory")
-                        continue
-                    }
-
-                    // Create album
-                    val albumId = photoUploader.createAlbum(albumName)
-                    if (albumId == null) {
-                        println("    ERROR: Failed to create album: $albumName")
-                        continue
-                    }
-                    println("    Created album with ID: $albumId")
-
-                    // Upload photos and collect upload tokens
-                    val uploadTokens = mutableListOf<UploadedPhoto>()
-
-                    for ((index, photoFile) in photoFiles.withIndex()) {
-                        println("    Uploading photo ${index + 1}/${photoFiles.size}: ${photoFile.name}")
-
-                        val uploadToken = photoUploader.uploadPhoto(
-                            photoFile,
-                            fileSystem
-                        )
-                        if (uploadToken != null) {
-                            uploadTokens.add(UploadedPhoto(uploadToken, photoFile.name))
-                            println("      Success: ${photoFile.name}")
-                        } else {
-                            println("      ERROR: Failed to upload ${photoFile.name}")
-                        }
-                    }
-
-                    // Add photos to album in batches of 50 (API limit)
-                    if (uploadTokens.isNotEmpty()) {
-                        photoUploader.addPhotosToAlbum(albumId, uploadTokens)
-                        println("    Added ${uploadTokens.size} photos to album")
-                    }
-
-                    println("  Completed topic: $topic")
-                }
-
-                println("Completed year: $year")
-            }
-
-            println("\nUpload process completed!")
-
-        } catch (e: Exception) {
-            println("ERROR: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-}
+ }
