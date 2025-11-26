@@ -3,8 +3,9 @@ package com.truepine.photouploader.auth
 interface GoogleAuthService {
     /**
      * Triggers the sign-in flow.
-     * Returns the OAuth 2.0 Access Token (Bearer Token) as a String,
-     * or null if sign-in failed or was cancelled.
+     * If the user is already signed in and valid, then the valid token will be returned.
+     * @Return the OAuth 2.0 Access Token (Bearer Token) as a String, or null if sign-in failed or
+     * was cancelled.
      */
     suspend fun signIn(): String?
     
@@ -12,7 +13,7 @@ interface GoogleAuthService {
     
     /**
      * Checks if the user is already signed in and valid.
-     * Returns the Access Token if valid, null otherwise.
+     * @Return the Access Token if valid, null otherwise.
      */
     suspend fun restoreSignIn(): String?
 }

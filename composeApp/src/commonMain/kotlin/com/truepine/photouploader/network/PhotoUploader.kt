@@ -1,13 +1,5 @@
-package com.truepine.photouploader.ui
+package com.truepine.photouploader.network
 
-import com.truepine.photouploader.network.AlbumData
-import com.truepine.photouploader.network.AlbumResponse
-import com.truepine.photouploader.network.BatchCreateMediaItemsRequest
-import com.truepine.photouploader.network.BatchCreateMediaItemsResponse
-import com.truepine.photouploader.network.CreateAlbumRequest
-import com.truepine.photouploader.network.NewMediaItem
-import com.truepine.photouploader.network.SimpleMediaItem
-import com.truepine.photouploader.network.UploadedPhoto
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -21,134 +13,33 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import okio.FileSystem
-import okio.Path.Companion.toPath
-import okio.SYSTEM
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class UploadPhotosViewModel : KoinComponent {
+class PhotoUploader(val accessToken: String) : KoinComponent {
     private val client: HttpClient by inject()
     private val json = Json { ignoreUnknownKeys = true }
-    var accessToken: String = "" // Set this before calling uploadPhotos
-
-    /**
-     * Uploads photos from a directory structure to Google Photos.
-     * Expected structure: path/year/topic/photos
-     *
-     * @param path Root directory path containing year folders
-     */
-    suspend fun uploadPhotos(path: String, fileSystem: FileSystem = FileSystem.SYSTEM) {
-        val rootPath = path.toPath()
-
-        require(fileSystem.exists(rootPath)) {
-            "Root path does not exist: $path"
-        }
-        require(fileSystem.metadata(rootPath).isDirectory) {
-            "Root path is not a directory: $path"
-        }
-
-        try {
-            // List all year directories
-            val yearDirs = fileSystem.list(rootPath)
-                .filter { fileSystem.metadata(it).isDirectory }
-                .sortedBy { it.name }
-
-            println("Found ${yearDirs.size} year directories")
-
-            for (yearDir in yearDirs) {
-                val year = yearDir.name
-                println("\nProcessing year: $year")
-
-                // List all topic directories within the year
-                val topicDirs = fileSystem.list(yearDir)
-                    .filter { fileSystem.metadata(it).isDirectory }
-                    .sortedBy { it.name }
-
-                println("  Found ${topicDirs.size} topic directories in $year")
-
-                for (topicDir in topicDirs) {
-                    val topic = topicDir.name
-                    val albumName = "$year - $topic"
-
-                    println("  Processing topic: $topic")
-                    println("    Album name: $albumName")
-
-                    // Create album
-                    val albumId = createAlbum(albumName)
-                    if (albumId == null) {
-                        println("    ERROR: Failed to create album: $albumName")
-                        continue
-                    }
-                    println("    Created album with ID: $albumId")
-
-                    // List all photo files in the topic directory
-                    val photoFiles = fileSystem.list(topicDir)
-                        .filter {
-                            val metadata = fileSystem.metadata(it)
-                            metadata.isRegularFile && isPhotoFile(it.name)
-                        }
-                        .sortedBy { it.name }
-
-                    println("    Found ${photoFiles.size} photos in $topic")
-
-                    if (photoFiles.isEmpty()) {
-                        println("    WARNING: No photos found in directory")
-                        continue
-                    }
-
-                    // Upload photos and collect upload tokens
-                    val uploadTokens = mutableListOf<UploadedPhoto>()
-
-                    for ((index, photoFile) in photoFiles.withIndex()) {
-                        println("    Uploading photo ${index + 1}/${photoFiles.size}: ${photoFile.name}")
-
-                        val uploadToken = uploadPhoto(photoFile, fileSystem)
-                        if (uploadToken != null) {
-                            uploadTokens.add(UploadedPhoto(uploadToken, photoFile.name))
-                            println("      Success: ${photoFile.name}")
-                        } else {
-                            println("      ERROR: Failed to upload ${photoFile.name}")
-                        }
-                    }
-
-                    // Add photos to album in batches of 50 (API limit)
-                    if (uploadTokens.isNotEmpty()) {
-                        addPhotosToAlbum(albumId, uploadTokens)
-                        println("    Added ${uploadTokens.size} photos to album")
-                    }
-
-                    println("  Completed topic: $topic")
-                }
-
-                println("Completed year: $year")
-            }
-
-            println("\nUpload process completed!")
-
-        } catch (e: Exception) {
-            println("ERROR: ${e.message}")
-            e.printStackTrace()
-        }
-    }
 
     /**
      * Creates an album in Google Photos
      * @return Album ID if successful, null otherwise
      */
-    private suspend fun createAlbum(albumTitle: String): String? {
+    suspend fun createAlbum(albumTitle: String): String? {
         return try {
             val requestBody = CreateAlbumRequest(
                 album = AlbumData(title = albumTitle)
             )
 
-            val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/albums") {
-                header(HttpHeaders.Authorization, "Bearer $accessToken")
-                contentType(ContentType.Application.Json)
-                setBody(json.encodeToString(requestBody))
-            }
+            val response: HttpResponse =
+                    client.post("https://photoslibrary.googleapis.com/v1/albums") {
+                        header(HttpHeaders.Authorization, "Bearer $accessToken")
+                        contentType(ContentType.Application.Json)
+                        setBody(json.encodeToString(requestBody))
+                    }
 
             if (response.status.isSuccess()) {
-                val albumResponse = json.decodeFromString<AlbumResponse>(response.bodyAsText())
+                val albumResponse =
+                        json.decodeFromString<AlbumResponse>(response.bodyAsText())
                 albumResponse.id
             } else {
                 println("Failed to create album: ${response.status}")
@@ -166,7 +57,7 @@ class UploadPhotosViewModel : KoinComponent {
      * Uploads a photo file and returns the upload token
      * @return Upload token if successful, null otherwise
      */
-    private suspend fun uploadPhoto(photoPath: okio.Path, fileSystem: FileSystem): String? {
+    suspend fun uploadPhoto(photoPath: okio.Path, fileSystem: FileSystem): String? {
         return try {
             // Read the file as bytes
             val photoBytes = fileSystem.read(photoPath) {
@@ -201,7 +92,7 @@ class UploadPhotosViewModel : KoinComponent {
     /**
      * Adds uploaded photos to an album
      */
-    private suspend fun addPhotosToAlbum(albumId: String, photos: List<UploadedPhoto>) {
+    suspend fun addPhotosToAlbum(albumId: String, photos: List<UploadedPhoto>) {
         // Google Photos API allows up to 50 items per batch
         val batchSize = 50
 
@@ -253,7 +144,7 @@ class UploadPhotosViewModel : KoinComponent {
     /**
      * Checks if a file is a photo based on its extension
      */
-    private fun isPhotoFile(fileName: String): Boolean {
+    fun isPhotoFile(fileName: String): Boolean {
         // Accepted types: AVIF, BMP, GIF, HEIC, ICO, JPG, PNG, TIFF, WEBP, see https://developers.google.com/photos/library/guides/upload-media
         val photoExtensions = setOf("avif", "jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "ico", "tif", "tiff")
         val extension = fileName.substringAfterLast('.', "").lowercase()

@@ -4,7 +4,7 @@ import kotlinx.coroutines.delay
 
 class StubGoogleAuthService : GoogleAuthService {
     override suspend fun signIn(): String? {
-        delay(1000) // Simulate network delay
+        //delay(1000) // Simulate network delay
         return "fake_access_token_12345" // Simulate successful login
     }
 

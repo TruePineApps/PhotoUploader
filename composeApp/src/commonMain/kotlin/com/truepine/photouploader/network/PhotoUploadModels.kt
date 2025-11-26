@@ -18,10 +18,6 @@ data class AlbumData(
 data class CreateAlbumResponse(val id: String? = null)
 
 @Serializable
-data class EmptyMediaItem(val uploadToken: String)
-
-
-@Serializable
 data class AlbumResponse(
     val id: String,
     val title: String,
