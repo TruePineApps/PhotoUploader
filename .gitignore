@@ -75,3 +75,6 @@ local.properties
 
 # NodeJS
 node_modules/
+
+# Local files
+downloads/

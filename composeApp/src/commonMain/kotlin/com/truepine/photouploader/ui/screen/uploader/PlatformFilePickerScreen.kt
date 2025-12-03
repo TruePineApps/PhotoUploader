@@ -1,4 +1,4 @@
-package com.truepine.photouploader.ui
+package com.truepine.photouploader.ui.screen.uploader
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,11 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewModelScope
+import com.truepine.photouploader.ui.components.PlatformPicker.PlatformPicker
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun PlatformFilePickerScreen(filePicker: PlatformPicker, modifier : Modifier = Modifier, viewModel: PhotoUploadViewModel) {
+fun PlatformFilePickerScreen(filePicker: PlatformPicker, modifier : Modifier = Modifier, viewModel: PhotoUploaderViewModel) {
     val fileType = listOf("jpg", "png")
 
     Column(

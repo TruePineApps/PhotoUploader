@@ -1,4 +1,4 @@
-package com.truepine.photouploader.ui
+package com.truepine.photouploader.ui.components.PlatformPicker
 
 import androidx.compose.runtime.Composable
 import com.mohamedrejeb.calf.core.LocalPlatformContext
@@ -72,7 +72,13 @@ open class CalfPlatformPicker : PlatformPicker {
         val pickerLauncher = rememberFilePickerLauncher(
             type = FilePickerFileType.Folder,
             selectionMode = FilePickerSelectionMode.Single,
-            onResult = { files -> if (files.isNotEmpty()) onDirectorySelected(files[0].getPath(context)) }
+            onResult = { files ->
+                if (files.isNotEmpty()) onDirectorySelected(
+                    files[0].getPath(
+                        context
+                    )
+                )
+            }
         )
         launchFilePicker(show = show, pickerLauncher = pickerLauncher)
     }

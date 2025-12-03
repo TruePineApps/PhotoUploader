@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Photo Uploader</string>
+    <string name="photo_uploader">Photo Uploader</string>
+    <string name="busy">Busy</string>
+    <string name="loading">Loading %1$s</string>
+    <string name="error">Error</string>
+    <string name="retry_button">Retry</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="show_selection_dialog">Show selection dialog</string>
+    <string name="menu">Menu</string>
+    <string name="preferences">Preferences</string>
+    <string name="language">Language</string>
+    <string name="en">English</string>
+    <string name="nl">Nederlands</string>
+    <string name="system">System</string>
+    <string name="about">About</string>
+    <string name="about_photo_uploader">About Photo Uploader</string>
+    <string name="version">Version</string>
+    <string name="platform">Platform</string>
+    <string name="app_id">Application ID</string>
+    <string name="licenses">Licenses</string>
+    <string name="license_text">License text</string>
+    <string name="close_button">Close</string>
+    <string name="back_button">Back</string>
+    <string name="choose_folder">Choose folder</string>
+    <string name="upload_photos">Upload photos</string>
+    <string name="select_photo_folder">Select photo folder</string>
+</resources>

@@ -1,4 +1,4 @@
-package com.truepine.photouploader.ui
+package com.truepine.photouploader.ui.screen.uploader
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,18 +8,20 @@ import com.truepine.photouploader.network.UploadedPhoto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
-class PhotoUploadViewModel(
+class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
 ) : ViewModel() {
 
-    private val _isAuthenticated = MutableStateFlow(false)
-    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
         // Automatically check for existing sign-in when the ViewModel is created
@@ -30,7 +32,7 @@ class PhotoUploadViewModel(
         viewModelScope.launch {
             val token = authService.restoreSignIn()
             if (token != null) {
-                _isAuthenticated.value = true
+                _uiState.update { it.copy(isAuthenticated = true) }
             }
         }
     }
@@ -39,7 +41,7 @@ class PhotoUploadViewModel(
         viewModelScope.launch {
             val token = authService.signIn()
             if (token != null) {
-                _isAuthenticated.value = true
+                _uiState.update { it.copy(isAuthenticated = true) }
             }
         }
     }
@@ -47,13 +49,23 @@ class PhotoUploadViewModel(
     fun signOut() {
         viewModelScope.launch {
             authService.signOut()
-            _isAuthenticated.value = false
+            _uiState.update { it.copy(isAuthenticated = false) }
         }
     }
 
+    fun updatePath(path: String) {
+        _uiState.update { it.copy(path = path) }
+    }
+
+    fun updateShowDirPicker(isShowing: Boolean) {
+        _uiState.update { it.copy(isShowDirPicker = isShowing) }
+    }
+
+    fun updateIsUploading(isUploading: Boolean) {
+        _uiState.update { it.copy(isUploading = isUploading) }
+    }
     /**
      * Uploads photos from a directory structure to Google Photos.
-     * Expected structure: path/year/topic/photos
      *
      * @param path Root directory path containing year folders
      */
@@ -180,4 +192,11 @@ class PhotoUploadViewModel(
         return true
     }
 
- }
+}
+
+data class UiState(
+    val isAuthenticated: Boolean = false,
+    val isShowDirPicker: Boolean = false,
+    val isUploading: Boolean = false,
+    val path: String = "",
+)

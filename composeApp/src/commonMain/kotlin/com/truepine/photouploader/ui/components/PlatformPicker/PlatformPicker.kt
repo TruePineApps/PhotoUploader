@@ -1,4 +1,4 @@
-package com.truepine.photouploader.ui
+package com.truepine.photouploader.ui.components.PlatformPicker
 
 import androidx.compose.runtime.Composable
 

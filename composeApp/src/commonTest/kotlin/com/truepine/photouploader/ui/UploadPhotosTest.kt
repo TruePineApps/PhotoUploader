@@ -6,6 +6,7 @@ import com.truepine.photouploader.network.AlbumResponse
 import com.truepine.photouploader.network.BatchCreateMediaItemsResponse
 import com.truepine.photouploader.network.MediaItemResult
 import com.truepine.photouploader.network.StatusInfo
+import com.truepine.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -84,7 +85,7 @@ class UploadPhotosTest : KoinTest {
     fun `uploadPhotos throws IllegalArgumentException when root does not exist`() = runTest {
         val mockEngine = createMockEngine(mutableListOf())
         setupKoin(mockEngine)
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
 
         assertFailsWith<IllegalArgumentException> {
             viewModel.uploadPhotos(ROOT_PATH, fileSystem)
@@ -99,7 +100,7 @@ class UploadPhotosTest : KoinTest {
         ensureDirectory(rootPath.parent!!)
         fileSystem.write(rootPath) { writeUtf8("not a directory") }
         
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
 
         assertFailsWith<IllegalArgumentException> {
             viewModel.uploadPhotos(ROOT_PATH, fileSystem)
@@ -117,7 +118,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
         
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Verify requests
@@ -140,7 +141,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Total expected requests:
@@ -166,7 +167,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Verify only album creation was attempted
@@ -188,7 +189,7 @@ class UploadPhotosTest : KoinTest {
         )
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo)
@@ -212,7 +213,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         val batchRequests = requests.filter { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) }
@@ -228,7 +229,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Verify no requests were made
@@ -247,7 +248,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         
         // Call uploadPhotos with the start path "2024" relative to root logic
         val startPath = rootPath / "2024"

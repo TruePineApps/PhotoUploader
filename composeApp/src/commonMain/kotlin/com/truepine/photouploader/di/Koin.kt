@@ -1,11 +1,24 @@
 package com.truepine.photouploader.di
 
-import com.truepine.photouploader.ui.CalfPlatformPicker
-import com.truepine.photouploader.ui.PlatformPicker
+import com.russhwolf.settings.Settings
+import com.truepine.photouploader.data.preferences.UserPreferencesRepository
+import com.truepine.photouploader.data.preferences.UserPreferencesSettingsRepository
+import com.truepine.photouploader.localization.DateTimeFormatter
+import com.truepine.photouploader.localization.NumberFormatter
+import com.truepine.photouploader.localization.PlatformLocaleManager
+import com.truepine.photouploader.localization.PlatformLocaleProvider
+import com.truepine.photouploader.ui.components.PlatformPicker.CalfPlatformPicker
+import com.truepine.photouploader.ui.components.PlatformPicker.PlatformPicker
+import com.truepine.photouploader.ui.localization.LocaleViewModel
+import com.truepine.photouploader.ui.screen.settings.SettingsViewModel
+import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
-import org.koin.ksp.generated.*
+import org.koin.ksp.generated.module
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * Initializes the Koin dependency injection framework for the application.
@@ -16,20 +29,60 @@ import org.koin.ksp.generated.*
  *
  * pickerModule is set by desktop; it overrides the default DirectoryPicker which does not work.
  *
- * @param pickerModule The Koin [Module] that provides the [PlatformPicker] implementation.
- *                     Defaults to a module providing [CalfPlatformPicker] as a singleton.
- *                     This can be overridden for testing or specific platform needs.
+ * @param isPickerDefined Whether the platform-specific picker implementation is defined in the
+ *                      appDeclaration. If false, the core module provides the default
+ *                      [CalfPlatformPicker] as a singleton. This can be overridden for testing or
+ *                      specific platform needs.
+ * @param contextDeclaration The platform context specific Koin initialization that provides
+ *                      instances that are specific for a certain platform like the [PlatformPicker]
+ *                      implementation or context dependent instances, like the Android Context.
+ * @return The Koin application instance.
  */
 fun initKoin(
-    pickerModule: Module = module { single<PlatformPicker> { CalfPlatformPicker() } },
-) {
-    startKoin {
-        // Load the common AppModule and the platform-specific module
+    isPickerDefined: Boolean = false,
+    contextDeclaration: KoinAppDeclaration = {},
+): KoinApplication {
+    return startKoin {
+        contextDeclaration()
+
+        // Load the common AppModule, the platform-specific modules and the core module
         modules(
-            pickerModule,
             AppModule().module,
             viewModelModule(),
-            platformModule()
+            platformModule(),
+            // Localization info: locale handling; date, time and number formatting
+            // Platform dependent, partly in Kotlin
+            platformLocalizationModule,
+            // Settings storage
+            // Platform dependent, in Kotlin
+            settingsModule,
+            // Common core modules
+            // Platform independent, in Kotlin
+            coreModule(isPickerDefined)
         )
     }
+}
+
+/**
+ * Expected Koin module that provides platform-specific implementations for
+ * [PlatformLocaleManager], [DateTimeFormatter], and [NumberFormatter].
+ * The [PlatformLocaleProvider] will typically be the same instance as [PlatformLocaleManager].
+ */
+expect val platformLocalizationModule: Module
+
+/**
+ * Expected Koin module that provides platform-specific implementation for the [Settings] storage.
+ */
+expect val settingsModule: Module
+
+@OptIn(ExperimentalTime::class)
+private fun coreModule(isPickerDefined: Boolean) = module {
+    if (!isPickerDefined) {
+        single<PlatformPicker> { CalfPlatformPicker() }
+    }
+    single<UserPreferencesRepository> { UserPreferencesSettingsRepository(get()) }
+    single { LocaleViewModel(userPreferencesRepository = get()) }
+    single { SettingsViewModel(userPreferencesRepository = get()) }
+
+    single<Clock> { Clock.System }
 }

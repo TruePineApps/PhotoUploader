@@ -3,6 +3,7 @@ package com.truepine.photouploader.ui
 import com.truepine.photouploader.auth.GoogleAuthService
 import com.truepine.photouploader.di.AppModule
 import com.truepine.photouploader.di.viewModelModule
+import com.truepine.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -22,7 +23,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PhotoUploadViewModelTest : KoinTest {
+class PhotoUploaderViewModelTest : KoinTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -60,17 +61,17 @@ class PhotoUploadViewModelTest : KoinTest {
 
         // 2. Inject the ViewModel via Koin.
         // Accessing the property triggers creation, which runs the init block.
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
         
         // Force creation by accessing property and check initial state
-        val state = viewModel.isAuthenticated
-        assertFalse(state.value, "Initially should not be authenticated")
+        val state = viewModel.uiState.value
+        assertFalse(state.isAuthenticated, "Initially should not be authenticated")
 
         // 3. Run pending coroutines (from the init block)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // 4. Verify state changed to true
-        assertTrue(viewModel.isAuthenticated.value, "Should be authenticated after successful restore")
+        assertTrue(viewModel.uiState.value.isAuthenticated, "Should be authenticated after successful restore")
     }
 
     @Test
@@ -78,18 +79,18 @@ class PhotoUploadViewModelTest : KoinTest {
         val successStub = GoogleAuthServiceStub(signInToken = "valid_token")
         startTestKoin(successStub)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
 
         // Run initial auth check (which will fail/do nothing since restoreToken is null)
         testDispatcher.scheduler.advanceUntilIdle()
-        assertFalse(viewModel.isAuthenticated.value, "Initially should not be authenticated")
+        assertFalse(viewModel.uiState.value.isAuthenticated, "Initially should not be authenticated")
 
         // 3. Trigger Sign In
         viewModel.signIn()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // 4. Verify state changed to true
-        assertTrue(viewModel.isAuthenticated.value, "Should be authenticated after successful sign-in")
+        assertTrue(viewModel.uiState.value.isAuthenticated, "Should be authenticated after successful sign-in")
     }
 
     @Test
@@ -97,16 +98,16 @@ class PhotoUploadViewModelTest : KoinTest {
         val failureStub = GoogleAuthServiceStub(signInToken = null)
         startTestKoin(failureStub)
 
-        val viewModel: PhotoUploadViewModel by inject()
+        val viewModel: PhotoUploaderViewModel by inject()
 
         testDispatcher.scheduler.advanceUntilIdle()
-        assertFalse(viewModel.isAuthenticated.value, "Initially should not be authenticated")
+        assertFalse(viewModel.uiState.value.isAuthenticated, "Initially should not be authenticated")
 
         // 3. Trigger Sign In
         viewModel.signIn()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // 4. Verify state remains false
-        assertFalse(viewModel.isAuthenticated.value, "Should NOT be authenticated if signIn returns null")
+        assertFalse(viewModel.uiState.value.isAuthenticated, "Should NOT be authenticated if signIn returns null")
     }
 }

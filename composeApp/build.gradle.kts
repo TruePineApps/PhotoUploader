@@ -16,6 +16,45 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
+val appId = "com.truepine.photouploader"
+// App version from libs.versions.toml
+val versionCode: Int = libs.versions.appVersionCode.get().toInt()
+val versionName: String = libs.versions.appVersionName.get()
+
+val generateBuildProperties by tasks.registering {
+    val outputDir = layout.buildDirectory.dir("generated/resources/custom")
+    val propsFile = outputDir.map { it.file("build-info.properties") }
+
+    // 1. Define inputs strongly so Gradle can cache them
+    // We capture the values into the task's state, breaking the link to the script scope
+    val vName = versionName
+    val vCode = versionCode
+    val aId = appId
+
+    inputs.property("version_name", vName)
+    inputs.property("version_code", vCode)
+    inputs.property("app_id", aId)
+
+    // 2. Define the output file
+    outputs.file(propsFile)
+
+    // 3. The action
+    doLast {
+        val file = propsFile.get().asFile
+        file.parentFile.mkdirs()
+
+        // Use the local variables which are now safely captured by the closure's copy,
+        // instead of referencing the script-level properties directly.
+        file.writeText(
+            """
+            version_name=$vName
+            version_code=$vCode
+            app_id=$aId
+            """.trimIndent()
+        )
+    }
+}
+
 kotlin {
     // Select the JDK to run the Kotlin compiler
     jvmToolchain(21)
@@ -43,6 +82,10 @@ kotlin {
             // Bytecode version for desktop
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        // Register the output folder as a resource directory for the 'desktop' target
+        compilations.getByName("main").defaultSourceSet.resources.srcDir(
+            generateBuildProperties.map { it.outputs.files.singleFile.parentFile }
+        )
     }
 
     applyDefaultHierarchyTemplate()
@@ -81,6 +124,8 @@ kotlin {
             implementation(libs.ktor.client.logging)
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
+            // Navigation
+            implementation(libs.navigation.compose)
             // Preferences
             implementation(libs.multiplatform.settings)
             // DateTime
@@ -196,11 +241,11 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.truepine.photouploader"
+        applicationId = appId
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = versionCode
+        versionName = versionName
     }
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
@@ -356,6 +401,7 @@ compose.desktop {
     }
 }
 
+// 1. Define the task to generate the properties file
 compose.resources {
     publicResClass = false
     // Use a more friendly import name than photouploader.composeapp.generated.resources

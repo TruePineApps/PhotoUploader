@@ -13,6 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import okio.Path
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -57,7 +58,7 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
      * Uploads a photo file and returns the upload token
      * @return Upload token if successful, null otherwise
      */
-    suspend fun uploadPhoto(photoPath: okio.Path, fileSystem: FileSystem): String? {
+    suspend fun uploadPhoto(photoPath: Path, fileSystem: FileSystem): String? {
         return try {
             // Read the file as bytes
             val photoBytes = fileSystem.read(photoPath) {
