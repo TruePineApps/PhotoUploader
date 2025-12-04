@@ -78,3 +78,6 @@ node_modules/
 
 # Local files
 downloads/
+
+# Ignore the Google Auth secret
+composeApp/src/desktopMain/resources/client_secrets.json

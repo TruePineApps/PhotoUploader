@@ -82,6 +82,15 @@ kotlin {
             // Bytecode version for desktop
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        // Warn if the client_secrets.json file is missing
+        val secretsPath = "src/desktopMain/resources/client_secrets.json"
+        val secretsFile = project.file(secretsPath)
+        if (!secretsFile.exists()) {
+            project.logger.warn("⚠️ WARNING: Google Auth 'client_secrets.json' not found at $secretsPath.")
+            project.logger.warn("   The app may crash at runtime. Please download the JSON from Google Cloud Console.")
+        }
+
         // Register the output folder as a resource directory for the 'desktop' target
         compilations.getByName("main").defaultSourceSet.resources.srcDir(
             generateBuildProperties.map { it.outputs.files.singleFile.parentFile }
