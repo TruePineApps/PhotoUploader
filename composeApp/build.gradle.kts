@@ -16,7 +16,7 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
-val appId = "com.truepine.photouploader"
+val appId = "com.truepineapps.photouploader"
 // App version from libs.versions.toml
 val versionCode: Int = libs.versions.appVersionCode.get().toInt()
 val versionName: String = libs.versions.appVersionName.get()
@@ -237,7 +237,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.truepine.photouploader"
+    namespace = "com.truepineapps.photouploader"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -369,7 +369,7 @@ tasks.matching { it.name.startsWith("ksp") }.configureEach {
 
 compose.desktop {
     application {
-        mainClass = "com.truepine.photouploader.MainKt"
+        mainClass = "com.truepineapps.photouploader.MainKt"
         description = "Upload a photo collection organized in folders to Google Photo"
 
         // Explicitly link to your custom "desktop" JVM target
@@ -382,7 +382,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.truepine.photouploader"
+            packageName = "com.truepineapps.photouploader"
             packageVersion = "1.0.0"
 
             linux {
@@ -405,7 +405,7 @@ compose.desktop {
 compose.resources {
     publicResClass = false
     // Use a more friendly import name than photouploader.composeapp.generated.resources
-    packageOfResClass = "com.truepine.photouploader.resources"
+    packageOfResClass = "com.truepineapps.photouploader.resources"
     generateResClass = auto
 }
 
