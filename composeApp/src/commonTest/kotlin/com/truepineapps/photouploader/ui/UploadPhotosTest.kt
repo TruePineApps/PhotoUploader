@@ -21,6 +21,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -88,9 +90,10 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(mutableListOf())
         setupKoin(mockEngine)
         val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.updatePath(ROOT_PATH)
 
         assertFailsWith<IllegalArgumentException> {
-            viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+            viewModel.uploadPhotos(fileSystem)
         }
     }
 
@@ -103,9 +106,10 @@ class UploadPhotosTest : KoinTest {
         fileSystem.write(rootPath) { writeUtf8("not a directory") }
 
         val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.updatePath(ROOT_PATH)
 
         assertFailsWith<IllegalArgumentException> {
-            viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+            viewModel.uploadPhotos(fileSystem)
         }
     }
 
@@ -120,8 +124,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Verify requests
         assertEquals(4, requests.size) // 1 create album, 2 uploads, 1 batch create
@@ -143,8 +146,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Total expected requests:
         // 2 Years * 2 Topics = 4 Topics
@@ -169,8 +171,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Verify only album creation was attempted
         assertEquals(1, requests.size)
@@ -191,8 +192,7 @@ class UploadPhotosTest : KoinTest {
         )
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo)
         assertEquals(4, requests.size)
@@ -215,8 +215,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         val batchRequests = requests.filter { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) }
         assertEquals(2, batchRequests.size) // 55 photos -> 50 + 5 -> 2 batches
@@ -231,8 +230,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Verify no requests were made
         assertTrue(requests.isEmpty(), "No requests should be made for empty topic directory")
@@ -250,9 +248,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
 
-        val viewModel: PhotoUploaderViewModel by inject()
-
-        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
+        uploadPhotos()
 
         // Expectations: 3 Albums, 3 Uploads, 3 Batch creates -> 9 requests
         assertEquals(9, requests.size)
@@ -347,6 +343,13 @@ class UploadPhotosTest : KoinTest {
             path.parent?.let { ensureDirectory(it) }
             fileSystem.createDirectory(path)
         }
+    }
+
+    private suspend fun TestScope.uploadPhotos() {
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.updatePath(ROOT_PATH)
+        viewModel.uploadPhotos(fileSystem)?.join()
+        advanceUntilIdle()
     }
 
     private fun List<HttpRequestData>.assertAlbumCreated(expectedTitle: String) {

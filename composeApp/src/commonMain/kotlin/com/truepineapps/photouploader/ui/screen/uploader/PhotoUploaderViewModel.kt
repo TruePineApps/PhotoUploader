@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.network.PhotoUploader
 import com.truepineapps.photouploader.network.UploadedPhoto
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,20 +65,47 @@ class PhotoUploaderViewModel(
     fun updateIsUploading(isUploading: Boolean) {
         _uiState.update { it.copy(isUploading = isUploading) }
     }
+
     /**
      * Uploads photos from a directory structure to Google Photos.
      *
-     * @param path Root directory path containing year folders
+     * @param fileSystem File system to use for reading the directory structure
      */
-    suspend fun uploadPhotos(path: String, fileSystem: FileSystem = FileSystem.SYSTEM) {
-        val rootPath = path.toPath()
+    fun uploadPhotos(fileSystem: FileSystem = FileSystem.SYSTEM): Job? {
+        val state = _uiState.value
+        if (state.path.isNotBlank() && !state.busy()) {
+            val rootPath = state.path.toPath()
 
-        require(fileSystem.exists(rootPath)) {
-            "Root path does not exist: $path"
+            require(fileSystem.exists(rootPath)) {
+                "Root path does not exist: ${state.path}"
+            }
+            require(fileSystem.metadata(rootPath).isDirectory) {
+                "Root path is not a directory: ${state.path}"
+            }
+
+            updateIsUploading(true)
+            return viewModelScope.launch {
+                try {
+                    uploadPhotosImpl(rootPath, fileSystem)
+                } finally {
+                    updateIsUploading(false)
+                }
+            }
         }
-        require(fileSystem.metadata(rootPath).isDirectory) {
-            "Root path is not a directory: $path"
-        }
+        return null
+    }
+
+    /** Signs in to obtain an access token and starts uploading the photo's from the root directory
+     * @param rootPath Path to the root directory containing the photos
+     * @param fileSystem File system to use
+     * @throws Exception if the sign in fails or the upload fails
+     * @return true if successful, false otherwise
+     */
+    private suspend fun uploadPhotosImpl(
+        rootPath: Path,
+        fileSystem: FileSystem = FileSystem.SYSTEM,
+    ): Boolean {
+        var result = false
         try {
             val accessToken = authService.signIn()
             require(accessToken != null) {
@@ -85,12 +113,13 @@ class PhotoUploaderViewModel(
             }
             val photoUploader = PhotoUploader(accessToken)
 
-            handleDirectory(rootPath, fileSystem, photoUploader)
+            result = handleDirectory(rootPath, fileSystem, photoUploader)
             println("\nUpload process completed!")
         } catch (e: Exception) {
             println("ERROR: ${e.message}")
             e.printStackTrace()
         }
+        return result
     }
 
     /** recursively uploads the photos in the path to a new Google Album.
@@ -208,4 +237,6 @@ data class UiState(
     val isShowDirPicker: Boolean = false,
     val isUploading: Boolean = false,
     val path: String = "",
-)
+) {
+    fun busy() = isShowDirPicker || isUploading
+}

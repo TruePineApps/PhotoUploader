@@ -121,7 +121,7 @@ private fun ThemedLocalizedApp(
         viewModel.updateShowDirPicker(false)
     }
 
-    val busy = uiState.isShowDirPicker || uiState.isUploading
+    val busy = uiState.busy()
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
         topBar = {
@@ -132,18 +132,7 @@ private fun ThemedLocalizedApp(
                 closeDialog = if (closeAction.value == defaultCloseAction) null else closeAction.value,
                 navigateUp = { navController.navigateUp() },
                 showDirPicker = { viewModel.updateShowDirPicker(true) },
-                uploadPhotos = {
-                    if (uiState.path.isNotBlank() && !busy) {
-                        viewModel.updateIsUploading(true)
-                        viewModel.viewModelScope.launch {
-                            try {
-                                viewModel.uploadPhotos(uiState.path)
-                            } finally {
-                                viewModel.updateIsUploading(false)
-                            }
-                        }
-                    }
-                },
+                uploadPhotos = { viewModel.uploadPhotos() },
                 canChooseDirectory = !busy,
                 canUploadPhotos = uiState.path.isNotBlank() && !busy,
                 scrollBehavior = scrollBehavior,

@@ -87,7 +87,7 @@ fun PlatformFilePickerScreen(filePicker: PlatformPicker, modifier : Modifier = M
 
         if (validDir) {
             viewModel.viewModelScope.launch {
-                viewModel.uploadPhotos(dirChosen)
+                viewModel.uploadPhotos()
             }
         }
     }
