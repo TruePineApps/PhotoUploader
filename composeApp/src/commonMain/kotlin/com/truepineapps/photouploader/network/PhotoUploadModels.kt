@@ -57,7 +57,7 @@ data class MediaItemResult(
 
 @Serializable
 data class StatusInfo(
-    val code: Int,
+    val code: Int? = null,
     val message: String? = null
 )
 

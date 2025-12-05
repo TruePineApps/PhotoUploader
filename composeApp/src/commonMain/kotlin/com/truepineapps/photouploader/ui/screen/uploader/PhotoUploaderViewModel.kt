@@ -70,7 +70,6 @@ class PhotoUploaderViewModel(
      * @param path Root directory path containing year folders
      */
     suspend fun uploadPhotos(path: String, fileSystem: FileSystem = FileSystem.SYSTEM) {
-
         val rootPath = path.toPath()
 
         require(fileSystem.exists(rootPath)) {
@@ -105,10 +104,20 @@ class PhotoUploaderViewModel(
         path: Path,
         fileSystem: FileSystem,
         photoUploader: PhotoUploader,
-        albumTitle: String = "",
+        albumTitle: String? = null,
     ): Boolean {
         var result = true
-        val albumName = "$albumTitle${path.name}"
+        val albumName: String
+        val titlePrefix: String
+        if (albumTitle == null) {
+            // Root folder must only be used for album name for root level pictures, not in the album path name
+            albumName = path.name
+            titlePrefix = ""
+        } else {
+            albumName = "$albumTitle${path.name}"
+            titlePrefix = "$albumName - "
+        }
+
 
         // List all photo files on this path
         val photoFiles = fileSystem.list(path)
@@ -118,12 +127,20 @@ class PhotoUploaderViewModel(
             }
             .sortedBy { it.name }
 
-        println("    Found ${photoFiles.size} photos in ${path.name}")
+        println("  Found ${photoFiles.size} photos in ${path.name}")
 
+        // List all topic directories on this path
+        val topicDirs = fileSystem.list(path)
+            .filter { fileSystem.metadata(it).isDirectory }
+            .sortedBy { it.name }
+        println("  Found ${topicDirs.size} topic directories in $path")
+
+        // Upload all photos on this path
         if (photoFiles.isEmpty()) {
-            println("    WARNING: No photos found in directory")
+            if (topicDirs.isEmpty()) {
+                println("  WARNING: No photos found in directory")
+            }
         } else {
-            // Upload all photos on this path
             result = result && uploadPhotosToNewAlbum(
                 albumName,
                 photoFiles,
@@ -132,20 +149,12 @@ class PhotoUploaderViewModel(
             )
         }
 
-        // List all topic directories on this path
-        val topicDirs = fileSystem.list(path)
-            .filter { fileSystem.metadata(it).isDirectory }
-            .sortedBy { it.name }
-
-        println("  Found ${topicDirs.size} topic directories in $path")
-
         // Handle all directories on this path
-        val titlePrefix = "$albumName - "
         for (topicDir in topicDirs) {
             handleDirectory(topicDir, fileSystem, photoUploader, titlePrefix)
         }
 
-        println("Completed year: ${path.name}")
+        println("Completed dir: ${path.name}")
         return result
     }
 
@@ -164,7 +173,7 @@ class PhotoUploaderViewModel(
             println("    ERROR: Failed to create album: $albumName")
             return false
         }
-        println("    Created album with ID: $albumId")
+        println("    Created album with ID: $albumId for $albumName")
 
         // Upload photos and collect upload tokens
         val uploadTokens = mutableListOf<UploadedPhoto>()

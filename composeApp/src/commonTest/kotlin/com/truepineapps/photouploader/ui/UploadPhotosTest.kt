@@ -25,6 +25,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -99,7 +101,7 @@ class UploadPhotosTest : KoinTest {
         // Manually create root as file
         ensureDirectory(rootPath.parent!!)
         fileSystem.write(rootPath) { writeUtf8("not a directory") }
-        
+
         val viewModel: PhotoUploaderViewModel by inject()
 
         assertFailsWith<IllegalArgumentException> {
@@ -117,7 +119,7 @@ class UploadPhotosTest : KoinTest {
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
-        
+
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
@@ -194,10 +196,10 @@ class UploadPhotosTest : KoinTest {
 
         // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo)
         assertEquals(4, requests.size)
-        
+
         // Check that batch create was called, implying at least one photo succeeded
         assertTrue(requests.any { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) })
-        
+
         // Verify photo1 succeeded
         requests.assertPhotoUploaded("photo1.jpg")
     }
@@ -249,10 +251,8 @@ class UploadPhotosTest : KoinTest {
         setupKoin(mockEngine)
 
         val viewModel: PhotoUploaderViewModel by inject()
-        
-        // Call uploadPhotos with the start path "2024" relative to root logic
-        val startPath = rootPath / "2024"
-        viewModel.uploadPhotos(startPath.toString(), fileSystem)
+
+        viewModel.uploadPhotos(ROOT_PATH, fileSystem)
 
         // Expectations: 3 Albums, 3 Uploads, 3 Batch creates -> 9 requests
         assertEquals(9, requests.size)
@@ -271,7 +271,7 @@ class UploadPhotosTest : KoinTest {
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
         shouldFailAlbumCreation: Boolean = false,
-        shouldFailUploadForFile: String? = null
+        shouldFailUploadForFile: String? = null,
     ): MockEngine {
         return MockEngine { request ->
             requestLog.add(request)
@@ -296,6 +296,7 @@ class UploadPhotosTest : KoinTest {
                         )
                     }
                 }
+
                 url.endsWith(ENDPOINT_UPLOADS) -> {
                     val fileName = request.headers["X-Goog-Upload-File-Name"]
                     if (shouldFailUploadForFile != null && fileName == shouldFailUploadForFile) {
@@ -307,13 +308,14 @@ class UploadPhotosTest : KoinTest {
                         )
                     }
                 }
+
                 url.endsWith(ENDPOINT_BATCH_CREATE) -> {
                     val results = listOf(
-                         MediaItemResult("t1", StatusInfo(0, "OK")),
-                         MediaItemResult("t2", StatusInfo(0, "OK"))
+                        MediaItemResult("t1", StatusInfo(0, "OK")),
+                        MediaItemResult("t2", StatusInfo(0, "OK"))
                     )
                     val response = BatchCreateMediaItemsResponse(results)
-                    
+
                     respond(
                         content = json.encodeToString(response),
                         status = HttpStatusCode.OK,
@@ -323,6 +325,7 @@ class UploadPhotosTest : KoinTest {
                         )
                     )
                 }
+
                 else -> error("Unhandled request: ${request.url}")
             }
         }
@@ -348,11 +351,33 @@ class UploadPhotosTest : KoinTest {
 
     private fun List<HttpRequestData>.assertAlbumCreated(expectedTitle: String) {
         val albumRequests = this.filter { it.url.toString().endsWith(ENDPOINT_ALBUMS) }
+        var actualTitle = ""
         val found = albumRequests.any { req ->
-            val content = req.body
-            (content is TextContent) && content.text.contains(expectedTitle)
+            val title = getAlbumTitle(req)
+            if (title.isNullOrBlank()) {
+                false
+            } else if (title == expectedTitle) {
+                actualTitle = title
+                true
+            } else {
+                if (actualTitle.isEmpty() && title.contains(expectedTitle)) {
+                    actualTitle = title
+                }
+                false
+            }
         }
-        assertTrue(found, "Album creation request for '$expectedTitle' not found")
+
+        assertTrue(
+            found,
+            "Album creation request: expected title '$expectedTitle', actual title '$actualTitle'"
+        )
+    }
+
+    private fun getAlbumTitle(request: HttpRequestData): String? {
+        val content = request.body
+        val text = if (content is TextContent) content.text else ""
+        val jsonElement = json.parseToJsonElement(text)
+        return jsonElement.jsonObject["album"]?.jsonObject?.get("title")?.jsonPrimitive?.content
     }
 
     private fun List<HttpRequestData>.assertPhotoUploaded(fileName: String) {
