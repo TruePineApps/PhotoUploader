@@ -16,7 +16,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
-import org.koin.ksp.generated.module
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -47,7 +46,7 @@ fun initKoin(
 
         // Load the common AppModule, the platform-specific modules and the core module
         modules(
-            AppModule().module,
+            appModule,
             viewModelModule(),
             platformModule(),
             // Localization info: locale handling; date, time and number formatting

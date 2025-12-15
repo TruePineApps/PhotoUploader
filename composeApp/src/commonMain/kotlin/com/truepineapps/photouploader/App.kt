@@ -1,12 +1,10 @@
 package com.truepineapps.photouploader
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -17,8 +15,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,15 +31,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.app_name
+import com.truepineapps.photouploader.resources.appicon
 import com.truepineapps.photouploader.resources.back_button
 import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
@@ -51,6 +47,7 @@ import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.upload_photos
+import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.PlatformPicker.PlatformPicker
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.localization.AppEnvironment
@@ -59,9 +56,8 @@ import com.truepineapps.photouploader.ui.navigation.MenuNavigatorImpl
 import com.truepineapps.photouploader.ui.navigation.PhotoUploaderAppNavHost
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderDestination
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
-import com.truepineapps.photouploader.ui.screen.uploader.PlatformFilePickerScreen
 import com.truepineapps.photouploader.ui.theme.AppTheme
-import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -114,14 +110,28 @@ private fun ThemedLocalizedApp(
         null
     }
 
+    // Make sure the platform context is set
+    viewModel.platformContext = LocalPlatformContext.current
+
     // File Picker is a global state in the app
-    val uiState = viewModel.uiState.collectAsState().value
-    filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { path ->
-        viewModel.updatePath(path ?: "")
+    val uiState by viewModel.uiState.collectAsState()
+    filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { kmpFile, path ->
+        if (kmpFile != null) {
+            viewModel.updatePath(kmpFile, path!!)
+        }
         viewModel.updateShowDirPicker(false)
     }
 
     val busy = uiState.busy()
+    // Only allow uploading if we have albums, path is set, and not currently busy
+    val canUpload = uiState.albums.isNotEmpty() && uiState.path.isNotBlank() && !busy
+
+    val showDirPickerAction = {
+        viewModel.updateShowDirPicker(true)
+        navController.popBackStack(PhotoUploaderDestination.route, inclusive = false)
+        Unit
+    }
+
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
         topBar = {
@@ -131,10 +141,15 @@ private fun ThemedLocalizedApp(
                 canNavigateBack = navController.previousBackStackEntry != null,
                 closeDialog = if (closeAction.value == defaultCloseAction) null else closeAction.value,
                 navigateUp = { navController.navigateUp() },
-                showDirPicker = { viewModel.updateShowDirPicker(true) },
-                uploadPhotos = { viewModel.uploadPhotos() },
+                showDirPicker = showDirPickerAction,
+                uploadPhotos = {
+                    // Since uploadPhotos is a suspend function or launches a coroutine,
+                    // and we just need to trigger it here.
+                    // The ViewModel's uploadPhotos returns a Job? which we can ignore here or handle if needed.
+                    viewModel.uploadPhotos()
+                },
                 canChooseDirectory = !busy,
-                canUploadPhotos = uiState.path.isNotBlank() && !busy,
+                canUploadPhotos = canUpload,
                 scrollBehavior = scrollBehavior,
                 actions = actions.value
             )
@@ -149,10 +164,11 @@ private fun ThemedLocalizedApp(
                 closeAction.value = newCloseDialog ?: defaultCloseAction
                 actions.value = newActions
             },
-            showDirPicker = { viewModel.updateShowDirPicker(true) },
+            showDirPicker = showDirPickerAction,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
+            viewModel = viewModel
         )
     }
 }
@@ -174,34 +190,40 @@ fun PhotoLoaderAppBar(
     canChooseDirectory: Boolean,
     canUploadPhotos: Boolean,
     modifier: Modifier = Modifier,
-    actions: @Composable (RowScope.() -> Unit) = {}, // TODO: Are custom actions necessary?
+    actions: @Composable (RowScope.() -> Unit) = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
 ) {
     // The expanded state of the dropdown menu.
     var expanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
-        title = { Text(title) },
+        title = { Text(text = title, color = MaterialTheme.colorScheme.primary) },
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
             if (closeDialog != null) {
-                IconButton(onClick = {
-                    closeDialog()
-                    navigateUp()
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(Res.string.close_button)
-                    )
-                }
+                ThemedIconButton(
+                    imageVector = Icons.Filled.Close,
+                    contentDescriptionResource = Res.string.close_button,
+                    onClick = {
+                        closeDialog()
+                        navigateUp()
+                    },
+                    enabled = true
+                )
             } else if (canNavigateBack) {
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.back_button)
-                    )
-                }
+                ThemedIconButton(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescriptionResource = Res.string.back_button,
+                    onClick = navigateUp,
+                    enabled = true
+                )
+            } else {
+                Image(
+                    bitmap = imageResource(Res.drawable.appicon),
+                    contentDescription = "",
+                    modifier = Modifier.size(Dimensions.medium_icon_size)
+                )
             }
         },
         actions = {
@@ -244,23 +266,4 @@ fun PhotoLoaderAppBar(
         },
         colors = colors
     )
-}
-
-@Composable
-fun AppContent() {
-    Column(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .safeContentPadding()
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-//        if (isAuthenticated) {
-        val picker: PlatformPicker = koinInject()
-        PlatformFilePickerScreen(filePicker = picker, viewModel = koinInject())
-//        } else {
-//            GoogleSignInButton(onClick = viewModel::signIn)
-//        }
-    }
 }

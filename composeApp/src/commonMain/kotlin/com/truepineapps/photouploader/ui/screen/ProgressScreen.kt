@@ -9,7 +9,7 @@ import com.truepineapps.photouploader.ui.components.ProgressIndicator
 import org.jetbrains.compose.resources.StringResource
 
 @Composable
-fun ProgressScreen(action: StringResource, modifier: Modifier = Modifier, name: String) {
+fun ProgressScreen(action: StringResource, name: String, modifier: Modifier = Modifier) {
     ProgressIndicator(
         modifier.fillMaxSize().wrapContentSize(Alignment.Center),
         action, name

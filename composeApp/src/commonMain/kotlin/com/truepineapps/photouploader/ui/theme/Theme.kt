@@ -272,14 +272,14 @@ fun AppTheme(
 ) {
     val colorScheme = when {
         // Handle Dark Mode permutations
-        darkTheme && contrastLevel == ContrastLevel.High -> highContrastDarkColorScheme
-        darkTheme && contrastLevel == ContrastLevel.Medium -> mediumContrastDarkColorScheme
-        darkTheme -> darkScheme
+        darkTheme && contrastLevel == ContrastLevel.High -> darkHighContrastColorScheme // highContrastDarkColorScheme
+        darkTheme && contrastLevel == ContrastLevel.Medium -> darkMediumContrastColorScheme // mediumContrastDarkColorScheme
+        darkTheme -> darkColorScheme // darkScheme
 
         // Handle Light Mode permutations
-        contrastLevel == ContrastLevel.High -> highContrastLightColorScheme
-        contrastLevel == ContrastLevel.Medium -> mediumContrastLightColorScheme
-        else -> lightScheme
+        contrastLevel == ContrastLevel.High -> lightHighContrastColorScheme // highContrastLightColorScheme
+        contrastLevel == ContrastLevel.Medium -> lightMediumContrastColorScheme // mediumContrastLightColorScheme
+        else -> lightColorScheme // lightScheme
     }
 
     MaterialTheme(

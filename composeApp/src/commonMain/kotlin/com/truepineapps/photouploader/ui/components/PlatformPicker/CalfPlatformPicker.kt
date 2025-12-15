@@ -8,6 +8,7 @@ import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerLauncher
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
+import com.truepineapps.photouploader.io.getAbsolutePath
 
 open class CalfPlatformPicker : PlatformPicker {
 
@@ -66,18 +67,15 @@ open class CalfPlatformPicker : PlatformPicker {
     @Composable
     override fun PlatformDirectoryPicker(
         show: Boolean,
-        onDirectorySelected: (String?) -> Unit,
+        onDirectorySelected: (KmpFile?, String?) -> Unit,
     ) {
         val context = LocalPlatformContext.current
         val pickerLauncher = rememberFilePickerLauncher(
             type = FilePickerFileType.Folder,
             selectionMode = FilePickerSelectionMode.Single,
             onResult = { files ->
-                if (files.isNotEmpty()) onDirectorySelected(
-                    files[0].getPath(
-                        context
-                    )
-                )
+                val kmpFile = files.firstOrNull()
+                onDirectorySelected(kmpFile, kmpFile?.getAbsolutePath(context))
             }
         )
         launchFilePicker(show = show, pickerLauncher = pickerLauncher)
@@ -91,7 +89,9 @@ open class CalfPlatformPicker : PlatformPicker {
         val pickerLauncher = rememberFilePickerLauncher(
             type = FilePickerFileType.Folder,
             selectionMode = FilePickerSelectionMode.Single,
-            onResult = { files -> if (files.isNotEmpty()) onFolderSelected(files[0]) }
+            onResult = { files ->
+                if (files.isNotEmpty()) onFolderSelected(files[0])
+            }
         )
         launchFilePicker(show = show, pickerLauncher = pickerLauncher)
     }

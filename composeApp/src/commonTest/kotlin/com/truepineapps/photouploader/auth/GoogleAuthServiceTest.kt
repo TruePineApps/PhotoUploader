@@ -1,10 +1,9 @@
 package com.truepineapps.photouploader.auth
 
-import com.truepineapps.photouploader.di.AppModule
+import com.truepineapps.photouploader.di.appModule
 import kotlinx.coroutines.test.runTest
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.ksp.generated.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -22,7 +21,7 @@ class GoogleAuthServiceTest : KoinTest {
     fun setup() {
         startKoin {
             // Load the same module used in the app
-            modules(AppModule().module)
+            modules(appModule)
         }
     }
 

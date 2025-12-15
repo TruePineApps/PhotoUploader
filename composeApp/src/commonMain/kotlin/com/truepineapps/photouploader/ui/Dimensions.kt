@@ -18,6 +18,7 @@ object Dimensions {
     val progress_indicator_size: Dp = 48.dp
     val card_elevation: Dp = 2.dp
     val icon_size: Dp = 24.dp
+    val medium_icon_size: Dp = 36.dp
     val big_icon_size: Dp = 64.dp
     val home_icon_size: Dp = 256.dp
     val home_button_height: Dp = 128.dp

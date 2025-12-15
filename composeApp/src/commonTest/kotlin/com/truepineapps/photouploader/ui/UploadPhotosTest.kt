@@ -1,12 +1,14 @@
 package com.truepineapps.photouploader.ui
 
 import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
 import com.truepineapps.photouploader.network.AlbumResponse
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
 import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.StatusInfo
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
+import com.truepineapps.photouploader.ui.screen.uploader.UiState
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -20,6 +22,8 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,6 +33,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -41,8 +46,9 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UploadPhotosTest : KoinTest {
@@ -51,6 +57,7 @@ class UploadPhotosTest : KoinTest {
     private val rootPath = ROOT_PATH.toPath()
     private val testDispatcher = StandardTestDispatcher()
     private val json = Json { ignoreUnknownKeys = true }
+
 
     @BeforeTest
     fun setup() {
@@ -71,6 +78,8 @@ class UploadPhotosTest : KoinTest {
             modules(
                 viewModelModule(),
                 module {
+                    single<FileSystem> { fileSystem }
+                    single { PhotoDirectoryRepository(FakePlatformFileSystem(fileSystem)) }
                     single {
                         HttpClient(mockEngine) {
                             install(ContentNegotiation) {
@@ -86,19 +95,30 @@ class UploadPhotosTest : KoinTest {
     // --- Tests ---
 
     @Test
-    fun `uploadPhotos throws IllegalArgumentException when root does not exist`() = runTest {
+    fun `uploadPhotos does nothing when root does not exist`() = runTest {
         val mockEngine = createMockEngine(mutableListOf())
         setupKoin(mockEngine)
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.updatePath(ROOT_PATH)
+        viewModel.platformContext = createTestPlatformContext()
+        
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
 
-        assertFailsWith<IllegalArgumentException> {
-            viewModel.uploadPhotos(fileSystem)
-        }
+        // In test KmpFile is just holding the path string
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH),
+            path = ROOT_PATH
+        )
+        advanceUntilIdle() // Wait for scan
+
+        // When the root path doesn't exist, the repository returns an empty album list.
+        // Consequently, uploadPhotos returns null and performs no actions.
+        val job = viewModel.uploadPhotos(fileSystem)
+        assertEquals(null, job)
     }
 
     @Test
-    fun `uploadPhotos throws IllegalArgumentException when root is not a directory`() = runTest {
+    fun `uploadPhotos does nothing when root is not a directory`() = runTest {
         val mockEngine = createMockEngine(mutableListOf())
         setupKoin(mockEngine)
         // Manually create root as file
@@ -106,11 +126,21 @@ class UploadPhotosTest : KoinTest {
         fileSystem.write(rootPath) { writeUtf8("not a directory") }
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.updatePath(ROOT_PATH)
+        viewModel.platformContext = createTestPlatformContext()
 
-        assertFailsWith<IllegalArgumentException> {
-            viewModel.uploadPhotos(fileSystem)
-        }
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
+
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH),
+            path = ROOT_PATH
+        )
+        advanceUntilIdle() // Wait for scan
+
+        // When the root path is not a directory, the repository returns an empty album list.
+        // UploadPhotos returns null.
+        val job = viewModel.uploadPhotos(fileSystem)
+        assertEquals(null, job)
     }
 
     @Test
@@ -148,10 +178,6 @@ class UploadPhotosTest : KoinTest {
 
         uploadPhotos()
 
-        // Total expected requests:
-        // 2 Years * 2 Topics = 4 Topics
-        // Per Topic: 1 Album Create + 1 Upload + 1 Batch Create = 3 requests
-        // Total: 4 * 3 = 12 requests
         assertEquals(12, requests.size)
 
         val years = listOf("2023", "2024")
@@ -261,8 +287,94 @@ class UploadPhotosTest : KoinTest {
         requests.assertPhotoUploaded("Paris at night.png")
         requests.assertPhotoUploaded("Tree with blossom.webp")
     }
+    
+    @Test
+    fun `uploadPhotos respects disabled albums and photos`() = runTest {
+        createTestFiles(
+            "2023/EnabledAlbum/photo1.jpg",
+            "2023/EnabledAlbum/photo2.jpg",
+            "2023/DisabledAlbum/photo3.jpg"
+        )
+
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine = createMockEngine(requests)
+        setupKoin(mockEngine)
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
+
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH),
+            path = ROOT_PATH
+        )
+        advanceUntilIdle() 
+
+        // Disable one album
+        val disabledAlbum = viewModel.uiState.value.getAlbumContaining("DisabledAlbum")
+        viewModel.toggleAlbum(disabledAlbum.id)
+
+        // Disable one photo in the enabled album
+        val enabledAlbum = viewModel.uiState.value.getAlbumContaining("EnabledAlbum")
+        val photoToDisable = enabledAlbum.photos.find { it.name == "photo2.jpg" }!!
+        viewModel.togglePhoto(enabledAlbum.id, photoToDisable.path)
+
+        advanceUntilIdle() // Wait for UI state to update
+        
+        viewModel.uploadPhotos(fileSystem)?.join()
+        advanceUntilIdle()
+
+        // Verify requests:
+        // 1 album created (EnabledAlbum)
+        // 1 upload (photo1.jpg)
+        // 1 batch create
+        assertEquals(3, requests.size)
+        
+        requests.assertAlbumCreated("2023 - EnabledAlbum")
+        requests.assertPhotoUploaded("photo1.jpg")
+        
+        // Ensure disabled items were NOT processed
+        requests.assertAlbumNotCreated("DisabledAlbum")
+        requests.assertPhotoNotUploaded("photo2.jpg")
+        requests.assertPhotoNotUploaded("photo3.jpg")
+    }
+
+    @Test
+    fun `uploadPhotos respects renamed albums`() = runTest {
+        createTestFiles("2023/OriginalName/photo.jpg")
+
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine = createMockEngine(requests)
+        setupKoin(mockEngine)
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
+
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH),
+            path = ROOT_PATH
+        )
+        advanceUntilIdle()
+
+        // Rename album
+        val album = viewModel.uiState.value.albums.first()
+        viewModel.renameAlbum(album.id, "Renamed Album Title")
+
+        advanceUntilIdle() // Wait for UI state to update
+        
+        viewModel.uploadPhotos(fileSystem)?.join()
+        advanceUntilIdle()
+
+        requests.assertAlbumCreated("Renamed Album Title")
+    }
 
     // --- Helpers ---
+    
+    private fun UiState.getAlbumContaining(namePart: String) = 
+        this.albums.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
@@ -347,7 +459,16 @@ class UploadPhotosTest : KoinTest {
 
     private suspend fun TestScope.uploadPhotos() {
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.updatePath(ROOT_PATH)
+        viewModel.platformContext = createTestPlatformContext()
+        
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
+
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH),
+            path = ROOT_PATH
+        )
+        advanceUntilIdle() // Wait for scan
         viewModel.uploadPhotos(fileSystem)?.join()
         advanceUntilIdle()
     }
@@ -375,6 +496,10 @@ class UploadPhotosTest : KoinTest {
             "Album creation request: expected title '$expectedTitle', actual title '$actualTitle'"
         )
     }
+    
+    private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
+         assertTrue(this.none { it.url.toString().endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true }, "Album with title containing '$titlePart' should not have been created")
+    }
 
     private fun getAlbumTitle(request: HttpRequestData): String? {
         val content = request.body
@@ -388,6 +513,14 @@ class UploadPhotosTest : KoinTest {
         assertTrue(
             uploadRequests.any { it.headers["X-Goog-Upload-File-Name"] == fileName },
             "Upload for $fileName not found"
+        )
+    }
+    
+    private fun List<HttpRequestData>.assertPhotoNotUploaded(fileName: String) {
+        val uploadRequests = this.filter { it.url.toString().endsWith(ENDPOINT_UPLOADS) }
+        assertFalse(
+            uploadRequests.any { it.headers["X-Goog-Upload-File-Name"] == fileName },
+            "Upload for $fileName should NOT have happened"
         )
     }
 

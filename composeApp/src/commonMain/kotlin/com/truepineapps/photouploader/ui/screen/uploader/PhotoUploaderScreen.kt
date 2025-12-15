@@ -8,18 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PermMedia
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.app_name
 import com.truepineapps.photouploader.resources.photo_uploader
 import com.truepineapps.photouploader.resources.select_photo_folder
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
+import com.truepineapps.photouploader.ui.screen.LoadingScreen
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -33,40 +38,41 @@ fun PhotoUploaderScreen(
     isHorizontalLayout: Boolean,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
-    navigateToPhotos: (path: String) -> Unit,
+    navigateToPhotos: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PhotoUploaderViewModel = koinInject(),
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val appName = stringResource(Res.string.app_name)
 
-    val state = viewModel.uiState.collectAsState().value
-    if (state.path.isBlank()) {
-        onUpdateTopAppBar(
-            stringResource(resource = PhotoUploaderDestination.titleRes), null
-        ) {}
-        StartScreen(
-            showDirPicker = showDirPicker,
-            canChooseDirectory = !state.isUploading,
-            modifier = modifier.fillMaxSize()
-        )
-    } else {
-        onUpdateTopAppBar(state.path, null) {}
-        PhotoUploaderBody(
-            isHorizontalLayout = isHorizontalLayout,
-            navigateToPhotos = navigateToPhotos,
-            modifier = Modifier.fillMaxSize(),
-        )
+    // Update TopAppBar title when path changes or on initial composition
+    LaunchedEffect(uiState.path) {
+        val title = uiState.path.ifBlank { appName }
+        onUpdateTopAppBar(title, null) {}
     }
-}
 
-
-@Composable
-fun PhotoUploaderBody(
-    isHorizontalLayout: Boolean,
-    navigateToPhotos: (path: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Text("Photo Uploader Body", Modifier.align(Alignment.Center))
+    LoadingScreen(loadingViewModel = viewModel, modifier = modifier) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (uiState.albums.isEmpty() && uiState.path.isEmpty()) {
+                StartScreen(
+                    showDirPicker = showDirPicker,
+                    canChooseDirectory = !uiState.isUploading,
+                    modifier = modifier.fillMaxSize()
+                )
+            } else if (uiState.isUploading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.albums.isNotEmpty()) {
+                AlbumListContent(
+                    albums = uiState.albums,
+                    onAlbumClick = { album -> navigateToPhotos(album.id) },
+                    onAlbumToggle = viewModel::toggleAlbum,
+                    onAlbumRename = viewModel::renameAlbum,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
     }
 }
 

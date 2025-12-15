@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.network
 
+import com.truepineapps.photouploader.util.FileUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -60,7 +61,7 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
      */
     suspend fun uploadPhoto(photoPath: Path, fileSystem: FileSystem): String? {
         return try {
-            // Read the file as bytes
+            // Read the file as bytes, Okio closes automatically
             val photoBytes = fileSystem.read(photoPath) {
                 readByteArray()
             }
@@ -69,7 +70,7 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
             val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/uploads") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $accessToken")
-                    append("X-Goog-Upload-Content-Type", getMimeType(photoPath.name))
+                    append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photoPath.name))
                     append("X-Goog-Upload-Protocol", "raw")
                     append("X-Goog-Upload-File-Name", photoPath.name)
                 }
@@ -91,7 +92,7 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
     }
 
     /**
-     * Adds uploaded photos to an album
+     * Adds uploaded photos to an album in batches of 50 (API limit)
      */
     suspend fun addPhotosToAlbum(albumId: String, photos: List<UploadedPhoto>) {
         // Google Photos API allows up to 50 items per batch
@@ -139,36 +140,6 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
                 println("Exception adding photos to album (batch ${batchIndex + 1}): ${e.message}")
                 e.printStackTrace()
             }
-        }
-    }
-
-    /**
-     * Checks if a file is a photo based on its extension
-     */
-    fun isPhotoFile(fileName: String): Boolean {
-        // Accepted types: AVIF, BMP, GIF, HEIC, ICO, JPG, PNG, TIFF, WEBP, see https://developers.google.com/photos/library/guides/upload-media
-        val photoExtensions = setOf("avif", "jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "ico", "tif", "tiff")
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return extension in photoExtensions
-    }
-
-    /**
-     * Gets the MIME type based on file extension
-     */
-    private fun getMimeType(fileName: String): String {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return when (extension) {
-            "avif" -> "image/avif"
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "gif" -> "image/gif"
-            "bmp" -> "image/bmp"
-            "webp" -> "image/webp"
-            "heic" -> "image/heic" // the most common file extension for HEIF images
-            "heif" -> "image/heif"
-            "ico" -> "image/x-icon"
-            "tif", "tiff" -> "image/tiff"
-            else -> "application/octet-stream"
         }
     }
 }

@@ -152,6 +152,8 @@ kotlin {
             implementation(libs.okio.fakefilesystem)
             // Networking
             implementation(libs.ktor.client.mock)
+            // Mock
+            implementation(libs.mockito.junit.jupiter)
         }
         androidMain.dependencies {
             implementation(compose.preview)

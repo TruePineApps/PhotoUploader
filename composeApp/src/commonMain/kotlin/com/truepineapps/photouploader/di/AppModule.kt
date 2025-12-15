@@ -1,8 +1,13 @@
 package com.truepineapps.photouploader.di
 
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Module
+import com.truepineapps.photouploader.data.PhotoDirectoryRepository
+import com.truepineapps.photouploader.io.KmpPlatformFileSystem
+import com.truepineapps.photouploader.io.PlatformFileSystem
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-@Module
-@ComponentScan("com.truepineapps.photouploader")
-class AppModule
+val appModule: Module = module {
+    singleOf<PlatformFileSystem>(::KmpPlatformFileSystem)
+    singleOf(::PhotoDirectoryRepository)
+}

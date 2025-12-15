@@ -22,7 +22,7 @@ import java.io.File
  */
 class DesktopPlatformPicker : CalfPlatformPicker() {
     @Composable
-    override fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (String?) -> Unit) {
+    override fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (KmpFile?, String?) -> Unit) {
         when (DesktopTypeUtil.current) {
             DesktopType.Windows ->
                 super.PlatformDirectoryPicker(show, onDirectorySelected)
@@ -34,9 +34,8 @@ class DesktopPlatformPicker : CalfPlatformPicker() {
                 val context = LocalPlatformContext.current
                 val pickerLauncher = rememberDirectoryPickerLauncher(
                     onResult = { files ->
-                        if (files.isNotEmpty()) onDirectorySelected(
-                            files[0].getPath(context)
-                        )
+                        val file = files.firstOrNull()
+                        onDirectorySelected(file, file?.getPath(context))
                     }
                 )
                 launchFilePicker(show = show, pickerLauncher = pickerLauncher)
