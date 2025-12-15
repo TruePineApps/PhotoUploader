@@ -7,8 +7,8 @@ import com.truepineapps.photouploader.localization.DateTimeFormatter
 import com.truepineapps.photouploader.localization.NumberFormatter
 import com.truepineapps.photouploader.localization.PlatformLocaleManager
 import com.truepineapps.photouploader.localization.PlatformLocaleProvider
-import com.truepineapps.photouploader.ui.components.PlatformPicker.CalfPlatformPicker
-import com.truepineapps.photouploader.ui.components.PlatformPicker.PlatformPicker
+import com.truepineapps.photouploader.ui.components.platformpicker.CalfPlatformPicker
+import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.ui.localization.LocaleViewModel
 import com.truepineapps.photouploader.ui.screen.settings.SettingsViewModel
 import org.koin.core.KoinApplication

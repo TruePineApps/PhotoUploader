@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import okio.Path
 import okio.Path.Companion.toPath
 
 class PhotoDirectoryRepository(
@@ -23,11 +22,9 @@ class PhotoDirectoryRepository(
 
     var context: PlatformContext? = null
     private var currentKmpFile: KmpFile? = null
-    private var currentPath: Path? = null
 
-    fun setPath(kmpFile: KmpFile, path: Path, platformContext: PlatformContext) {
+    fun setPath(kmpFile: KmpFile, platformContext: PlatformContext) {
         currentKmpFile = kmpFile
-        currentPath = path
         context = platformContext
     }
 
@@ -41,7 +38,7 @@ class PhotoDirectoryRepository(
     override val loadingState: Flow<DataLoadingState> = flow {
         try {
             emit(DataLoadingState.Loading)
-            if (currentPath != null) {
+            if (currentKmpFile != null) {
                 val result = scanDirectoryInternal(currentKmpFile)
                 _albums.value = result
             } else {

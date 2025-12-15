@@ -48,7 +48,7 @@ import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.components.PlatformPicker.PlatformPicker
+import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.localization.AppEnvironment
 import com.truepineapps.photouploader.ui.navigation.MenuNavigator
@@ -115,9 +115,9 @@ private fun ThemedLocalizedApp(
 
     // File Picker is a global state in the app
     val uiState by viewModel.uiState.collectAsState()
-    filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { kmpFile, path ->
+    filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { kmpFile ->
         if (kmpFile != null) {
-            viewModel.updatePath(kmpFile, path!!)
+            viewModel.updatePath(kmpFile)
         }
         viewModel.updateShowDirPicker(false)
     }

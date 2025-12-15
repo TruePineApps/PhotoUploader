@@ -106,8 +106,7 @@ class UploadPhotosTest : KoinTest {
 
         // In test KmpFile is just holding the path string
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH),
-            path = ROOT_PATH
+            kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle() // Wait for scan
 
@@ -132,8 +131,7 @@ class UploadPhotosTest : KoinTest {
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH),
-            path = ROOT_PATH
+            kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle() // Wait for scan
 
@@ -306,8 +304,7 @@ class UploadPhotosTest : KoinTest {
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH),
-            path = ROOT_PATH
+            kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle() 
 
@@ -354,8 +351,7 @@ class UploadPhotosTest : KoinTest {
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH),
-            path = ROOT_PATH
+            kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle()
 
@@ -465,8 +461,7 @@ class UploadPhotosTest : KoinTest {
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH),
-            path = ROOT_PATH
+            kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle() // Wait for scan
         viewModel.uploadPhotos(fileSystem)?.join()

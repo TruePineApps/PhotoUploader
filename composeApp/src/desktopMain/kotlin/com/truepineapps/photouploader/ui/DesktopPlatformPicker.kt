@@ -3,15 +3,13 @@ package com.truepineapps.photouploader.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerLauncher
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.truepineapps.photouploader.DesktopType
 import com.truepineapps.photouploader.DesktopTypeUtil
-import com.truepineapps.photouploader.ui.components.PlatformPicker.CalfPlatformPicker
+import com.truepineapps.photouploader.ui.components.platformpicker.CalfPlatformPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,7 +20,7 @@ import java.io.File
  */
 class DesktopPlatformPicker : CalfPlatformPicker() {
     @Composable
-    override fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (KmpFile?, String?) -> Unit) {
+    override fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (KmpFile?) -> Unit) {
         when (DesktopTypeUtil.current) {
             DesktopType.Windows ->
                 super.PlatformDirectoryPicker(show, onDirectorySelected)
@@ -31,11 +29,10 @@ class DesktopPlatformPicker : CalfPlatformPicker() {
                 super.PlatformDirectoryPicker(show, onDirectorySelected)
 
             DesktopType.Linux -> {
-                val context = LocalPlatformContext.current
                 val pickerLauncher = rememberDirectoryPickerLauncher(
                     onResult = { files ->
                         val file = files.firstOrNull()
-                        onDirectorySelected(file, file?.getPath(context))
+                        onDirectorySelected(file)
                     }
                 )
                 launchFilePicker(show = show, pickerLauncher = pickerLauncher)

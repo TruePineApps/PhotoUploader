@@ -274,12 +274,12 @@ fun AppTheme(
         // Handle Dark Mode permutations
         darkTheme && contrastLevel == ContrastLevel.High -> darkHighContrastColorScheme // highContrastDarkColorScheme
         darkTheme && contrastLevel == ContrastLevel.Medium -> darkMediumContrastColorScheme // mediumContrastDarkColorScheme
-        darkTheme -> darkColorScheme // darkScheme
+        darkTheme -> darkLowContrastLevelColorScheme // darkScheme
 
         // Handle Light Mode permutations
         contrastLevel == ContrastLevel.High -> lightHighContrastColorScheme // highContrastLightColorScheme
         contrastLevel == ContrastLevel.Medium -> lightMediumContrastColorScheme // mediumContrastLightColorScheme
-        else -> lightColorScheme // lightScheme
+        else -> lightLowContrastColorScheme // lightScheme
     }
 
     MaterialTheme(

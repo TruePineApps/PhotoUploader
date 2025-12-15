@@ -5,6 +5,7 @@ import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
+import com.truepineapps.photouploader.io.getAbsolutePath
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.network.PhotoUploader
 import com.truepineapps.photouploader.network.UploadedPhoto
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import okio.SYSTEM
 
 class PhotoUploaderViewModel(
@@ -77,10 +77,11 @@ class PhotoUploaderViewModel(
         }
     }
 
-    fun updatePath(kmpFile: KmpFile, path: String) {
-        _viewState.update { it.copy(kmpFile = kmpFile, path = path) }
+    fun updatePath(kmpFile: KmpFile) {
+        val path = kmpFile.getAbsolutePath(platformContext!!)
+        _viewState.update { it.copy(kmpFile = kmpFile, path = path ?: "") }
         println("Setting path to $path")
-        repository.setPath(kmpFile, path.toPath(), platformContext!!)
+        repository.setPath(kmpFile, platformContext!!)
         reload()
     }
 

@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui.components.PlatformPicker
+package com.truepineapps.photouploader.ui.components.platformpicker
 
 import androidx.compose.runtime.Composable
 import com.mohamedrejeb.calf.io.KmpFile
@@ -19,5 +19,5 @@ interface PlatformPicker {
     )
 
     @Composable
-    fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (KmpFile?, String?) -> Unit)
+    fun PlatformDirectoryPicker(show: Boolean, onDirectorySelected: (KmpFile?) -> Unit)
 }

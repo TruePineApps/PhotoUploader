@@ -4,7 +4,7 @@ import com.mohamedrejeb.calf.io.KmpFile
 import okio.Path
 
 data class Photo(
-    val kmpFile: KmpFile? = null, // TODO: Should this be the solution, it must not be optional
+    val kmpFile: KmpFile,
     val path: Path,
     val name: String,
     val isEnabled: Boolean = true
