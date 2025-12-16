@@ -141,9 +141,11 @@ kotlin {
             implementation(libs.kotlinx.dateTime)
             // File System
             implementation(libs.calf.file.picker)
+            implementation(libs.calf.file.picker.coil)
             implementation(libs.okio)
-
-
+            // Images
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

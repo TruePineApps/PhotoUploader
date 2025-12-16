@@ -35,7 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.memory.MemoryCache
+import coil3.request.crossfade
 import com.mohamedrejeb.calf.core.LocalPlatformContext
+import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.app_name
@@ -48,8 +53,8 @@ import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
+import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.ui.localization.AppEnvironment
 import com.truepineapps.photouploader.ui.navigation.MenuNavigator
 import com.truepineapps.photouploader.ui.navigation.MenuNavigatorImpl
@@ -69,6 +74,19 @@ fun App(
 ) {
     val windowClass = calculateWindowSizeClass()
     val isHorizontalLayout = windowClass.widthSizeClass != WindowWidthSizeClass.Compact
+
+    // Configure the Coil image loader for KmpFile and using max 25% of avail memory for thumbnails
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .components { add(KmpFileFetcher.Factory()) }
+            .memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(context, 0.25)
+                    .build()
+            }
+            .crossfade(true)
+            .build()
+    }
 
     AppTheme {
         AppEnvironment(localeViewModel = koinInject()) {
