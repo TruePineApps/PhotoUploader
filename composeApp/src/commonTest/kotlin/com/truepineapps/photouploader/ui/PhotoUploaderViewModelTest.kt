@@ -57,7 +57,7 @@ class PhotoUploaderViewModelTest : KoinTest {
     @Test
     fun testRestoreSignInSuccess() = runTest {
         // 1. Prepare the stub
-        val successStub = GoogleAuthServiceStub(restoreToken = "restored_token")
+        val successStub = GoogleAuthServiceTestStub(restoreToken = "restored_token")
         startTestKoin(successStub)
 
         // 2. Inject the ViewModel via Koin.
@@ -82,7 +82,7 @@ class PhotoUploaderViewModelTest : KoinTest {
 
     @Test
     fun testSignInSuccess() = runTest {
-        val successStub = GoogleAuthServiceStub(signInToken = "valid_token")
+        val successStub = GoogleAuthServiceTestStub(signInToken = "valid_token")
         startTestKoin(successStub)
 
         val viewModel: PhotoUploaderViewModel by inject()
@@ -106,7 +106,7 @@ class PhotoUploaderViewModelTest : KoinTest {
 
     @Test
     fun testSignInFailure() = runTest {
-        val failureStub = GoogleAuthServiceStub(signInToken = null)
+        val failureStub = GoogleAuthServiceTestStub(signInToken = null)
         startTestKoin(failureStub)
 
         val viewModel: PhotoUploaderViewModel by inject()

@@ -87,7 +87,7 @@ class UploadPhotosTest : KoinTest {
                             }
                         }
                     }
-                    single<GoogleAuthService> { GoogleAuthServiceStub(signInToken = "valid_token") }
+                    single<GoogleAuthService> { GoogleAuthServiceTestStub(signInToken = "valid_token") }
                 })
         }
     }

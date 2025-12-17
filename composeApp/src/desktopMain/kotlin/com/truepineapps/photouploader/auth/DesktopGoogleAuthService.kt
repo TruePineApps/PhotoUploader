@@ -13,6 +13,23 @@ import java.io.InputStreamReader
 // User ID, the library uses this string to name the file where it saves the Access Token
 private const val USER = "user"
 
+/**
+ * A concrete implementation of [GoogleAuthService] tailored for desktop environments.
+ *
+ * This service handles the OAuth 2.0 authentication flow specifically for desktop applications,
+ * utilizing a local Jetty server to receive authorization callbacks. It manages the lifecycle
+ * of Google API credentials, including:
+ * - Initiating the OAuth flow via the system browser.
+ * - Securely storing and retrieving credentials locally in the user's home directory.
+ * - Refreshing and restoring valid sessions.
+ * - Clearing credentials upon sign-out.
+ *
+ * The service requires a `client_secrets.json` file to be present in the application resources that
+ * contains the keys and secrets to connect to the corresponding Google Cloud project that allows
+ * access to the Google Photos API.It requests scopes strictly for appending to the Google Photos
+ * library and reading app-created data.
+ *  this application..
+ */
 class DesktopGoogleAuthService : GoogleAuthService {
 
     private val jsonFactory = GsonFactory.getDefaultInstance()
