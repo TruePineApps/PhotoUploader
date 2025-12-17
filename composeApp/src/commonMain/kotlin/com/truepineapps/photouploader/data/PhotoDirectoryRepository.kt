@@ -36,6 +36,7 @@ class PhotoDirectoryRepository(
     // Allow updating albums from outside (e.g. toggling check boxes in ViewModel)
     fun updateAlbums(newAlbums: List<Album>) {
         _albums.value = newAlbums
+        needsRefresh = false
     }
 
     override val loadingState: Flow<DataLoadingState> = flow {
