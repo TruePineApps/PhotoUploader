@@ -23,24 +23,35 @@ class PhotoDirectoryRepository(
     var context: PlatformContext? = null
     private var currentKmpFile: KmpFile? = null
 
+    // Flag to control when a disk scan is actually necessary
+    private var needsRefresh = true
+
     fun setPath(kmpFile: KmpFile, platformContext: PlatformContext) {
         currentKmpFile = kmpFile
         context = platformContext
+        // A new path means we definitely need to scan
+        needsRefresh = true
     }
 
     // Allow updating albums from outside (e.g. toggling check boxes in ViewModel)
-    // Or ViewModel should request repository to toggle?
-    // For now, let's expose a way to update the flow if ViewModel modifies the list
     fun updateAlbums(newAlbums: List<Album>) {
         _albums.value = newAlbums
     }
 
     override val loadingState: Flow<DataLoadingState> = flow {
+        // If we have data and don't need a forced refresh, emit Success immediately.
+        // This prevents re-scanning (and resetting user selections) when navigating back.
+        if (!needsRefresh && _albums.value.isNotEmpty()) {
+            emit(DataLoadingState.Success)
+            return@flow
+        }
+
         try {
             emit(DataLoadingState.Loading)
             if (currentKmpFile != null) {
                 val result = scanDirectoryInternal(currentKmpFile)
                 _albums.value = result
+                needsRefresh = false
             } else {
                 _albums.value = emptyList()
             }
@@ -52,7 +63,8 @@ class PhotoDirectoryRepository(
     }
 
     override fun prepareReload() {
-        // No preparation needed
+        // Force a scan on the next collection
+        needsRefresh = true
     }
 
     /**
@@ -98,6 +110,7 @@ class PhotoDirectoryRepository(
         println("Processing directory: $name with ${entries.size} entries")
 
         // 1. Identify photos in the current directory
+        var isFirst = true
         val photoFiles = entries
             .filter {
                 !platformFileSystem.isDir(it, currentContext) &&
@@ -109,8 +122,11 @@ class PhotoDirectoryRepository(
                     kmpFile = path,
                     path = (platformFileSystem.getPath(path, currentContext) ?: "").toPath(),
                     name = platformFileSystem.getName(path, currentContext) ?: "",
-                    isEnabled = true
-                )
+                    isEnabled = true,
+                    isCoverPhoto = isFirst
+                ).also {
+                    isFirst = false
+                }
             }
 
         // 2. Identify Subdirectories
@@ -120,6 +136,7 @@ class PhotoDirectoryRepository(
 
         // 3. Create an Album if there are photos
         if (photoFiles.isNotEmpty()) {
+            val coverPhoto = photoFiles.first()
             albums.add(
                 Album(
                     id = currentDir.toString().replace("/", "|"), // Escape slashes for navigation
@@ -128,6 +145,8 @@ class PhotoDirectoryRepository(
                     name = albumName,
                     group = groupName,
                     photos = photoFiles,
+                    coverPhoto = coverPhoto.kmpFile,
+                    coverDescription = coverPhoto.getDisplayName(),
                     isEnabled = true
                 )
             )

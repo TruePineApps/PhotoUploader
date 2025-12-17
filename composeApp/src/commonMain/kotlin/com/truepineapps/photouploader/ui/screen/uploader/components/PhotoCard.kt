@@ -1,17 +1,21 @@
 package com.truepineapps.photouploader.ui.screen.uploader.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -23,9 +27,11 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.cover_photo
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.preview
 import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -35,6 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 fun PhotoCard(
     photo: Photo,
     onCheckedChange: (Boolean) -> Unit,
+    onCoverPhotoChange: (Photo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -57,11 +64,21 @@ fun PhotoCard(
                 onCheckedChange = onCheckedChange
             )
 
-            AsyncImage(
-                model = ImageRequest.Builder(LocalPlatformContext.current)
+            // Remember the request based on the specific file.
+            // If the file changes (unlikely in this list), it updates.
+            // If the checkbox changes (likely), this block is skipped.
+            val context = LocalPlatformContext.current
+            val imageRequest = remember(photo.kmpFile) {
+                ImageRequest.Builder(context)
                     .data(photo.kmpFile)
                     .crossfade(true)
-                    .build(),
+                    // Prevent choppy scrolling by enforcing a specific memory key
+                    .memoryCacheKey(photo.path.toString())
+                    .build()
+            }
+
+            AsyncImage(
+                model = imageRequest,
                 contentDescription = stringResource(Res.string.preview),
                 error = rememberVectorPainter(Icons.Filled.BrokenImage),
                 placeholder = painterResource(Res.drawable.loading_img),
@@ -78,6 +95,17 @@ fun PhotoCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            Box(
+                modifier = Modifier.padding(start = Dimensions.padding_small).align(Alignment.Top)
+            ) {
+                ThemedIconButton(
+                    imageVector = if (photo.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescriptionResource = Res.string.cover_photo,
+                    enabled = true,
+                    onClick = { onCoverPhotoChange(photo) }
+                )
+            }
         }
     }
 }

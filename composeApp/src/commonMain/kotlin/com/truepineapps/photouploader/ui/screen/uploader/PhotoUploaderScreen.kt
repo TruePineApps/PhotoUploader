@@ -26,7 +26,6 @@ import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
 import com.truepineapps.photouploader.ui.screen.LoadingScreen
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 object PhotoUploaderDestination : NavigationDestination {
     override val route = "photo_uploader"
@@ -39,8 +38,8 @@ fun PhotoUploaderScreen(
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
     navigateToPhotos: (String) -> Unit,
+    viewModel: PhotoUploaderViewModel,
     modifier: Modifier = Modifier,
-    viewModel: PhotoUploaderViewModel = koinInject(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val appName = stringResource(Res.string.app_name)

@@ -7,6 +7,7 @@ import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.io.getAbsolutePath
 import com.truepineapps.photouploader.model.Album
+import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.network.PhotoUploader
 import com.truepineapps.photouploader.network.UploadedPhoto
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
@@ -129,6 +130,32 @@ class PhotoUploaderViewModel(
         val updatedAlbums = currentAlbums.map { album ->
             if (album.id == albumId) {
                 album.copy(name = newName)
+            } else {
+                album
+            }
+        }
+        repository.updateAlbums(updatedAlbums)
+    }
+
+    fun updateCoverPhoto(albumId: String, coverPhoto: Photo) {
+        val currentAlbums = repository.albums.value
+        val updatedAlbums = currentAlbums.map { album ->
+            if (album.id == albumId) {
+                val updatedPhotos = album.photos.map { photo ->
+                    when {
+                        // Set the new cover photo
+                        photo.path == coverPhoto.path -> photo.copy(isCoverPhoto = true)
+                        // Explicitly unset the old cover photo
+                        photo.isCoverPhoto -> photo.copy(isCoverPhoto = false)
+                        else -> photo
+                    }
+                }
+
+                album.copy(
+                    photos = updatedPhotos,
+                    coverPhoto = coverPhoto.kmpFile,
+                    coverDescription = coverPhoto.getDisplayName(),
+                )
             } else {
                 album
             }

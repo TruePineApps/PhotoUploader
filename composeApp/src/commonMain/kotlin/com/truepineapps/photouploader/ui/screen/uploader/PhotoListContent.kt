@@ -7,8 +7,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.truepineapps.photouploader.model.Album
+import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.screen.uploader.components.PhotoCard
 import okio.Path
@@ -19,18 +22,47 @@ object PhotoListDestination {
 }
 
 @Composable
+fun PhotoListScreen(
+    albumId: String?,
+    onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
+    onBackClick: () -> Unit,
+    viewModel: PhotoUploaderViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val album = uiState.albums.find { it.id == albumId }
+    if (album != null) {
+        PhotoListContent(
+            album = album,
+            onUpdateTopAppBar = onUpdateTopAppBar,
+            onBackClick = onBackClick,
+            onPhotoToggle = { photoPath -> viewModel.togglePhoto(album.id, photoPath) },
+            onCoverPhotoChange = { photo -> viewModel.updateCoverPhoto(album.id, photo) },
+            modifier = modifier
+        )
+    } else {
+        // Album not found (e.g. because directory changed and we rescanned).
+        // Navigate back to the main list.
+        LaunchedEffect(Unit) {
+            onBackClick()
+        }
+    }
+}
+
+@Composable
 fun PhotoListContent(
     album: Album,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     onBackClick: () -> Unit,
     onPhotoToggle: (Path) -> Unit,
+    onCoverPhotoChange: (Photo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Update the main TopAppBar with the album name and a back action
     LaunchedEffect(album.name) {
         onUpdateTopAppBar(
-            album.name, 
-            onBackClick // This will be used as the close/back action (displayed as back arrow or close icon depending on implementation)
+            album.name, null
+//            onBackClick // This will be used as the close/back action (displayed as back arrow or close icon depending on implementation)
         ) {}
     }
 
@@ -41,6 +73,7 @@ fun PhotoListContent(
             PhotoCard(
                 photo = photo,
                 onCheckedChange = { onPhotoToggle(photo.path) },
+                onCoverPhotoChange = onCoverPhotoChange,
                 modifier = Modifier.padding(horizontal = Dimensions.padding_small)
             )
         }

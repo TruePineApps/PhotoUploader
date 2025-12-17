@@ -12,9 +12,6 @@ package com.truepineapps.photouploader.ui.navigation
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -28,12 +25,11 @@ import com.truepineapps.photouploader.ui.screen.about.LicenseDestination
 import com.truepineapps.photouploader.ui.screen.about.LicenseScreen
 import com.truepineapps.photouploader.ui.screen.settings.SettingsDestination
 import com.truepineapps.photouploader.ui.screen.settings.SettingsScreen
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoListContent
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoListDestination
+import com.truepineapps.photouploader.ui.screen.uploader.PhotoListScreen
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderDestination
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderScreen
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
-import org.koin.compose.koinInject
 
 /**
  * Provides Navigation graph for the application.
@@ -44,9 +40,9 @@ fun PhotoUploaderAppNavHost(
     isHorizontalLayout: Boolean,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
+    viewModel: PhotoUploaderViewModel,
     modifier: Modifier = Modifier,
-    startDestination: String = PhotoUploaderDestination.route,
-    viewModel: PhotoUploaderViewModel = koinInject()
+    startDestination: String = PhotoUploaderDestination.route
 ) {
     NavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
@@ -58,15 +54,10 @@ fun PhotoUploaderAppNavHost(
                 onUpdateTopAppBar = onUpdateTopAppBar,
                 showDirPicker = showDirPicker,
                 navigateToPhotos = { albumId -> 
-                    // Need to encode path if it contains special characters, but here we assume simple ID/Path
-                    // For now, simpler to just pass the ID which might be the path. 
-                    // Note: Ideally IDs should be URL safe.
-                    // Since the ID is a full path, let's assume for now it's safe or we might need encoding
-                    // But for this step, let's keep it simple.
                     navController.navigate("${PhotoListDestination.route}/$albumId")
                 },
+                viewModel = viewModel,
                 modifier = Modifier.fillMaxSize(),
-                viewModel = viewModel
             )
         }
         
@@ -74,33 +65,19 @@ fun PhotoUploaderAppNavHost(
             route = PhotoListDestination.routeWithArgs,
             arguments = listOf(navArgument("path") { type = NavType.StringType })
         ) { backStackEntry ->
-             val albumId = backStackEntry.getStringArg("path")
-             val uiState by viewModel.uiState.collectAsState()
-             val album = uiState.albums.find { it.id == albumId }
-             
-             if (album != null) {
-                 PhotoListContent(
-                     album = album,
-                     onUpdateTopAppBar = onUpdateTopAppBar,
-                     onBackClick = { navController.popBackStack() },
-                     onPhotoToggle = { photoPath -> viewModel.togglePhoto(album.id, photoPath) },
-                     modifier = Modifier.fillMaxSize()
-                 )
-             } else {
-                 // Album not found (e.g. because directory changed and we rescanned). 
-                 // Navigate back to the main list.
-                 LaunchedEffect(Unit) {
-                     navController.popBackStack()
-                 }
-             }
+            PhotoListScreen(
+                albumId = backStackEntry.getStringArg("path"),
+                onUpdateTopAppBar = onUpdateTopAppBar,
+                onBackClick = { navController.popBackStack() },
+                viewModel = viewModel,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
 
         /* Menu screens */
         composable(route = SettingsDestination.route) {
             SettingsScreen(
-                onUpdateTopAppBar = onUpdateTopAppBar,
-                modifier = Modifier.fillMaxSize(),
-                settingsViewModel = koinInject()
+                onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize(),
             )
         }
         composable(route = AboutDestination.route) {

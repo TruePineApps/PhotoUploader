@@ -33,6 +33,7 @@ import com.truepineapps.photouploader.ui.screen.LoadingScreen
 import com.truepineapps.photouploader.ui.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 
 object SettingsDestination : NavigationDestination {
     override val route = "settings"
@@ -43,7 +44,7 @@ object SettingsDestination : NavigationDestination {
 fun SettingsScreen(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel = koinInject()
 ) {
     onUpdateTopAppBar(stringResource(SettingsDestination.titleRes), null) {}
 

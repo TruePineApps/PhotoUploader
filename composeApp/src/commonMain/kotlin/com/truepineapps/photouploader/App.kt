@@ -175,7 +175,6 @@ private fun ThemedLocalizedApp(
     ) { innerPadding ->
         PhotoUploaderAppNavHost(
             navController = navController,
-            startDestination = startDestination,
             isHorizontalLayout = isHorizontalLayout,
             onUpdateTopAppBar = { newTitle, newCloseDialog, newActions ->
                 title = newTitle
@@ -183,10 +182,11 @@ private fun ThemedLocalizedApp(
                 actions.value = newActions
             },
             showDirPicker = showDirPickerAction,
+            viewModel = viewModel,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            viewModel = viewModel
+            startDestination = startDestination
         )
     }
 }
