@@ -5,6 +5,9 @@ import android.os.Environment
 import androidx.documentfile.provider.DocumentFile
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
+import okio.Source
+import okio.source
+import java.io.FileNotFoundException
 
 /**
  * Lists the contents of this directory.
@@ -81,3 +84,10 @@ actual fun KmpFile.getDisplayName(context: PlatformContext): String =
     DocumentFile.fromSingleUri(context, uri)?.name
         ?: DocumentFile.fromTreeUri(context, uri)?.name
         ?: "Unknown"
+
+actual fun KmpFile.source(context: PlatformContext): Source {
+    val contentResolver = context.contentResolver
+    val inputStream = contentResolver.openInputStream(this.uri)
+        ?: throw FileNotFoundException("Unable to open input stream for URI: $uri")
+    return inputStream.source()
+}

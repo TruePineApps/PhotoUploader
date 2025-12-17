@@ -7,6 +7,7 @@ import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.io.isDirectory
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.Source
 import platform.Foundation.NSURL
 
 actual fun KmpFile.list(context: PlatformContext): List<KmpFile> {
@@ -19,7 +20,6 @@ actual fun KmpFile.list(context: PlatformContext): List<KmpFile> {
         println("Exception while listing files: ${e::class.simpleName} - ${e.message}")
         return emptyList()
     }
-
     // Convert okio.Path -> String -> NSURL -> KmpFile
     return childPaths.map { okioPath ->
         val nsUrl = NSURL.fileURLWithPath(okioPath.toString())
@@ -32,3 +32,8 @@ actual fun KmpFile.getAbsolutePath(context: PlatformContext): String? = getPath(
 actual fun KmpFile.isDir(context: PlatformContext): Boolean = isDirectory(context)
 
 actual fun KmpFile.getDisplayName(context: PlatformContext): String = getName(context) ?: "Unknown"
+
+actual fun KmpFile.source(context: PlatformContext): Source {
+    val pathString = getPath(context) ?: ""
+    return FileSystem.SYSTEM.source(pathString.toPath())
+}

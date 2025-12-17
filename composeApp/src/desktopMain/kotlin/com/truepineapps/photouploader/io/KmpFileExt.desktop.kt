@@ -2,29 +2,16 @@ package com.truepineapps.photouploader.io
 
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.mohamedrejeb.calf.io.getName
-import com.mohamedrejeb.calf.io.getPath
-import com.mohamedrejeb.calf.io.isDirectory
-import okio.FileSystem
-import okio.Path.Companion.toPath
+import okio.Source
+import okio.source
 
-actual fun KmpFile.list(context: PlatformContext): List<KmpFile> {
-    val pathString = getPath(context) ?: return emptyList()
 
-    // List files using Okio's FileSystem
-    val childPaths = try {
-        FileSystem.SYSTEM.list(pathString.toPath())
-    } catch (e: Exception) {
-        println("Exception while listing files: ${e::class.simpleName} - ${e.message}")
-        return emptyList()
-    }
+actual fun KmpFile.list(context: PlatformContext): List<KmpFile> = file.listFiles()?.map { KmpFile(it) } ?: emptyList()
 
-    // Convert okio.Path -> File -> KmpFile
-    return childPaths.map { path -> KmpFile(path.toFile()) }
-}
+actual fun KmpFile.getAbsolutePath(context: PlatformContext): String? = file.absolutePath
 
-actual fun KmpFile.getAbsolutePath(context: PlatformContext): String? = getPath(context)
+actual fun KmpFile.isDir(context: PlatformContext): Boolean = file.isDirectory
 
-actual fun KmpFile.isDir(context: PlatformContext): Boolean = isDirectory(context)
+actual fun KmpFile.getDisplayName(context: PlatformContext): String = file.name
 
-actual fun KmpFile.getDisplayName(context: PlatformContext): String = getName(context) ?: "Unknown"
+actual fun KmpFile.source(context: PlatformContext): Source = file.source()

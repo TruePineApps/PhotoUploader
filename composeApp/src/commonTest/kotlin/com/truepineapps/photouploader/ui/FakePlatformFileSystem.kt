@@ -5,6 +5,7 @@ import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.Source
 
 expect fun createTestKmpFile(path: String): KmpFile
 expect fun createTestPlatformContext(): PlatformContext
@@ -59,8 +60,12 @@ class FakePlatformFileSystem(private val fileSystem: FileSystem) : PlatformFileS
         return path.name
     }
 
-    override suspend fun read(file: KmpFile, context: PlatformContext): ByteArray {
-        // Dummy implementation
-        return ByteArray(16)
+    override fun source(
+        file: KmpFile,
+        context: PlatformContext,
+    ): Source {
+        val pathString = getPath(file, context)
+        return fileSystem.source(pathString.toPath())
     }
+
 }

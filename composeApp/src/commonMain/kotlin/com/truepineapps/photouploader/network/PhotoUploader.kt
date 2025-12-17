@@ -13,9 +13,14 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.writeFully
 import kotlinx.serialization.json.Json
+import okio.Buffer
+import okio.use
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -66,9 +71,6 @@ class PhotoUploader(
      */
     suspend fun uploadPhoto(photo: Photo): String? {
         return try {
-            // Read the file as bytes, Okio closes automatically
-            val photoBytes = platformFileSystem.read(photo.kmpFile, context)
-
             // Upload the bytes to Google Photos
             val response: HttpResponse =
                     client.post("https://photoslibrary.googleapis.com/v1/uploads") {
@@ -82,7 +84,8 @@ class PhotoUploader(
                             append("X-Goog-Upload-File-Name", photo.name)
                         }
                         contentType(ContentType.Application.OctetStream)
-                        setBody(photoBytes)
+
+                        setBody(content(photo))
                     }
 
             if (response.status.isSuccess()) {
@@ -97,6 +100,31 @@ class PhotoUploader(
             null
         }
     }
+
+    /**
+     *  BRIDGE: Open the source and stream it to Ktor's ByteReadChannel
+     *  @return OutgoingContent.WriteChannelContent with the photo's bytes
+     */
+    private fun content(photo: Photo): OutgoingContent.WriteChannelContent =
+            object : OutgoingContent.WriteChannelContent() {
+                override val contentType = ContentType.Application.OctetStream
+
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    // 1. Open the source safely
+                    platformFileSystem.source(photo.kmpFile, context).use { source ->
+                        val buffer = Buffer()
+                        // 2. Stream data in chunks
+                        while (true) {
+                            val bytesRead = source.read(buffer, 8192) // Read 8KB
+                            if (bytesRead == -1L) break
+
+                            // 3. Write to Ktor's output channel
+                            // buffer.readByteArray() extracts the bytes we just read
+                            channel.writeFully(buffer.readByteArray())
+                        }
+                    }
+                }
+            }
 
     /**
      * Adds uploaded photos to an album in batches of 50 (API limit)
@@ -123,8 +151,7 @@ class PhotoUploader(
                 )
 
                 val response: HttpResponse =
-                        client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
-                            header(HttpHeaders.Authorization, "Bearer $accessToken")
+                        client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {                            header(HttpHeaders.Authorization, "Bearer $accessToken")
                             contentType(ContentType.Application.Json)
                             setBody(json.encodeToString(requestBody))
                         }
@@ -138,8 +165,7 @@ class PhotoUploader(
                     println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
 
                     // Log any failures
-                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {
-                        println("      Failed item: ${it.status.message}")
+                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {                        println("      Failed item: ${it.status.message}")
                     }
                 } else {
                     println("Failed to add photos to album: ${response.status}")
