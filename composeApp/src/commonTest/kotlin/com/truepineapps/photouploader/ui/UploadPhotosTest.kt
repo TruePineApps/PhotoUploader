@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.ui
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
+import com.truepineapps.photouploader.io.PlatformFileSystem
 import com.truepineapps.photouploader.network.AlbumResponse
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
 import com.truepineapps.photouploader.network.MediaItemResult
@@ -79,7 +80,8 @@ class UploadPhotosTest : KoinTest {
                 viewModelModule(),
                 module {
                     single<FileSystem> { fileSystem }
-                    single { PhotoDirectoryRepository(FakePlatformFileSystem(fileSystem)) }
+                    single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
+                    single { PhotoDirectoryRepository(platformFileSystem = get()) }
                     single {
                         HttpClient(mockEngine) {
                             install(ContentNegotiation) {
@@ -112,7 +114,7 @@ class UploadPhotosTest : KoinTest {
 
         // When the root path doesn't exist, the repository returns an empty album list.
         // Consequently, uploadPhotos returns null and performs no actions.
-        val job = viewModel.uploadPhotos(fileSystem)
+        val job = viewModel.uploadPhotos()
         assertEquals(null, job)
     }
 
@@ -137,7 +139,7 @@ class UploadPhotosTest : KoinTest {
 
         // When the root path is not a directory, the repository returns an empty album list.
         // UploadPhotos returns null.
-        val job = viewModel.uploadPhotos(fileSystem)
+        val job = viewModel.uploadPhotos()
         assertEquals(null, job)
     }
 
@@ -319,7 +321,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
         
-        viewModel.uploadPhotos(fileSystem)?.join()
+        viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
         // Verify requests:
@@ -361,7 +363,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
         
-        viewModel.uploadPhotos(fileSystem)?.join()
+        viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
         requests.assertAlbumCreated("Renamed Album Title")
@@ -464,7 +466,7 @@ class UploadPhotosTest : KoinTest {
             kmpFile = createTestKmpFile(ROOT_PATH)
         )
         advanceUntilIdle() // Wait for scan
-        viewModel.uploadPhotos(fileSystem)?.join()
+        viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
     }
 

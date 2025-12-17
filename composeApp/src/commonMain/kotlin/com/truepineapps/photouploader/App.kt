@@ -161,9 +161,8 @@ private fun ThemedLocalizedApp(
                 navigateUp = { navController.navigateUp() },
                 showDirPicker = showDirPickerAction,
                 uploadPhotos = {
-                    // Since uploadPhotos is a suspend function or launches a coroutine,
-                    // and we just need to trigger it here.
-                    // The ViewModel's uploadPhotos returns a Job? which we can ignore here or handle if needed.
+                    // The ViewModel's uploadPhotos launches a coroutine that just needs to be
+                    // triggered here. The returned Job? can be ignored here or handled if needed.
                     viewModel.uploadPhotos()
                 },
                 canChooseDirectory = !busy,

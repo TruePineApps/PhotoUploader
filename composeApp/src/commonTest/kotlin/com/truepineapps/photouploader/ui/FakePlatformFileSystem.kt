@@ -19,7 +19,7 @@ fun registerTestKmpFile(file: KmpFile, path: String) {
 class FakePlatformFileSystem(private val fileSystem: FileSystem) : PlatformFileSystem {
     // Registry to map KmpFile instances to their paths in the test environment
     override fun list(file: KmpFile, context: PlatformContext): List<KmpFile> {
-        val pathString = getPath(file, context) ?: return emptyList()
+        val pathString = getPath(file, context)
         val path = pathString.toPath()
         if (!fileSystem.exists(path) || !fileSystem.metadata(path).isDirectory) {
             return emptyList()
@@ -38,24 +38,29 @@ class FakePlatformFileSystem(private val fileSystem: FileSystem) : PlatformFileS
     }
 
     override fun isDirectory(file: KmpFile, context: PlatformContext): Boolean {
-        val pathString = getPath(file, context) ?: return false
+        val pathString = getPath(file, context)
         val path = pathString.toPath()
         return fileSystem.exists(path) && fileSystem.metadata(path).isDirectory
     }
 
     override fun getDisplayName(file: KmpFile, context: PlatformContext): String {
-        val pathString = getPath(file, context) ?: return ""
+        val pathString = getPath(file, context)
         val path = pathString.toPath()
         return path.name
     }
 
-    override fun getPath(file: KmpFile, context: PlatformContext): String? {
+    override fun getPath(file: KmpFile, context: PlatformContext): String {
         return testKmpFileRegistry[file] ?: file.toString()
     }
 
-    override fun getName(file: KmpFile, context: PlatformContext): String? {
-        val pathString = getPath(file, context) ?: return null
+    override fun getName(file: KmpFile, context: PlatformContext): String {
+        val pathString = getPath(file, context)
         val path = pathString.toPath()
         return path.name
+    }
+
+    override suspend fun read(file: KmpFile, context: PlatformContext): ByteArray {
+        // Dummy implementation
+        return ByteArray(16)
     }
 }

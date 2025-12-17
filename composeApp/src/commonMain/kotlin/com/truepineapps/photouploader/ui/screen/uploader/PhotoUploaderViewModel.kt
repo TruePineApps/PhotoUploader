@@ -19,9 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okio.FileSystem
 import okio.Path
-import okio.SYSTEM
 
 class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
@@ -166,10 +164,8 @@ class PhotoUploaderViewModel(
 
     /**
      * Uploads photos based on the current UI state to Google Photos.
-     *
-     * @param fileSystem File system to use for reading the files
      */
-    fun uploadPhotos(fileSystem: FileSystem = FileSystem.SYSTEM): Job? {
+    fun uploadPhotos(): Job? {
         val state = uiState.value
         // Must have albums and not be busy
         if (state.albums.isNotEmpty() && !state.busy()) {
@@ -177,7 +173,7 @@ class PhotoUploaderViewModel(
             updateIsUploading(true)
             return viewModelScope.launch {
                 try {
-                    uploadPhotosImpl(state.albums, fileSystem)
+                    uploadPhotosImpl(state.albums)
                 } finally {
                     updateIsUploading(false)
                 }
@@ -188,21 +184,18 @@ class PhotoUploaderViewModel(
 
     /** Signs in to obtain an access token and starts uploading the photo's from the albums list
      * @param albums List of albums to process
-     * @param fileSystem File system to use
      * @throws Exception if the sign in fails or the upload fails
      * @return true if successful, false otherwise
      */
-    private suspend fun uploadPhotosImpl(
-        albums: List<Album>,
-        fileSystem: FileSystem = FileSystem.SYSTEM,
-    ): Boolean {
+    private suspend fun uploadPhotosImpl(albums: List<Album>): Boolean {
         try {
+            val context = platformContext
+            require(context != null) { "Platform context not set" }
+
             val accessToken = authService.signIn()
-            require(accessToken != null) {
-                "Failed to sign in"
-            }
-            val photoUploader = PhotoUploader(accessToken)
-            
+            require(accessToken != null) { "Failed to sign in" }
+
+            val photoUploader = PhotoUploader(accessToken, context)
             val albumsToUpload = albums.filter { it.isEnabled && it.photos.any { p -> p.isEnabled } }
 
             println("Starting upload for ${albumsToUpload.size} albums")
@@ -212,8 +205,7 @@ class PhotoUploaderViewModel(
                 if (photosToUpload.isNotEmpty()) {
                     uploadPhotosToNewAlbum(
                         album.name,
-                        photosToUpload.map { it.path },
-                        fileSystem,
+                        photosToUpload,
                         photoUploader
                     )
                 }
@@ -232,8 +224,7 @@ class PhotoUploaderViewModel(
      */
     private suspend fun uploadPhotosToNewAlbum(
         albumName: String,
-        photoFiles: List<Path>,
-        fileSystem: FileSystem,
+        photoFiles: List<Photo>,
         photoUploader: PhotoUploader,
     ): Boolean {
         // Create album
@@ -250,10 +241,7 @@ class PhotoUploaderViewModel(
         for ((index, photoFile) in photoFiles.withIndex()) {
             println("    Uploading photo ${index + 1}/${photoFiles.size}: ${photoFile.name}")
 
-            val uploadToken = photoUploader.uploadPhoto(
-                photoFile,
-                fileSystem
-            )
+            val uploadToken = photoUploader.uploadPhoto(photoFile)
             if (uploadToken != null) {
                 uploadTokens.add(UploadedPhoto(uploadToken, photoFile.name))
                 println("      Success: ${photoFile.name}")

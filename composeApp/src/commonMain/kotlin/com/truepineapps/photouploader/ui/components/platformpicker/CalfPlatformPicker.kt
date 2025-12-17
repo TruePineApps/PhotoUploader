@@ -19,10 +19,10 @@ open class CalfPlatformPicker : PlatformPicker {
         }
         val scope = rememberCoroutineScope()
         val context = LocalPlatformContext.current
-            onResult = { files ->
-                kmpFiles = files
-                scope.launch {
-                    files.firstOrNull()?.readByteArray(context)
+        onResult = { files ->
+            kmpFiles = files
+            scope.launch {
+                files.firstOrNull()?.readByteArray(context)
             }
         }
         ```

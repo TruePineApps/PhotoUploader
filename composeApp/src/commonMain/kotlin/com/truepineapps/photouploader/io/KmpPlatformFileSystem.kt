@@ -5,6 +5,7 @@ import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.io.getName
 import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.io.isDirectory
+import com.mohamedrejeb.calf.io.readByteArray
 
 class KmpPlatformFileSystem : PlatformFileSystem {
     override fun list(file: KmpFile, context: PlatformContext): List<KmpFile> =
@@ -24,4 +25,7 @@ class KmpPlatformFileSystem : PlatformFileSystem {
 
     override fun getName(file: KmpFile, context: PlatformContext): String? =
             file.getName(context)
+
+    override suspend fun read(file: KmpFile, context: PlatformContext): ByteArray =
+            file.readByteArray(context)
 }

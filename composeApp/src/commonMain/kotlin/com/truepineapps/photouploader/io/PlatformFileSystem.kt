@@ -10,5 +10,6 @@ interface PlatformFileSystem {
     fun getDisplayName(file: KmpFile, context: PlatformContext): String
     fun getPath(file: KmpFile, context: PlatformContext): String?
     fun getName(file: KmpFile, context: PlatformContext): String?
+    suspend fun read(file: KmpFile, context: PlatformContext): ByteArray
 }
 

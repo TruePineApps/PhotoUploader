@@ -1,5 +1,8 @@
 package com.truepineapps.photouploader.network
 
+import com.mohamedrejeb.calf.core.PlatformContext
+import com.truepineapps.photouploader.io.PlatformFileSystem
+import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.util.FileUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
@@ -13,12 +16,14 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
-import okio.FileSystem
-import okio.Path
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class PhotoUploader(val accessToken: String) : KoinComponent {
+class PhotoUploader(
+    val accessToken: String,
+    val context: PlatformContext,
+) : KoinComponent {
+    private val platformFileSystem: PlatformFileSystem by inject()
     private val client: HttpClient by inject()
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -59,24 +64,26 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
      * Uploads a photo file and returns the upload token
      * @return Upload token if successful, null otherwise
      */
-    suspend fun uploadPhoto(photoPath: Path, fileSystem: FileSystem): String? {
+    suspend fun uploadPhoto(photo: Photo): String? {
         return try {
             // Read the file as bytes, Okio closes automatically
-            val photoBytes = fileSystem.read(photoPath) {
-                readByteArray()
-            }
+            val photoBytes = platformFileSystem.read(photo.kmpFile, context)
 
             // Upload the bytes to Google Photos
-            val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/uploads") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $accessToken")
-                    append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photoPath.name))
-                    append("X-Goog-Upload-Protocol", "raw")
-                    append("X-Goog-Upload-File-Name", photoPath.name)
-                }
-                contentType(ContentType.Application.OctetStream)
-                setBody(photoBytes)
-            }
+            val response: HttpResponse =
+                    client.post("https://photoslibrary.googleapis.com/v1/uploads") {
+                        headers {
+                            append(HttpHeaders.Authorization, "Bearer $accessToken")
+                            append(
+                                "X-Goog-Upload-Content-Type",
+                                FileUtils.getMimeType(photo.name)
+                            )
+                            append("X-Goog-Upload-Protocol", "raw")
+                            append("X-Goog-Upload-File-Name", photo.name)
+                        }
+                        contentType(ContentType.Application.OctetStream)
+                        setBody(photoBytes)
+                    }
 
             if (response.status.isSuccess()) {
                 response.bodyAsText() // The upload token is returned as plain text
@@ -115,14 +122,16 @@ class PhotoUploader(val accessToken: String) : KoinComponent {
                     newMediaItems = newMediaItems
                 )
 
-                val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
-                    header(HttpHeaders.Authorization, "Bearer $accessToken")
-                    contentType(ContentType.Application.Json)
-                    setBody(json.encodeToString(requestBody))
-                }
+                val response: HttpResponse =
+                        client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
+                            header(HttpHeaders.Authorization, "Bearer $accessToken")
+                            contentType(ContentType.Application.Json)
+                            setBody(json.encodeToString(requestBody))
+                        }
 
                 if (response.status.isSuccess()) {
-                    val result = json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
+                    val result =
+                            json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
                     val successCount = result.newMediaItemResults.count { it.status.code == 0 }
                     val failCount = result.newMediaItemResults.count { it.status.code != 0 }
 
