@@ -49,6 +49,7 @@ fun initKoin(
             appModule,
             viewModelModule(),
             platformModule(),
+            networkModule,
             // Localization info: locale handling; date, time and number formatting
             // Platform dependent, partly in Kotlin
             platformLocalizationModule,

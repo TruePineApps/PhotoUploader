@@ -30,7 +30,7 @@ class PhotoUploader(
 ) : KoinComponent {
     private val platformFileSystem: PlatformFileSystem by inject()
     private val client: HttpClient by inject()
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json: Json by inject()
 
     /**
      * Creates an album in Google Photos

@@ -82,11 +82,10 @@ class UploadPhotosTest : KoinTest {
                     single<FileSystem> { fileSystem }
                     single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
                     single { PhotoDirectoryRepository(platformFileSystem = get()) }
+                    single<Json> { Json { ignoreUnknownKeys = true } }
                     single {
                         HttpClient(mockEngine) {
-                            install(ContentNegotiation) {
-                                json(Json { ignoreUnknownKeys = true })
-                            }
+                            install(ContentNegotiation) { json(get()) }
                         }
                     }
                     single<GoogleAuthService> { GoogleAuthServiceTestStub(signInToken = "valid_token") }
