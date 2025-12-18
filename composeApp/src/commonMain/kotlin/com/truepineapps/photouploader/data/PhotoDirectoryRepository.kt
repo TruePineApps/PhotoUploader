@@ -146,8 +146,7 @@ class PhotoDirectoryRepository(
                     name = albumName,
                     group = groupName,
                     photos = photoFiles,
-                    coverPhoto = coverPhoto.kmpFile,
-                    coverDescription = coverPhoto.getDisplayName(),
+                    coverPhoto = coverPhoto,
                     isEnabled = true
                 )
             )

@@ -181,8 +181,7 @@ class PhotoUploaderViewModelTest : KoinTest {
             name = "Test Album",
             group = "Test",
             photos = listOf(photo1, photo2),
-            coverPhoto = photo1.kmpFile,
-            coverDescription = photo1.name
+            coverPhoto = photo1,
         )
 
         val photoRepo: PhotoDirectoryRepository by inject()
@@ -197,14 +196,9 @@ class PhotoUploaderViewModelTest : KoinTest {
         val updatedAlbum = photoRepo.albums.value.first()
 
         assertEquals(
-            photo2.kmpFile,
+            photo2,
             updatedAlbum.coverPhoto,
-            "Album coverPhoto should be updated to photo2's kmpFile"
-        )
-        assertEquals(
-            photo2.getDisplayName(),
-            updatedAlbum.coverDescription,
-            "Album coverDescription should be updated to photo2's name"
+            "Album coverPhoto should be updated to the photo2 object"
         )
 
         val updatedPhoto1 = updatedAlbum.photos.find { it.path == photo1.path }!!
@@ -219,5 +213,4 @@ class PhotoUploaderViewModelTest : KoinTest {
             "New cover photo (photo2) should have isCoverPhoto set to true"
         )
     }
-
 }

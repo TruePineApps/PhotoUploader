@@ -7,6 +7,7 @@ import com.truepineapps.photouploader.util.FileUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -23,6 +24,9 @@ import okio.Buffer
 import okio.use
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+
+// Google Photos API allows up to 50 items per batch
+private const val GOOGLE_PHOTO_BATCH_SIZE = 50
 
 class PhotoUploader(
     val accessToken: String,
@@ -85,7 +89,7 @@ class PhotoUploader(
                         }
                         contentType(ContentType.Application.OctetStream)
 
-                        setBody(content(photo))
+                        setBody(photoChannelContent(photo))
                     }
 
             if (response.status.isSuccess()) {
@@ -105,7 +109,7 @@ class PhotoUploader(
      *  BRIDGE: Open the source and stream it to Ktor's ByteReadChannel
      *  @return OutgoingContent.WriteChannelContent with the photo's bytes
      */
-    private fun content(photo: Photo): OutgoingContent.WriteChannelContent =
+    private fun photoChannelContent(photo: Photo): OutgoingContent.WriteChannelContent =
             object : OutgoingContent.WriteChannelContent() {
                 override val contentType = ContentType.Application.OctetStream
 
@@ -129,29 +133,23 @@ class PhotoUploader(
     /**
      * Adds uploaded photos to an album in batches of 50 (API limit)
      */
-    suspend fun addPhotosToAlbum(albumId: String, photos: List<UploadedPhoto>) {
-        // Google Photos API allows up to 50 items per batch
-        val batchSize = 50
+    suspend fun addPhotosToAlbum(
+        albumId: String,
+        newMediaItems: List<NewMediaItem>,
+    ): List<MediaItemResult>? {
+        val batchSize = GOOGLE_PHOTO_BATCH_SIZE
+        val allResults = mutableListOf<MediaItemResult>()
 
-        photos.chunked(batchSize).forEachIndexed { batchIndex, batch ->
+        newMediaItems.chunked(batchSize).forEachIndexed { batchIndex, batch ->
             try {
-                val newMediaItems = batch.map { photo ->
-                    NewMediaItem(
-                        description = photo.fileName,
-                        simpleMediaItem = SimpleMediaItem(
-                            fileName = photo.fileName,
-                            uploadToken = photo.uploadToken
-                        )
-                    )
-                }
-
                 val requestBody = BatchCreateMediaItemsRequest(
                     albumId = albumId,
-                    newMediaItems = newMediaItems
+                    newMediaItems = batch
                 )
 
                 val response: HttpResponse =
-                        client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {                            header(HttpHeaders.Authorization, "Bearer $accessToken")
+                        client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
+                            header(HttpHeaders.Authorization, "Bearer $accessToken")
                             contentType(ContentType.Application.Json)
                             setBody(json.encodeToString(requestBody))
                         }
@@ -159,22 +157,48 @@ class PhotoUploader(
                 if (response.status.isSuccess()) {
                     val result =
                             json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
+                    allResults.addAll(result.newMediaItemResults)
                     val successCount = result.newMediaItemResults.count { it.status.code == 0 }
                     val failCount = result.newMediaItemResults.count { it.status.code != 0 }
 
                     println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
 
                     // Log any failures
-                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {                        println("      Failed item: ${it.status.message}")
+                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {
+                        println("      Failed item: ${it.status.message}")
                     }
                 } else {
                     println("Failed to add photos to album: ${response.status}")
                     println("Response: ${response.bodyAsText()}")
+                    return null
                 }
             } catch (e: Exception) {
                 println("Exception adding photos to album (batch ${batchIndex + 1}): ${e.message}")
                 e.printStackTrace()
+                return null
             }
+        }
+        return allResults
+    }
+
+    suspend fun updateAlbumCover(albumId: String, coverMediaItemId: String) {
+        try {
+            val response: HttpResponse =
+                    // Gemini suggested "https://photoslibrary.googleapis.com/v1/albums/$albumId?updateMask=cover_photo_media_item_id"
+                    client.patch("https://photoslibrary.googleapis.com/v1/albums/$albumId?updateMask=coverPhotoMediaItemId") {
+                        header(HttpHeaders.Authorization, "Bearer $accessToken")
+                        contentType(ContentType.Application.Json)
+                        setBody(json.encodeToString(UpdateAlbumCoverRequest(coverMediaItemId)))
+                    }
+
+            if (!response.status.isSuccess()) {
+                println("Failed to update cover photo: ${response.status}")
+                println("Response: ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            println("Exception updating cover photo: ${e.message}")
+            e.printStackTrace()
         }
     }
 }
+

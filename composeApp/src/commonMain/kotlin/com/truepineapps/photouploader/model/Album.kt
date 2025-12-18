@@ -10,7 +10,8 @@ data class Album(
     val name: String,
     val group: String, // For sticky headers (e.g., parent directory name)
     val photos: List<Photo>,
-    val coverPhoto: KmpFile,
-    val coverDescription: String,
+    val coverPhoto: Photo,
     val isEnabled: Boolean = true,
+    /** Google Album ID after upload */
+    var albumId: String? = null,
 )

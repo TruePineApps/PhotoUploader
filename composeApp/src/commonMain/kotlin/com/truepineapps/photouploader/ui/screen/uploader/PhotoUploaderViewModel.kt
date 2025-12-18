@@ -8,8 +8,9 @@ import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.io.getAbsolutePath
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.model.Photo
+import com.truepineapps.photouploader.network.NewMediaItem
 import com.truepineapps.photouploader.network.PhotoUploader
-import com.truepineapps.photouploader.network.UploadedPhoto
+import com.truepineapps.photouploader.network.SimpleMediaItem
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -151,8 +152,7 @@ class PhotoUploaderViewModel(
 
                 album.copy(
                     photos = updatedPhotos,
-                    coverPhoto = coverPhoto.kmpFile,
-                    coverDescription = coverPhoto.getDisplayName(),
+                    coverPhoto = coverPhoto,
                 )
             } else {
                 album
@@ -201,11 +201,9 @@ class PhotoUploaderViewModel(
             println("Starting upload for ${albumsToUpload.size} albums")
             
             for (album in albumsToUpload) {
-                val photosToUpload = album.photos.filter { it.isEnabled }
-                if (photosToUpload.isNotEmpty()) {
+                if (album.photos.any { it.isEnabled }) {
                     uploadPhotosToNewAlbum(
-                        album.name,
-                        photosToUpload,
+                        album,
                         photoUploader
                     )
                 }
@@ -223,37 +221,59 @@ class PhotoUploaderViewModel(
      * @return true if successful, false otherwise
      */
     private suspend fun uploadPhotosToNewAlbum(
-        albumName: String,
-        photoFiles: List<Photo>,
+        album: Album,
         photoUploader: PhotoUploader,
     ): Boolean {
         // Create album
-        val albumId = photoUploader.createAlbum(albumName)
-        if (albumId == null) {
-            println("    ERROR: Failed to create album: $albumName")
+        val googleAlbumId = photoUploader.createAlbum(album.name)
+        if (googleAlbumId == null) {
+            println("    ERROR: Failed to create album: ${album.name}")
             return false
         }
-        println("    Created album with ID: $albumId for $albumName")
+        println("    Created album with ID: $googleAlbumId for ${album.name}")
 
-        // Upload photos and collect upload tokens
-        val uploadTokens = mutableListOf<UploadedPhoto>()
+        val photosToUpload = album.photos.filter { it.isEnabled }
+        val uploadedItems = mutableListOf<Pair<Photo, String>>() // Photo -> UploadToken
 
-        for ((index, photoFile) in photoFiles.withIndex()) {
-            println("    Uploading photo ${index + 1}/${photoFiles.size}: ${photoFile.name}")
+        for ((index, photo) in photosToUpload.withIndex()) {
+            println("    Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}")
 
-            val uploadToken = photoUploader.uploadPhoto(photoFile)
+            val uploadToken = photoUploader.uploadPhoto(photo)
             if (uploadToken != null) {
-                uploadTokens.add(UploadedPhoto(uploadToken, photoFile.name))
-                println("      Success: ${photoFile.name}")
+                uploadedItems.add(photo to uploadToken)
+                println("      Success: ${photo.name}")
             } else {
-                println("      ERROR: Failed to upload ${photoFile.name}")
+                println("      ERROR: Failed to upload ${photo.name}")
             }
         }
 
         // Add photos to album
-        if (uploadTokens.isNotEmpty()) {
-            photoUploader.addPhotosToAlbum(albumId, uploadTokens)
-            println("    Added ${uploadTokens.size} photos to album")
+        if (uploadedItems.isNotEmpty()) {
+            val newMediaItems = uploadedItems.map { (photo, token) ->
+                NewMediaItem(
+                    description = photo.getDisplayName(),
+                    simpleMediaItem = SimpleMediaItem(
+                        fileName = photo.name,
+                        uploadToken = token
+                    )
+                )
+            }
+            
+            val results = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)
+            
+            if (results != null) {
+                results.forEachIndexed { i, result ->
+                    if (result.status.code == 0 && result.mediaItem != null) {
+                        uploadedItems[i].first.mediaItemId = result.mediaItem.id
+                    }
+                }
+                
+                val coverMediaItemId = album.coverPhoto.mediaItemId
+                if (coverMediaItemId != null) {
+                    println("    Setting cover photo to: ${album.coverPhoto.name}")
+                    photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId)
+                }
+            }
         }
         return true
     }

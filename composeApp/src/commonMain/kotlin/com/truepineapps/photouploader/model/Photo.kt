@@ -6,10 +6,14 @@ import okio.Path
 data class Photo(
     val kmpFile: KmpFile,
     val path: Path,
+    /** File name */
     val name: String,
     val isEnabled: Boolean = true,
     val isCoverPhoto: Boolean = false,
+    /** Google Photo ID after upload */
+    var mediaItemId: String? = null,
 ) {
+    /** File name without extension */
     fun getDisplayName(): String {
         // Safe filename parsing
         val dotIndex = name.lastIndexOf('.')

@@ -26,6 +26,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.mohamedrejeb.calf.core.LocalPlatformContext as KmpFileContext
 import com.truepineapps.photouploader.io.getAbsolutePath
+import com.truepineapps.photouploader.io.getDisplayName
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_cover
@@ -73,12 +74,15 @@ fun AlbumCard(
                     .data(album.coverPhoto)
                     .crossfade(true)
                     // Prevent choppy scrolling by enforcing a specific memory key
-                    .memoryCacheKey(album.coverPhoto.getAbsolutePath(kmpFileContext))
+                    .memoryCacheKey(album.coverPhoto.kmpFile.getAbsolutePath(kmpFileContext))
                     .build()
             }
             AsyncImage(
                 model = imageRequest,
-                contentDescription = stringResource(Res.string.album_cover, album.coverDescription),
+                contentDescription = stringResource(
+                    Res.string.album_cover,
+                    album.coverPhoto.kmpFile.getDisplayName(kmpFileContext)
+                ),
                 error = rememberVectorPainter(Icons.Filled.BrokenImage),
                 placeholder = painterResource(Res.drawable.loading_img),
                 contentScale = ContentScale.Crop,
@@ -88,17 +92,17 @@ fun AlbumCard(
             )
 
             Column(modifier = Modifier.weight(1f)) {
-                 TextField(
-                     value = album.name,
-                     onValueChange = onNameChange,
-                     label = { Text("Album Name") },
-                     singleLine = true
-                 )
-                 Text(
-                     text = "${album.photos.size} photos",
-                     style = MaterialTheme.typography.bodySmall,
-                     modifier = Modifier.padding(top = Dimensions.padding_very_small)
-                 )
+                TextField(
+                    value = album.name,
+                    onValueChange = onNameChange,
+                    label = { Text("Album Name") },
+                    singleLine = true
+                )
+                Text(
+                    text = "${album.photos.size} photos",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = Dimensions.padding_very_small)
+                )
             }
         }
     }

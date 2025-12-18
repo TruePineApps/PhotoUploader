@@ -5,7 +5,9 @@ import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
 import com.truepineapps.photouploader.io.PlatformFileSystem
 import com.truepineapps.photouploader.network.AlbumResponse
+import com.truepineapps.photouploader.network.BatchCreateMediaItemsRequest
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
+import com.truepineapps.photouploader.network.MediaItem
 import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.StatusInfo
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
@@ -17,6 +19,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
@@ -48,6 +51,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 
@@ -101,7 +105,7 @@ class UploadPhotosTest : KoinTest {
         setupKoin(mockEngine)
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.platformContext = createTestPlatformContext()
-        
+
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
@@ -156,10 +160,12 @@ class UploadPhotosTest : KoinTest {
         uploadPhotos()
 
         // Verify requests
-        assertEquals(4, requests.size) // 1 create album, 2 uploads, 1 batch create
+        // 1 create album, 2 uploads, 1 batch create, 1 patch for cover
+        assertEquals(5, requests.size)
         requests.assertAlbumCreated("2023 - Holiday")
         requests.assertPhotoUploaded("photo1.jpg")
         requests.assertPhotoUploaded("photo2.png")
+        requests.assertAlbumCoverPatched()
     }
 
     @Test
@@ -177,7 +183,8 @@ class UploadPhotosTest : KoinTest {
 
         uploadPhotos()
 
-        assertEquals(12, requests.size)
+        // 4 albums * (1 create + 1 upload + 1 batch + 1 patch) = 16
+        assertEquals(16, requests.size)
 
         val years = listOf("2023", "2024")
         val topics = listOf("Holiday", "Work")
@@ -219,8 +226,8 @@ class UploadPhotosTest : KoinTest {
 
         uploadPhotos()
 
-        // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo)
-        assertEquals(4, requests.size)
+        // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo), 1 patch
+        assertEquals(5, requests.size)
 
         // Check that batch create was called, implying at least one photo succeeded
         assertTrue(requests.any { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) })
@@ -242,6 +249,8 @@ class UploadPhotosTest : KoinTest {
 
         uploadPhotos()
 
+        // 1 create album + 55 uploads + 2 batch create + 1 patch = 59 requests
+        assertEquals(59, requests.size)
         val batchRequests = requests.filter { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) }
         assertEquals(2, batchRequests.size) // 55 photos -> 50 + 5 -> 2 batches
     }
@@ -275,8 +284,8 @@ class UploadPhotosTest : KoinTest {
 
         uploadPhotos()
 
-        // Expectations: 3 Albums, 3 Uploads, 3 Batch creates -> 9 requests
-        assertEquals(9, requests.size)
+        // Expectations: 3 Albums * (1 create + 1 upload + 1 batch + 1 patch) = 12 requests
+        assertEquals(12, requests.size)
 
         requests.assertAlbumCreated("2024")
         requests.assertAlbumCreated("2024 - Holiday France")
@@ -286,7 +295,7 @@ class UploadPhotosTest : KoinTest {
         requests.assertPhotoUploaded("Paris at night.png")
         requests.assertPhotoUploaded("Tree with blossom.webp")
     }
-    
+
     @Test
     fun `uploadPhotos respects disabled albums and photos`() = runTest {
         createTestFiles(
@@ -300,14 +309,14 @@ class UploadPhotosTest : KoinTest {
         setupKoin(mockEngine)
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.platformContext = createTestPlatformContext()
-        
+
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH)
         )
-        advanceUntilIdle() 
+        advanceUntilIdle()
 
         // Disable one album
         val disabledAlbum = viewModel.uiState.value.getAlbumContaining("DisabledAlbum")
@@ -319,7 +328,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.togglePhoto(enabledAlbum.id, photoToDisable.path)
 
         advanceUntilIdle() // Wait for UI state to update
-        
+
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
@@ -327,11 +336,12 @@ class UploadPhotosTest : KoinTest {
         // 1 album created (EnabledAlbum)
         // 1 upload (photo1.jpg)
         // 1 batch create
-        assertEquals(3, requests.size)
-        
+        // 1 patch for cover
+        assertEquals(4, requests.size)
+
         requests.assertAlbumCreated("2023 - EnabledAlbum")
         requests.assertPhotoUploaded("photo1.jpg")
-        
+
         // Ensure disabled items were NOT processed
         requests.assertAlbumNotCreated("DisabledAlbum")
         requests.assertPhotoNotUploaded("photo2.jpg")
@@ -347,7 +357,7 @@ class UploadPhotosTest : KoinTest {
         setupKoin(mockEngine)
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.platformContext = createTestPlatformContext()
-        
+
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
@@ -361,7 +371,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.renameAlbum(album.id, "Renamed Album Title")
 
         advanceUntilIdle() // Wait for UI state to update
-        
+
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
@@ -369,9 +379,9 @@ class UploadPhotosTest : KoinTest {
     }
 
     // --- Helpers ---
-    
-    private fun UiState.getAlbumContaining(namePart: String) = 
-        this.albums.find { it.name.contains(namePart) }!!
+
+    private fun UiState.getAlbumContaining(namePart: String) =
+            this.albums.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
@@ -415,14 +425,34 @@ class UploadPhotosTest : KoinTest {
                 }
 
                 url.endsWith(ENDPOINT_BATCH_CREATE) -> {
-                    val results = listOf(
-                        MediaItemResult("t1", StatusInfo(0, "OK")),
-                        MediaItemResult("t2", StatusInfo(0, "OK"))
-                    )
+                    val body = request.body as TextContent
+                    val batchRequest =
+                            json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                    val results = batchRequest.newMediaItems.map { item ->
+                        MediaItemResult(
+                            uploadToken = item.simpleMediaItem.uploadToken,
+                            status = StatusInfo(0, "OK"),
+                            mediaItem = MediaItem(
+                                id = "media-id-for-${item.simpleMediaItem.uploadToken}", // Generate a unique mediaId
+                                filename = item.simpleMediaItem.fileName
+                            )
+                        )
+                    }
                     val response = BatchCreateMediaItemsResponse(results)
 
                     respond(
                         content = json.encodeToString(response),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
+                            HttpHeaders.ContentType,
+                            ContentType.Application.Json.toString()
+                        )
+                    )
+                }
+
+                url.contains("?updateMask=coverPhotoMediaItemId") -> {
+                    respond(
+                        content = "{}",
                         status = HttpStatusCode.OK,
                         headers = headersOf(
                             HttpHeaders.ContentType,
@@ -457,7 +487,7 @@ class UploadPhotosTest : KoinTest {
     private suspend fun TestScope.uploadPhotos() {
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.platformContext = createTestPlatformContext()
-        
+
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
@@ -492,9 +522,20 @@ class UploadPhotosTest : KoinTest {
             "Album creation request: expected title '$expectedTitle', actual title '$actualTitle'"
         )
     }
-    
+
+    private fun List<HttpRequestData>.assertAlbumCoverPatched() {
+        val patchRequest = this.find {
+            it.method == HttpMethod.Patch && it.url.toString()
+                .contains("updateMask=coverPhotoMediaItemId")
+        }
+        assertNotNull(patchRequest, "PATCH request to update album cover not found")
+    }
+
     private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
-         assertTrue(this.none { it.url.toString().endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true }, "Album with title containing '$titlePart' should not have been created")
+        assertTrue(this.none {
+            it.url.toString()
+                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true
+        }, "Album with title containing '$titlePart' should not have been created")
     }
 
     private fun getAlbumTitle(request: HttpRequestData): String? {
@@ -511,7 +552,7 @@ class UploadPhotosTest : KoinTest {
             "Upload for $fileName not found"
         )
     }
-    
+
     private fun List<HttpRequestData>.assertPhotoNotUploaded(fileName: String) {
         val uploadRequests = this.filter { it.url.toString().endsWith(ENDPOINT_UPLOADS) }
         assertFalse(

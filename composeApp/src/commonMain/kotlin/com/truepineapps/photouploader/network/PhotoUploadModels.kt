@@ -15,9 +15,6 @@ data class AlbumData(
 )
 
 @Serializable
-data class CreateAlbumResponse(val id: String? = null)
-
-@Serializable
 data class AlbumResponse(
     val id: String,
     val title: String,
@@ -69,7 +66,7 @@ data class MediaItem(
     val filename: String? = null
 )
 
-data class UploadedPhoto(
-    val uploadToken: String,
-    val fileName: String
+@Serializable
+data class UpdateAlbumCoverRequest(
+    val coverPhotoMediaItemId: String,
 )
