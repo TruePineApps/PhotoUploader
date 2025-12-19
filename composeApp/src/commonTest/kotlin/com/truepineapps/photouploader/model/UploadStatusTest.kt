@@ -44,7 +44,7 @@ class UploadStatusTest {
         val album = createDummyAlbum(photos)
         val derivedStatus = album.getDerivedUploadStatus()
         assertTrue(derivedStatus is UploadStatus.Error)
-        assertEquals("One or more photos failed: Failed", derivedStatus.message)
+        assertEquals("One or more photos failed: Failed", (derivedStatus as UploadStatus.Error).message)
     }
 
     @Test
@@ -58,18 +58,6 @@ class UploadStatusTest {
     }
 
     @Test
-    fun `getDerivedUploadStatus returns UploadingError if any photo is Uploading and any other is Error`() {
-        val photos = listOf(
-            createDummyPhoto("/p1", UploadStatus.Error("Failed")),
-            createDummyPhoto("/p2", UploadStatus.Uploading)
-        )
-        val album = createDummyAlbum(photos)
-        val derivedStatus = album.getDerivedUploadStatus()
-        assertTrue(derivedStatus is UploadStatus.UploadingError)
-        assertEquals("One or more photos failed: Failed", derivedStatus.message)
-    }
-
-    @Test
     fun `getDerivedUploadStatus returns Waiting if photos are Waiting or None`() {
         val photos = listOf(
             createDummyPhoto("/p1", UploadStatus.Waiting),
@@ -78,7 +66,19 @@ class UploadStatusTest {
         val album = createDummyAlbum(photos)
         assertTrue(album.getDerivedUploadStatus() is UploadStatus.Waiting)
     }
-    
+
+    @Test
+    fun `getDerivedUploadStatus returns UploadingError if uploading and an error exists`() {
+        val photos = listOf(
+            createDummyPhoto("/p1", UploadStatus.Uploading),
+            createDummyPhoto("/p2", UploadStatus.Error("Failed"))
+        )
+        val album = createDummyAlbum(photos)
+        val derivedStatus = album.getDerivedUploadStatus()
+        assertTrue(derivedStatus is UploadStatus.UploadingError)
+        assertEquals("One or more photos failed: Failed", (derivedStatus as UploadStatus.UploadingError).message)
+    }
+
     @Test
     fun `getDerivedUploadStatus returns own status if no other condition met`() {
         val photos = listOf(
@@ -88,6 +88,6 @@ class UploadStatusTest {
         val album = createDummyAlbum(photos).copy(uploadStatus = UploadStatus.Error("Album Creation Failed"))
         val derivedStatus = album.getDerivedUploadStatus()
         assertTrue(derivedStatus is UploadStatus.Error)
-        assertEquals("Album Creation Failed", derivedStatus.message)
+        assertEquals("Album Creation Failed", (derivedStatus as UploadStatus.Error).message)
     }
 }

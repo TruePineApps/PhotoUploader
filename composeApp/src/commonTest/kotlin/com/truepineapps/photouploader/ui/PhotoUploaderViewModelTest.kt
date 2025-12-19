@@ -27,6 +27,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -213,4 +214,46 @@ class PhotoUploaderViewModelTest : KoinTest {
             "New cover photo (photo2) should have isCoverPhoto set to true"
         )
     }
+
+    @Test
+    fun testUpload_GlobalErrorOnSignInFailure() = runTest {
+        val errorStub = GoogleAuthServiceTestStub(signInShouldFail = true)
+        startTestKoin(errorStub)
+
+        val photo1 = Photo(
+            kmpFile = createTestKmpFile(path = "/p1"),
+            path = "/p1".toPath(),
+            name = "p1.jpg"
+        )
+        val album1 = Album(
+            id = "a1",
+            kmpFile = createTestKmpFile("/a1"),
+            path = "/a1".toPath(),
+            name = "A1",
+            group = "G1",
+            photos = listOf(photo1),
+            coverPhoto = photo1
+        )
+
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()?.join()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertNotNull(
+            viewModel.uiState.value.globalErrorMessage,
+            "Global error should be set on sign-in failure"
+        )
+        assertTrue(
+            viewModel.uiState.value.globalErrorMessage!!.contains("Sign-in failed"),
+            "Error message should indicate sign-in failure"
+        )
+    }
+
 }

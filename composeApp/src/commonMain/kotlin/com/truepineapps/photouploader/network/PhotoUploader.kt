@@ -164,8 +164,7 @@ class PhotoUploader(
                     println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
 
                     // Log any failures
-                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {
-                        println("      Failed item: ${it.status.message}")
+                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {                        println("      Failed item: ${it.status.message}")
                     }
                 } else {
                     println("Failed to add photos to album: ${response.status}")

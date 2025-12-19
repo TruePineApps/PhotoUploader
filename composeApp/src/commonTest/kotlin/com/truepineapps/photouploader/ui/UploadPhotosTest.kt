@@ -4,6 +4,9 @@ import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
 import com.truepineapps.photouploader.io.PlatformFileSystem
+import com.truepineapps.photouploader.model.Album
+import com.truepineapps.photouploader.model.Photo
+import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.network.AlbumResponse
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsRequest
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
@@ -376,6 +379,54 @@ class UploadPhotosTest : KoinTest {
         advanceUntilIdle()
 
         requests.assertAlbumCreated("Renamed Album Title")
+    }
+
+    @Test
+    fun testUpload_StatusUpdates() = runTest {
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine = createMockEngine(requests)
+        setupKoin(mockEngine)
+
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "p1.jpg", isEnabled = true)
+        val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "p2.jpg", isEnabled = false)
+        val album1 = Album(
+            "a1",
+            createTestKmpFile("/a1"),
+            "/a1".toPath(),
+            "A1",
+            "G1",
+            listOf(photo1, photo2),
+            photo1,
+            isEnabled = true
+        )
+
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()
+        testDispatcher.scheduler.runCurrent() // Execute only the initial status updates
+
+        val updatedAlbum = photoRepo.albums.value.first()
+        val updatedPhoto1 = updatedAlbum.photos.first()
+        val updatedPhoto2 = updatedAlbum.photos.last()
+
+        assertTrue(
+            updatedAlbum.uploadStatus is UploadStatus.Uploading,
+            "Album status should be Uploading"
+        )
+        assertTrue(
+            updatedPhoto1.uploadStatus is UploadStatus.Waiting,
+            "Enabled photo status should be Waiting"
+        )
+        assertTrue(
+            updatedPhoto2.uploadStatus is UploadStatus.None,
+            "Disabled photo status should remain None"
+        )
     }
 
     // --- Helpers ---
