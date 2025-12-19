@@ -380,8 +380,8 @@ class UploadPhotosTest : KoinTest {
 
     // --- Helpers ---
 
-    private fun UiState.getAlbumContaining(namePart: String) =
-            this.albums.find { it.name.contains(namePart) }!!
+    private fun UiState.getAlbumContaining(namePart: String) = 
+        this.albums.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
@@ -426,9 +426,8 @@ class UploadPhotosTest : KoinTest {
 
                 url.endsWith(ENDPOINT_BATCH_CREATE) -> {
                     val body = request.body as TextContent
-                    val batchRequest =
-                            json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
-                    val results = batchRequest.newMediaItems.map { item ->
+                    val batchRequest = json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                    val results = batchRequest.newMediaItems.mapIndexed { _, item ->
                         MediaItemResult(
                             uploadToken = item.simpleMediaItem.uploadToken,
                             status = StatusInfo(0, "OK"),
@@ -451,14 +450,7 @@ class UploadPhotosTest : KoinTest {
                 }
 
                 url.contains("?updateMask=coverPhotoMediaItemId") -> {
-                    respond(
-                        content = "{}",
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(
-                            HttpHeaders.ContentType,
-                            ContentType.Application.Json.toString()
-                        )
-                    )
+                    respond(content = "{}", status = HttpStatusCode.OK, headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()))
                 }
 
                 else -> error("Unhandled request: ${request.url}")
@@ -524,18 +516,14 @@ class UploadPhotosTest : KoinTest {
     }
 
     private fun List<HttpRequestData>.assertAlbumCoverPatched() {
-        val patchRequest = this.find {
-            it.method == HttpMethod.Patch && it.url.toString()
-                .contains("updateMask=coverPhotoMediaItemId")
+        val patchRequest = this.find { 
+            it.method == HttpMethod.Patch && it.url.toString().contains("updateMask=coverPhotoMediaItemId")
         }
         assertNotNull(patchRequest, "PATCH request to update album cover not found")
     }
 
     private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
-        assertTrue(this.none {
-            it.url.toString()
-                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true
-        }, "Album with title containing '$titlePart' should not have been created")
+         assertTrue(this.none { it.url.toString().endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true }, "Album with title containing '$titlePart' should not have been created")
     }
 
     private fun getAlbumTitle(request: HttpRequestData): String? {
