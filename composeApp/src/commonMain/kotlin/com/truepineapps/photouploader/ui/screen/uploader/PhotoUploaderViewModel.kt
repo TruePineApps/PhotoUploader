@@ -31,7 +31,7 @@ class PhotoUploaderViewModel(
     var platformContext: PlatformContext? = null
 
     private val _viewState = MutableStateFlow(ViewState())
-    
+
     val uiState: StateFlow<UiState> = combine(
         _viewState,
         repository.albums
@@ -79,7 +79,7 @@ class PhotoUploaderViewModel(
         }
     }
 
-    fun clearGlobalError() {
+    fun clearGlobalErrorMessage() {
         _viewState.update { it.copy(globalErrorMessage = null) }
     }
 
@@ -98,7 +98,7 @@ class PhotoUploaderViewModel(
     fun updateIsUploading(isUploading: Boolean) {
         _viewState.update { it.copy(isUploading = isUploading) }
     }
-    
+
     fun toggleAlbum(albumId: String) {
         val currentAlbums = repository.albums.value
         val updatedAlbums = currentAlbums.map { album ->
@@ -129,7 +129,7 @@ class PhotoUploaderViewModel(
         }
         repository.updateAlbums(updatedAlbums)
     }
-    
+
     fun renameAlbum(albumId: String, newName: String) {
         val currentAlbums = repository.albums.value
         val updatedAlbums = currentAlbums.map { album ->
@@ -187,7 +187,7 @@ class PhotoUploaderViewModel(
      * @param albums List of albums to process
      * @return true if successful, false otherwise
      */
-    private suspend fun uploadPhotosImpl(albums: List<Album>): Boolean {
+    private suspend fun uploadPhotosImpl(albums: List<Album>) {
         val context = platformContext
         require(context != null) { "Platform context not set" }
 
@@ -198,105 +198,189 @@ class PhotoUploaderViewModel(
         val albumsToUpload = albums.filter { it.isEnabled && it.photos.any { p -> p.isEnabled } }
 
         // Set initial 'Waiting' status on all items to be uploaded
-        albumsToUpload.forEach { album ->
-            album.uploadStatus = UploadStatus.Waiting
-            album.photos.filter { it.isEnabled }.forEach { photo ->
-                photo.uploadStatus = UploadStatus.Waiting
+        val initialUpdate = repository.albums.value.map { currentAlbum ->
+            if (albumsToUpload.any { it.id == currentAlbum.id }) {
+                val updatedPhotos = currentAlbum.photos.map { p ->
+                    if (p.isEnabled) p.copy(uploadStatus = UploadStatus.Waiting) else p
+                }
+                currentAlbum.copy(uploadStatus = UploadStatus.Waiting, photos = updatedPhotos)
+            } else {
+                currentAlbum
             }
         }
-        repository.updateAlbums(repository.albums.value)
+        repository.updateAlbums(initialUpdate)
 
         println("Starting upload for ${albumsToUpload.size} albums")
-        
+
         for (album in albumsToUpload) {
             uploadPhotosToNewAlbum(album, photoUploader)
         }
+
         println("\nUpload process completed!")
-        return true
     }
 
-    private suspend fun uploadPhotosToNewAlbum(
-        album: Album,
-        photoUploader: PhotoUploader,
-    ): Boolean {
-        album.uploadStatus = UploadStatus.Uploading
-        repository.updateAlbums(repository.albums.value)
+    private suspend fun uploadPhotosToNewAlbum(album: Album, photoUploader: PhotoUploader) {
+        // Notify the user that this album starts uploading
+        updateAlbumStatus(album.id, UploadStatus.Uploading)
 
+        val googleAlbumId = createGoogleAlbum(album, photoUploader) ?: return
+
+        val uploadedItems = uploadPhotosInAlbum(album, photoUploader)
+
+        // If no photos were successfully uploaded (e.g. all failed), there's nothing left to do.
+        if (uploadedItems.isEmpty()) {
+            val finalAlbum = repository.albums.value.find { it.id == album.id }!!
+            updateAlbumStatus(album.id, finalAlbum.getDerivedUploadStatus())
+            return
+        }
+
+        addMediaItemsToAlbum(album, googleAlbumId, uploadedItems, photoUploader)
+
+        // Use the updated album to set the cover photo to the media item id added earlier
+        val finalAlbum = repository.albums.value.find { it.id == album.id }!!
+        setAlbumCover(finalAlbum, googleAlbumId, photoUploader)
+        updateAlbumStatus(album.id, finalAlbum.getDerivedUploadStatus())
+    }
+
+    private suspend fun createGoogleAlbum(album: Album, photoUploader: PhotoUploader): String? {
         val googleAlbumId = try {
             photoUploader.createAlbum(album.name)
         } catch (e: Exception) {
-            album.uploadStatus = UploadStatus.Error("Failed to create album: ${e.message}")
-            repository.updateAlbums(repository.albums.value)
-            return false
+            println("    Failed to create album for ${album.name}: ${e.message}")
+            updateAlbumStatus(album.id, UploadStatus.Error("Failed to create album: ${e.message}"))
+            return null
         }
 
         if (googleAlbumId == null) {
-            album.uploadStatus = UploadStatus.Error("Failed to create album.")
-            repository.updateAlbums(repository.albums.value)
-            return false
+            println("    Failed to create album for ${album.name}")
+            updateAlbumStatus(album.id, UploadStatus.Error("Failed to create album."))
+            return null
         }
-        album.albumId = googleAlbumId
+
+        val currentAlbums = repository.albums.value
+        val updatedAlbumsWithId = currentAlbums.map {
+            if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
+        }
+        repository.updateAlbums(updatedAlbumsWithId)
         println("    Created album with ID: $googleAlbumId for ${album.name}")
+        return googleAlbumId
+    }
 
+    private suspend fun uploadPhotosInAlbum(
+        album: Album,
+        photoUploader: PhotoUploader,
+    ): List<Pair<Photo, String>> {
         val photosToUpload = album.photos.filter { it.isEnabled }
-        val uploadedItems = mutableListOf<Pair<Photo, String>>()
-
-        // The 'Waiting' status is now set in uploadPhotosImpl, so we just set Uploading here.
+        val successfullyUploaded = mutableListOf<Pair<Photo, String>>()
 
         for ((index, photo) in photosToUpload.withIndex()) {
-            photo.uploadStatus = UploadStatus.Uploading
-            repository.updateAlbums(repository.albums.value)
+            updatePhotoStatus(album.id, photo.path, UploadStatus.Uploading)
             println("    Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}")
 
             val uploadToken = photoUploader.uploadPhoto(photo)
             if (uploadToken != null) {
-                uploadedItems.add(photo to uploadToken)
-                photo.uploadStatus = UploadStatus.Success
+                successfullyUploaded.add(photo to uploadToken)
+                updatePhotoStatus(album.id, photo.path, UploadStatus.Success)
                 println("      Success: ${photo.name}")
             } else {
-                photo.uploadStatus = UploadStatus.Error("Upload failed")
+                updatePhotoStatus(album.id, photo.path, UploadStatus.Error("Upload failed"))
                 println("      ERROR: Failed to upload ${photo.name}")
             }
-            repository.updateAlbums(repository.albums.value)
+        }
+        return successfullyUploaded
+    }
+
+    private suspend fun addMediaItemsToAlbum(
+        album: Album,
+        googleAlbumId: String,
+        uploadedItems: List<Pair<Photo, String>>,
+        photoUploader: PhotoUploader,
+    ) {
+        val newMediaItems = uploadedItems.map { (photo, token) ->
+            NewMediaItem(
+                description = photo.getDisplayName(),
+                simpleMediaItem = SimpleMediaItem(fileName = photo.name, uploadToken = token)
+            )
         }
 
-        if (uploadedItems.isNotEmpty()) {
-            val newMediaItems = uploadedItems.map { (photo, token) ->
-                NewMediaItem(
-                    description = photo.getDisplayName(),
-                    simpleMediaItem = SimpleMediaItem(fileName = photo.name, uploadToken = token)
-                )
+        val results = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)
+
+        if (results != null) {
+            val currentRepoAlbums = repository.albums.value
+            val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
+                if (currentAlbum.id == album.id) {
+                    val updatedPhotos = currentAlbum.photos.map { p ->
+                        val index = uploadedItems.indexOfFirst { it.first.path == p.path }
+                        if (index != -1 && index < results.size) {
+                            val result = results[index]
+                            if (result.status.code == 0 && result.mediaItem != null) {
+                                p.copy(mediaItemId = result.mediaItem.id)
+                            } else {
+                                println("      ERROR: Failed to add ${p.name} to album ${currentAlbum.name}")
+                                p.copy(
+                                    uploadStatus = UploadStatus.Error(
+                                        result.status.message ?: "Failed to add to album"
+                                    )
+                                )
+                            }
+                        } else {
+                            p
+                        }
+                    }
+                    val newCoverPhoto = updatedPhotos.find { it.path == currentAlbum.coverPhoto.path } 
+                                          ?: currentAlbum.coverPhoto
+
+                    currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
+                } else {
+                    currentAlbum
+                }
             }
-            
-            val results = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)
-            
-            if (results != null) {
-                results.forEachIndexed { i, result ->
-                    val photo = uploadedItems[i].first
-                    if (result.status.code == 0 && result.mediaItem != null) {
-                        photo.mediaItemId = result.mediaItem.id
+            repository.updateAlbums(finalUpdatedAlbums)
+        }
+    }
+
+    private suspend fun setAlbumCover(album: Album, googleAlbumId: String, photoUploader: PhotoUploader) {
+        val coverMediaItemId = album.coverPhoto.mediaItemId
+
+        if (coverMediaItemId != null) {
+            println("    Setting cover photo to: ${album.coverPhoto.name}")
+            photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId)
+        }
+    }
+
+    private fun updateAlbumStatus(albumId: String, status: UploadStatus) {
+        val currentAlbums = repository.albums.value
+        val updatedAlbums = currentAlbums.map { album ->
+            if (album.id == albumId) {
+                album.copy(uploadStatus = status)
+            } else {
+                album
+            }
+        }
+        repository.updateAlbums(updatedAlbums)
+    }
+
+    private fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
+        val currentAlbums = repository.albums.value
+        val updatedAlbums = currentAlbums.map { album ->
+            if (album.id == albumId) {
+                val updatedPhotos = album.photos.map { photo ->
+                    if (photo.path == photoPath) {
+                        photo.copy(uploadStatus = status)
                     } else {
-                        photo.uploadStatus = UploadStatus.Error(result.status.message ?: "Failed to add to album")
+                        photo
                     }
                 }
-                repository.updateAlbums(repository.albums.value)
-
-                val coverMediaItemId = album.coverPhoto.mediaItemId
-                if (coverMediaItemId != null) {
-                    println("    Setting cover photo to: ${album.coverPhoto.name}")
-                    photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId)
-                }
+                val tempAlbum = album.copy(photos = updatedPhotos)
+                tempAlbum.copy(uploadStatus = tempAlbum.getDerivedUploadStatus())
+            } else {
+                album
             }
         }
-        
-        album.uploadStatus = album.getDerivedUploadStatus()
-        repository.updateAlbums(repository.albums.value)
-        
-        return album.uploadStatus is UploadStatus.Success
+        repository.updateAlbums(updatedAlbums)
     }
 }
 
-// Internal state for view model specific fields
 data class ViewState(
     val isAuthenticated: Boolean = false,
     val isShowDirPicker: Boolean = false,
