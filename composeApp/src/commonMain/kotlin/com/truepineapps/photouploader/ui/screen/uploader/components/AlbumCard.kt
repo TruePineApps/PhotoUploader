@@ -21,10 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.truepineapps.photouploader.io.getDisplayName
 import com.truepineapps.photouploader.model.Album
+import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_cover
 import com.truepineapps.photouploader.resources.loading_img
@@ -32,8 +33,6 @@ import com.truepineapps.photouploader.ui.Dimensions
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import coil3.compose.LocalPlatformContext as CoilContext
-import com.mohamedrejeb.calf.core.LocalPlatformContext as KmpFileContext
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -44,11 +43,13 @@ fun AlbumCard(
     onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isEditable = album.uploadStatus is UploadStatus.None || album.uploadStatus is UploadStatus.Error
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = Dimensions.padding_very_small)
-            .clickable { onAlbumClick() },
+            .clickable(enabled = isEditable) { onAlbumClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -62,17 +63,15 @@ fun AlbumCard(
         ) {
             Checkbox(
                 checked = album.isEnabled,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                enabled = isEditable
             )
 
-            val coilContext = CoilContext.current
-            val kmpFileContext = KmpFileContext.current
-            // Remember the request to prevent rebuilding it on every frame if other props change
+            val context = LocalPlatformContext.current
             val imageRequest = remember(album.coverPhoto) {
-                ImageRequest.Builder(coilContext)
+                ImageRequest.Builder(context)
                     .data(album.coverPhoto.kmpFile)
                     .crossfade(true)
-                    // Prevent choppy scrolling by enforcing a specific memory key
                     .memoryCacheKey(album.coverPhoto.path.toString())
                     .build()
             }
@@ -80,7 +79,7 @@ fun AlbumCard(
                 model = imageRequest,
                 contentDescription = stringResource(
                     Res.string.album_cover,
-                    album.coverPhoto.kmpFile.getDisplayName(kmpFileContext)
+                    album.coverPhoto.getDisplayName()
                 ),
                 error = rememberVectorPainter(Icons.Filled.BrokenImage),
                 placeholder = painterResource(Res.drawable.loading_img),
@@ -95,7 +94,8 @@ fun AlbumCard(
                     value = album.name,
                     onValueChange = onNameChange,
                     label = { Text("Album Name") },
-                    singleLine = true
+                    singleLine = true,
+                    enabled = isEditable
                 )
                 Text(
                     text = "${album.photos.size} photos",
@@ -103,6 +103,13 @@ fun AlbumCard(
                     modifier = Modifier.padding(top = Dimensions.padding_very_small)
                 )
             }
+
+            UploadStatusIndicator(
+                uploadStatus = album.uploadStatus,
+                isAlbum = true,
+                isEnabled = album.isEnabled,
+                modifier = Modifier.padding(start = Dimensions.padding_small)
+            )
         }
     }
 }

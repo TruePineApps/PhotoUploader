@@ -1,0 +1,148 @@
+package com.truepineapps.photouploader.ui.screen.uploader.components
+
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.DriveFolderUpload
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
+import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.arrow_upload_progress
+import com.truepineapps.photouploader.resources.arrow_upload_ready
+import com.truepineapps.photouploader.resources.file_upload_off
+import com.truepineapps.photouploader.ui.Dimensions
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.vectorResource
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun UploadStatusIndicator(
+    uploadStatus: UploadStatus,
+    isAlbum: Boolean,
+    isEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        val iconColor = when {
+            !isEnabled -> Color.Gray
+            uploadStatus is UploadStatus.Error -> Color.Red
+            uploadStatus is UploadStatus.UploadingError -> Color(0xFFFFA500) // Orange
+            uploadStatus is UploadStatus.Success -> Color.Green
+            else -> MaterialTheme.colorScheme.primary
+        }
+
+        val statusIcon = getStatusIcon(uploadStatus, isAlbum, isEnabled)
+
+        if (statusIcon != null) {
+            val rotation by if (uploadStatus is UploadStatus.Uploading || uploadStatus is UploadStatus.UploadingError) {
+                val infiniteTransition = rememberInfiniteTransition()
+                infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    )
+                )
+            } else {
+                androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
+            }
+
+            if (statusIcon is StatusIcon.Vector) {
+                Icon(
+                    imageVector = statusIcon.imageVector,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(Dimensions.icon_size).rotate(rotation)
+                )
+            } else if (statusIcon is StatusIcon.Drawable) {
+                // For SVG/PNG resources
+                if (statusIcon.isVector) {
+                     Icon(
+                        imageVector = vectorResource(statusIcon.resource),
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(Dimensions.icon_size).rotate(rotation)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(statusIcon.resource),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(iconColor),
+                        modifier = Modifier.size(Dimensions.icon_size)
+                    )
+                }
+            }
+        }
+
+        val errorMessage = when (uploadStatus) {
+            is UploadStatus.Error -> uploadStatus.message
+            is UploadStatus.UploadingError -> uploadStatus.message
+            else -> null
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage.asString(),
+                color = Color.Red,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Dimensions.padding_very_small),
+                maxLines = 2
+            )
+        }
+    }
+}
+
+private sealed class StatusIcon {
+    data class Vector(val imageVector: ImageVector) : StatusIcon()
+    data class Drawable(val resource: org.jetbrains.compose.resources.DrawableResource, val isVector: Boolean = false) : StatusIcon()
+}
+
+@OptIn(ExperimentalResourceApi::class)
+private fun getStatusIcon(
+    uploadStatus: UploadStatus,
+    isAlbum: Boolean,
+    isEnabled: Boolean,
+): StatusIcon? {
+    if (!isEnabled) {
+        return StatusIcon.Drawable(Res.drawable.file_upload_off)
+    }
+
+    return when (uploadStatus) {
+        UploadStatus.None -> {
+            if (isAlbum) StatusIcon.Vector(Icons.Filled.DriveFolderUpload)
+            else StatusIcon.Vector(Icons.Filled.UploadFile)
+        }
+        UploadStatus.Waiting -> StatusIcon.Vector(Icons.Filled.ArrowCircleUp)
+        UploadStatus.Uploading, is UploadStatus.UploadingError -> StatusIcon.Drawable(Res.drawable.arrow_upload_progress, isVector = true)
+        UploadStatus.Success -> StatusIcon.Drawable(Res.drawable.arrow_upload_ready, isVector = true)
+        is UploadStatus.Error -> StatusIcon.Vector(Icons.Filled.Error)
+    }
+}

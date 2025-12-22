@@ -1,6 +1,6 @@
 package com.truepineapps.photouploader.ui.screen.uploader.components
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +26,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.truepineapps.photouploader.model.Photo
+import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.cover_photo
 import com.truepineapps.photouploader.resources.loading_img
@@ -44,6 +45,8 @@ fun PhotoCard(
     onCoverPhotoChange: (Photo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isEditable = photo.uploadStatus is UploadStatus.None
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -59,20 +62,30 @@ fun PhotoCard(
                 .padding(Dimensions.padding_small),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                checked = photo.isEnabled,
-                onCheckedChange = onCheckedChange
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(end = Dimensions.padding_small)
+            ) {
+                Checkbox(
+                    checked = photo.isEnabled,
+                    onCheckedChange = onCheckedChange,
+                    enabled = isEditable
+                )
+                
+                ThemedIconButton(
+                    imageVector = if (photo.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescriptionResource = Res.string.cover_photo,
+                    enabled = isEditable,
+                    onClick = { onCoverPhotoChange(photo) }
+                )
+            }
 
             // Remember the request based on the specific file.
-            // If the file changes (unlikely in this list), it updates.
-            // If the checkbox changes (likely), this block is skipped.
             val context = LocalPlatformContext.current
             val imageRequest = remember(photo.kmpFile) {
                 ImageRequest.Builder(context)
                     .data(photo.kmpFile)
                     .crossfade(true)
-                    // Prevent choppy scrolling by enforcing a specific memory key
                     .memoryCacheKey(photo.path.toString())
                     .build()
             }
@@ -96,16 +109,12 @@ fun PhotoCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Box(
-                modifier = Modifier.padding(start = Dimensions.padding_small).align(Alignment.Top)
-            ) {
-                ThemedIconButton(
-                    imageVector = if (photo.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescriptionResource = Res.string.cover_photo,
-                    enabled = true,
-                    onClick = { onCoverPhotoChange(photo) }
-                )
-            }
+            UploadStatusIndicator(
+                uploadStatus = photo.uploadStatus,
+                isAlbum = false,
+                isEnabled = photo.isEnabled,
+                modifier = Modifier.padding(start = Dimensions.padding_small)
+            )
         }
     }
 }
