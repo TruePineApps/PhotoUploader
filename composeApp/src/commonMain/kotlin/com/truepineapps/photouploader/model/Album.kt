@@ -1,7 +1,11 @@
 package com.truepineapps.photouploader.model
 
 import com.mohamedrejeb.calf.io.KmpFile
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
+import com.truepineapps.photouploader.util.UiTextResource
 import okio.Path
+
 
 data class Album(
     val id: String, // Unique identifier (e.g., path)
@@ -27,11 +31,22 @@ data class Album(
 
         // Handle error states first.
         if (hasError) {
-            val firstError = photos.first { it.uploadStatus is UploadStatus.Error }.uploadStatus as UploadStatus.Error
+            val firstError =
+                    photos.first { it.uploadStatus is UploadStatus.Error }.uploadStatus as UploadStatus.Error
             // Uploading is in progress, but an error has occurred.
-            if (isUploading) return UploadStatus.UploadingError("One or more photos failed: ${firstError.message}")
+            if (isUploading) return UploadStatus.UploadingError(
+                UiTextResource(
+                    Res.string.error_one_or_more_photos_failed,
+                    listOf(firstError.message)
+                )
+            )
             // An error occurred, and nothing is uploading anymore.
-            return UploadStatus.Error("One or more photos failed: ${firstError.message}")
+            return UploadStatus.Error(
+                UiTextResource(
+                    Res.string.error_one_or_more_photos_failed,
+                    listOf(firstError.message)
+                )
+            )
         }
 
         // Photos are still uploading (without any errors).
@@ -39,13 +54,14 @@ data class Album(
             return UploadStatus.Uploading
         }
 
-        // All photos completed successfully.
-        if (photos.all { it.uploadStatus is UploadStatus.Success }) {
+        val enabledPhotos = photos.filter { it.isEnabled }
+        // All enabled photos completed successfully.
+        if (enabledPhotos.all { it.uploadStatus is UploadStatus.Success }) {
             return UploadStatus.Success
         }
 
         // Photos are queued for upload.
-        if (photos.any { it.uploadStatus is UploadStatus.Waiting }) {
+        if (enabledPhotos.any { it.uploadStatus is UploadStatus.Waiting }) {
             return UploadStatus.Waiting
         }
 

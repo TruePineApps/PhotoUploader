@@ -28,4 +28,15 @@
     <string name="preview">Preview</string>
     <string name="album_cover">Album cover: %1$s</string>
     <string name="cover_photo">Cover photo</string>
+    
+    <!-- Error messages -->
+    <string name="error_unknown">An unknown error occurred.</string>
+    <string name="error_platform_context_not_set">Platform context not set</string>
+    <string name="error_sign_in_failed">Failed to sign in</string>
+    <string name="error_album_creation_failed_with_message">Failed to create album: %1$s</string>
+    <string name="error_album_creation_failed">Failed to create album.</string>
+    <string name="error_upload_failed">Upload failed</string>
+    <string name="error_add_to_album_failed">Failed to add to album</string>
+    <string name="error_add_media_items_failed">Failed to add media items to album</string>
+    <string name="error_one_or_more_photos_failed">One or more photos failed: %1$s</string>
 </resources>

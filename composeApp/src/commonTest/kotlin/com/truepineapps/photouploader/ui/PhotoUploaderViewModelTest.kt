@@ -246,13 +246,14 @@ class PhotoUploaderViewModelTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         testDispatcher.scheduler.advanceUntilIdle()
 
+        val globalErrorMessage = viewModel.uiState.value.globalErrorMessage
         assertNotNull(
-            viewModel.uiState.value.globalErrorMessage,
+            globalErrorMessage,
             "Global error should be set on sign-in failure"
         )
         assertTrue(
-            viewModel.uiState.value.globalErrorMessage!!.contains("Sign-in failed"),
-            "Error message should indicate sign-in failure"
+            globalErrorMessage.toString().contains("Sign-in failed"),
+            "Error message should indicate sign-in failure, but was: $globalErrorMessage"
         )
     }
 

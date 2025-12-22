@@ -13,8 +13,14 @@ import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
 import com.truepineapps.photouploader.network.MediaItem
 import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.StatusInfo
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_add_media_items_failed
+import com.truepineapps.photouploader.resources.error_album_creation_failed
+import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
+import com.truepineapps.photouploader.resources.error_upload_failed
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 import com.truepineapps.photouploader.ui.screen.uploader.UiState
+import com.truepineapps.photouploader.util.UiTextResource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -84,8 +90,7 @@ class UploadPhotosTest : KoinTest {
     private fun setupKoin(mockEngine: MockEngine) {
         startKoin {
             modules(
-                viewModelModule(),
-                module {
+                viewModelModule(), module {
                     single<FileSystem> { fileSystem }
                     single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
                     single { PhotoDirectoryRepository(platformFileSystem = get()) }
@@ -152,8 +157,7 @@ class UploadPhotosTest : KoinTest {
     @Test
     fun `uploadPhotos successfully uploads photos`() = runTest {
         createTestFiles(
-            "2023/Holiday/photo1.jpg",
-            "2023/Holiday/photo2.png"
+            "2023/Holiday/photo1.jpg", "2023/Holiday/photo2.png"
         )
 
         val requests = mutableListOf<HttpRequestData>()
@@ -216,14 +220,12 @@ class UploadPhotosTest : KoinTest {
     @Test
     fun `uploadPhotos skips photo if upload fails`() = runTest {
         createTestFiles(
-            "2023/Holiday/photo1.jpg",
-            "2023/Holiday/photo2.jpg"
+            "2023/Holiday/photo1.jpg", "2023/Holiday/photo2.jpg"
         )
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(
-            requestLog = requests,
-            shouldFailUploadForFile = "photo2.jpg" // Fail upload for photo2
+            requestLog = requests, shouldFailUploadForFile = "photo2.jpg" // Fail upload for photo2
         )
         setupKoin(mockEngine)
 
@@ -452,13 +454,9 @@ class UploadPhotosTest : KoinTest {
         val album = photoRepo.albums.value.first()
         val photo = album.photos.first()
 
-        assertTrue(
-            album.uploadStatus is UploadStatus.Error,
-            "Album status should be Error when album creation fails"
-        )
-        assertTrue(
-            (album.uploadStatus as UploadStatus.Error).message.contains("Failed to create album"),
-            "Error message should indicate album creation failure"
+        assertEquals(
+            UploadStatus.Error(UiTextResource(Res.string.error_album_creation_failed)),
+            album.uploadStatus
         )
         assertEquals(UploadStatus.Waiting, photo.uploadStatus)
     }
@@ -492,19 +490,19 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val repo: PhotoDirectoryRepository by inject()
-        val album = repo.albums.value.first()
+        val album = photoRepo.albums.value.first()
         val photo = album.photos.first()
 
         assertEquals(
-            UploadStatus.Error("Upload failed"), photo.uploadStatus
+            UploadStatus.Error(UiTextResource(Res.string.error_upload_failed)), photo.uploadStatus
         )
-
-        // Since the only photo failed to upload, nothing was added to the album.
-        // We expect the album status to reflect that one or more photos failed.
-        // Based on getDerivedUploadStatus, if there is an error in photos and no ongoing uploads, it returns Error.
         assertEquals(
-            UploadStatus.Error("One or more photos failed: Upload failed"), album.uploadStatus
+            UploadStatus.Error(
+                UiTextResource(
+                    Res.string.error_one_or_more_photos_failed,
+                    listOf(UiTextResource(Res.string.error_upload_failed))
+                )
+            ), album.uploadStatus
         )
     }
 
@@ -536,11 +534,15 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val repo: PhotoDirectoryRepository by inject()
-        val album = repo.albums.value.first()
+        val album = photoRepo.albums.value.first()
 
         assertEquals(
-            UploadStatus.Error("One or more photos failed: Failed to add media items to album"), album.uploadStatus
+            UploadStatus.Error(
+                UiTextResource(
+                    Res.string.error_one_or_more_photos_failed,
+                    listOf(UiTextResource(Res.string.error_add_media_items_failed))
+                )
+            ), album.uploadStatus
         )
     }
 
@@ -574,28 +576,33 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val repo: PhotoDirectoryRepository by inject()
-        val album = repo.albums.value.first()
+        val album = photoRepo.albums.value.first()
         val updatedPhoto1 = album.photos.find { it.name == "photo1.jpg" }!!
         val updatedPhoto2 = album.photos.find { it.name == "photo2.jpg" }!!
 
-        // Photo 1 succeeded
         assertEquals(UploadStatus.Success, updatedPhoto1.uploadStatus)
         assertNotNull(updatedPhoto1.mediaItemId)
-
-        // Photo 2 failed at adding to album stage
-        assertEquals(UploadStatus.Error("Failed to add to album"), updatedPhoto2.uploadStatus)
-
-        // Album status should reflect partial failure (Error)
-         assertEquals(
-            UploadStatus.Error("One or more photos failed: Failed to add to album"), album.uploadStatus
+        assertTrue(
+            updatedPhoto2.uploadStatus is UploadStatus.Error, "Photo should fail to add to album"
         )
+        assertEquals(
+            "Failed to add to album",
+            (updatedPhoto2.uploadStatus as UploadStatus.Error).message.toString(),
+            "Photo error message"
+        )
+        assertTrue(album.uploadStatus is UploadStatus.Error, "Album should fail to add photos")
+        assertEquals(
+            "${Res.string.error_one_or_more_photos_failed.key} 'Failed to add to album'",
+            (album.uploadStatus as UploadStatus.Error).message.toString(),
+            "Album error text"
+        )
+
     }
 
     // --- Helpers ---
 
-    private fun UiState.getAlbumContaining(namePart: String) = 
-        this.albums.find { it.name.contains(namePart) }!!
+    private fun UiState.getAlbumContaining(namePart: String) =
+            this.albums.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
@@ -613,16 +620,13 @@ class UploadPhotosTest : KoinTest {
                         respond("Error creating album", status = HttpStatusCode.BadRequest)
                     } else {
                         val response = AlbumResponse(
-                            id = "album_123",
-                            title = "Album Title",
-                            productUrl = "http://url"
+                            id = "album_123", title = "Album Title", productUrl = "http://url"
                         )
                         respond(
                             content = json.encodeToString(response),
                             status = HttpStatusCode.OK,
                             headers = headersOf(
-                                HttpHeaders.ContentType,
-                                ContentType.Application.Json.toString()
+                                HttpHeaders.ContentType, ContentType.Application.Json.toString()
                             )
                         )
                     }
@@ -634,25 +638,28 @@ class UploadPhotosTest : KoinTest {
                         respond("Upload failed", status = HttpStatusCode.InternalServerError)
                     } else {
                         respond(
-                            content = "upload_token_$fileName",
-                            status = HttpStatusCode.OK
+                            content = "upload_token_$fileName", status = HttpStatusCode.OK
                         )
                     }
                 }
 
                 url.endsWith(ENDPOINT_BATCH_CREATE) -> {
                     if (shouldFailAddToAlbum) {
-                         respond("Batch create failed", status = HttpStatusCode.InternalServerError)
+                        respond("Batch create failed", status = HttpStatusCode.InternalServerError)
                     } else {
                         val body = request.body as TextContent
-                        val batchRequest = json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                        val batchRequest =
+                                json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
                         val results = batchRequest.newMediaItems.mapIndexed { _, item ->
-                            val status = if (failAddToAlbumForFileName != null && item.simpleMediaItem.fileName == failAddToAlbumForFileName) {
-                                StatusInfo(code = 3, message = "Failed to add to album")
-                            } else {
-                                StatusInfo(0, "OK")
-                            }
-                            
+                            val status =
+                                    if (failAddToAlbumForFileName != null
+                                        && item.simpleMediaItem.fileName == failAddToAlbumForFileName
+                                    ) {
+                                        StatusInfo(code = 3, message = "Failed to add to album")
+                                    } else {
+                                        StatusInfo(0, "OK")
+                                    }
+
                             MediaItemResult(
                                 uploadToken = item.simpleMediaItem.uploadToken,
                                 status = status,
@@ -668,15 +675,18 @@ class UploadPhotosTest : KoinTest {
                             content = json.encodeToString(response),
                             status = HttpStatusCode.OK,
                             headers = headersOf(
-                                HttpHeaders.ContentType,
-                                ContentType.Application.Json.toString()
+                                HttpHeaders.ContentType, ContentType.Application.Json.toString()
                             )
                         )
                     }
                 }
 
                 url.contains("?updateMask=coverPhotoMediaItemId") -> {
-                    respond(content = "{}", status = HttpStatusCode.OK, headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()))
+                    respond(
+                        content = "{}", status = HttpStatusCode.OK, headers = headersOf(
+                            HttpHeaders.ContentType, ContentType.Application.Json.toString()
+                        )
+                    )
                 }
 
                 else -> error("Unhandled request: ${request.url}")
@@ -742,14 +752,18 @@ class UploadPhotosTest : KoinTest {
     }
 
     private fun List<HttpRequestData>.assertAlbumCoverPatched() {
-        val patchRequest = this.find { 
-            it.method == HttpMethod.Patch && it.url.toString().contains("updateMask=coverPhotoMediaItemId")
+        val patchRequest = this.find {
+            it.method == HttpMethod.Patch && it.url.toString()
+                .contains("updateMask=coverPhotoMediaItemId")
         }
         assertNotNull(patchRequest, "PATCH request to update album cover not found")
     }
 
     private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
-         assertTrue(this.none { it.url.toString().endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true }, "Album with title containing '$titlePart' should not have been created")
+        assertTrue(this.none {
+            it.url.toString()
+                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true
+        }, "Album with title containing '$titlePart' should not have been created")
     }
 
     private fun getAlbumTitle(request: HttpRequestData): String? {
