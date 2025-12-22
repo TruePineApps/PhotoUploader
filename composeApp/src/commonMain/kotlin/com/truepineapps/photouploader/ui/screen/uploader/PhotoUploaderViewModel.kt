@@ -230,7 +230,7 @@ class PhotoUploaderViewModel(
         // If no photos were successfully uploaded (e.g. all failed), there's nothing left to do.
         if (uploadedItems.isEmpty()) {
             val finalAlbum = repository.albums.value.find { it.id == album.id }!!
-            updateAlbumStatus(album.id, finalAlbum.getDerivedUploadStatus())
+            updateAlbumStatus(album.id, finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus())
             return
         }
 
@@ -239,7 +239,7 @@ class PhotoUploaderViewModel(
         // Use the updated album to set the cover photo to the media item id added earlier
         val finalAlbum = repository.albums.value.find { it.id == album.id }!!
         setAlbumCover(finalAlbum, googleAlbumId, photoUploader)
-        updateAlbumStatus(album.id, finalAlbum.getDerivedUploadStatus())
+        updateAlbumStatus(album.id, finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus())
     }
 
     private suspend fun createGoogleAlbum(album: Album, photoUploader: PhotoUploader): String? {
@@ -331,6 +331,25 @@ class PhotoUploaderViewModel(
                                           ?: currentAlbum.coverPhoto
 
                     currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
+                } else {
+                    currentAlbum
+                }
+            }
+            repository.updateAlbums(finalUpdatedAlbums)
+        } else {
+            // Handle the case where the batch creation request itself failed (results is null)
+            val currentRepoAlbums = repository.albums.value
+            val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
+                if (currentAlbum.id == album.id) {
+                    val updatedPhotos = currentAlbum.photos.map { p ->
+                        // Mark all photos that were part of this upload attempt as failed
+                        if (uploadedItems.any { it.first.path == p.path }) {
+                             p.copy(uploadStatus = UploadStatus.Error("Failed to add media items to album"))
+                        } else {
+                            p
+                        }
+                    }
+                    currentAlbum.copy(photos = updatedPhotos)
                 } else {
                     currentAlbum
                 }

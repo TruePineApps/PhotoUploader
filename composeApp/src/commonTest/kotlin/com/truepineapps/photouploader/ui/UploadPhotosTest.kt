@@ -382,7 +382,7 @@ class UploadPhotosTest : KoinTest {
     }
 
     @Test
-    fun testUpload_StatusUpdates() = runTest {
+    fun `upload status is correctly updated during upload`() = runTest {
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
         setupKoin(mockEngine)
@@ -415,17 +415,180 @@ class UploadPhotosTest : KoinTest {
         val updatedPhoto1 = updatedAlbum.photos.first()
         val updatedPhoto2 = updatedAlbum.photos.last()
 
+        assertEquals(UploadStatus.Uploading, updatedAlbum.uploadStatus)
+        assertEquals(UploadStatus.Waiting, updatedPhoto1.uploadStatus)
+        assertEquals(UploadStatus.None, updatedPhoto2.uploadStatus)
+    }
+
+    @Test
+    fun `album and photo status is error when album creation fails`() = runTest {
+        val requests = mutableListOf<HttpRequestData>()
+        // Fail album creation
+        val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
+        setupKoin(mockEngine)
+
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val album1 = Album(
+            "a1",
+            createTestKmpFile("/a1"),
+            "/a1".toPath(),
+            "A1",
+            "G1",
+            listOf(photo1),
+            photo1,
+            isEnabled = true
+        )
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()?.join()
+        advanceUntilIdle()
+
+        val album = photoRepo.albums.value.first()
+        val photo = album.photos.first()
+
         assertTrue(
-            updatedAlbum.uploadStatus is UploadStatus.Uploading,
-            "Album status should be Uploading"
+            album.uploadStatus is UploadStatus.Error,
+            "Album status should be Error when album creation fails"
         )
         assertTrue(
-            updatedPhoto1.uploadStatus is UploadStatus.Waiting,
-            "Enabled photo status should be Waiting"
+            (album.uploadStatus as UploadStatus.Error).message.contains("Failed to create album"),
+            "Error message should indicate album creation failure"
         )
-        assertTrue(
-            updatedPhoto2.uploadStatus is UploadStatus.None,
-            "Disabled photo status should remain None"
+        assertEquals(UploadStatus.Waiting, photo.uploadStatus)
+    }
+
+    @Test
+    fun `photo and album status is error when photo upload fails`() = runTest {
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine =
+                createMockEngine(requestLog = requests, shouldFailUploadForFile = "photo1.jpg")
+        setupKoin(mockEngine)
+
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val album1 = Album(
+            "a1",
+            createTestKmpFile("/a1"),
+            "/a1".toPath(),
+            "A1",
+            "G1",
+            listOf(photo1),
+            photo1,
+            isEnabled = true
+        )
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()?.join()
+        advanceUntilIdle()
+
+        val repo: PhotoDirectoryRepository by inject()
+        val album = repo.albums.value.first()
+        val photo = album.photos.first()
+
+        assertEquals(
+            UploadStatus.Error("Upload failed"), photo.uploadStatus
+        )
+
+        // Since the only photo failed to upload, nothing was added to the album.
+        // We expect the album status to reflect that one or more photos failed.
+        // Based on getDerivedUploadStatus, if there is an error in photos and no ongoing uploads, it returns Error.
+        assertEquals(
+            UploadStatus.Error("One or more photos failed: Upload failed"), album.uploadStatus
+        )
+    }
+
+    @Test
+    fun `album status is error when adding photos to album fails`() = runTest {
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine = createMockEngine(requestLog = requests, shouldFailAddToAlbum = true)
+        setupKoin(mockEngine)
+
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val album1 = Album(
+            "a1",
+            createTestKmpFile("/a1"),
+            "/a1".toPath(),
+            "A1",
+            "G1",
+            listOf(photo1),
+            photo1,
+            isEnabled = true
+        )
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()?.join()
+        advanceUntilIdle()
+
+        val repo: PhotoDirectoryRepository by inject()
+        val album = repo.albums.value.first()
+
+        assertEquals(
+            UploadStatus.Error("One or more photos failed: Failed to add media items to album"), album.uploadStatus
+        )
+    }
+
+    @Test
+    fun `photo and album status is error on partial add to album failure`() = runTest {
+        val requests = mutableListOf<HttpRequestData>()
+        val mockEngine =
+                createMockEngine(requestLog = requests, failAddToAlbumForFileName = "photo2.jpg")
+        setupKoin(mockEngine)
+
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "photo2.jpg", isEnabled = true)
+        val album1 = Album(
+            "a1",
+            createTestKmpFile("/a1"),
+            "/a1".toPath(),
+            "A1",
+            "G1",
+            listOf(photo1, photo2),
+            photo1,
+            isEnabled = true
+        )
+        val photoRepo: PhotoDirectoryRepository by inject()
+        photoRepo.updateAlbums(listOf(album1))
+
+        val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.platformContext = createTestPlatformContext()
+        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.uploadPhotos()?.join()
+        advanceUntilIdle()
+
+        val repo: PhotoDirectoryRepository by inject()
+        val album = repo.albums.value.first()
+        val updatedPhoto1 = album.photos.find { it.name == "photo1.jpg" }!!
+        val updatedPhoto2 = album.photos.find { it.name == "photo2.jpg" }!!
+
+        // Photo 1 succeeded
+        assertEquals(UploadStatus.Success, updatedPhoto1.uploadStatus)
+        assertNotNull(updatedPhoto1.mediaItemId)
+
+        // Photo 2 failed at adding to album stage
+        assertEquals(UploadStatus.Error("Failed to add to album"), updatedPhoto2.uploadStatus)
+
+        // Album status should reflect partial failure (Error)
+         assertEquals(
+            UploadStatus.Error("One or more photos failed: Failed to add to album"), album.uploadStatus
         )
     }
 
@@ -438,6 +601,8 @@ class UploadPhotosTest : KoinTest {
         requestLog: MutableList<HttpRequestData>,
         shouldFailAlbumCreation: Boolean = false,
         shouldFailUploadForFile: String? = null,
+        shouldFailAddToAlbum: Boolean = false,
+        failAddToAlbumForFileName: String? = null,
     ): MockEngine {
         return MockEngine { request ->
             requestLog.add(request)
@@ -476,28 +641,38 @@ class UploadPhotosTest : KoinTest {
                 }
 
                 url.endsWith(ENDPOINT_BATCH_CREATE) -> {
-                    val body = request.body as TextContent
-                    val batchRequest = json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
-                    val results = batchRequest.newMediaItems.mapIndexed { _, item ->
-                        MediaItemResult(
-                            uploadToken = item.simpleMediaItem.uploadToken,
-                            status = StatusInfo(0, "OK"),
-                            mediaItem = MediaItem(
-                                id = "media-id-for-${item.simpleMediaItem.uploadToken}", // Generate a unique mediaId
-                                filename = item.simpleMediaItem.fileName
+                    if (shouldFailAddToAlbum) {
+                         respond("Batch create failed", status = HttpStatusCode.InternalServerError)
+                    } else {
+                        val body = request.body as TextContent
+                        val batchRequest = json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                        val results = batchRequest.newMediaItems.mapIndexed { _, item ->
+                            val status = if (failAddToAlbumForFileName != null && item.simpleMediaItem.fileName == failAddToAlbumForFileName) {
+                                StatusInfo(code = 3, message = "Failed to add to album")
+                            } else {
+                                StatusInfo(0, "OK")
+                            }
+                            
+                            MediaItemResult(
+                                uploadToken = item.simpleMediaItem.uploadToken,
+                                status = status,
+                                mediaItem = if (status.code == 0) MediaItem(
+                                    id = "media-id-for-${item.simpleMediaItem.uploadToken}",
+                                    filename = item.simpleMediaItem.fileName
+                                ) else null
+                            )
+                        }
+                        val response = BatchCreateMediaItemsResponse(results)
+
+                        respond(
+                            content = json.encodeToString(response),
+                            status = HttpStatusCode.OK,
+                            headers = headersOf(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
                             )
                         )
                     }
-                    val response = BatchCreateMediaItemsResponse(results)
-
-                    respond(
-                        content = json.encodeToString(response),
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(
-                            HttpHeaders.ContentType,
-                            ContentType.Application.Json.toString()
-                        )
-                    )
                 }
 
                 url.contains("?updateMask=coverPhotoMediaItemId") -> {
