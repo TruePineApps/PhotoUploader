@@ -17,8 +17,8 @@ data class Album(
     val coverPhoto: Photo,
     val isEnabled: Boolean = true,
     /** Google Album ID after upload */
-    var albumId: String? = null,
-    var uploadStatus: UploadStatus = UploadStatus.None,
+    val albumId: String? = null,
+    val uploadStatus: UploadStatus = UploadStatus.None,
 ) {
     fun getDerivedUploadStatus(): UploadStatus {
         // If the album itself has a specific status (like creation failed), prioritize it.

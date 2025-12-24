@@ -13,15 +13,15 @@ import com.truepineapps.photouploader.network.NewMediaItem
 import com.truepineapps.photouploader.network.PhotoUploader
 import com.truepineapps.photouploader.network.SimpleMediaItem
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.error_add_media_items_failed
+import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
-import com.truepineapps.photouploader.resources.error_album_creation_failed
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
 import com.truepineapps.photouploader.resources.error_platform_context_not_set
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.error_unknown
-import com.truepineapps.photouploader.resources.error_upload_failed
+import com.truepineapps.photouploader.resources.error_upload_failed_with_message
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
+import com.truepineapps.photouploader.util.Result
 import com.truepineapps.photouploader.util.UiText
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
@@ -45,8 +45,7 @@ class PhotoUploaderViewModel(
     private val _viewState = MutableStateFlow(ViewState())
 
     val uiState: StateFlow<UiState> = combine(
-        _viewState,
-        repository.albums
+        _viewState, repository.albums
     ) { viewState, albums ->
         UiState(
             isAuthenticated = viewState.isAuthenticated,
@@ -188,9 +187,11 @@ class PhotoUploaderViewModel(
                     val message = e.message ?: "An unknown error occurred."
                     // If message is generic, use resource, else string
                     val uiText =
-                            if (e.message == null) UiTextResource(Res.string.error_unknown) else UiTextString(
-                                message
-                            )
+                            if (e.message == null) {
+                                UiTextResource(Res.string.error_unknown)
+                            } else {
+                                UiTextString(message)
+                            }
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
                     updateIsUploading(false)
@@ -266,48 +267,51 @@ class PhotoUploaderViewModel(
         val finalAlbum = repository.albums.value.find { it.id == album.id }!!
         setAlbumCover(finalAlbum, googleAlbumId, photoUploader)
         updateAlbumStatus(
-            album.id,
-            finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus()
+            album.id, finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus()
         )
     }
 
     private suspend fun createGoogleAlbum(album: Album, photoUploader: PhotoUploader): String? {
-        val googleAlbumId = try {
-            photoUploader.createAlbum(album.name)
-        } catch (e: Exception) {
-            println("    Failed to create album for ${album.name}: ${e.message}")
-            val msg = e.message
-            updateAlbumStatus(
-                album.id, UploadStatus.Error(
-                    if (msg == null)
-                        UiTextResource(Res.string.error_album_creation_failed)
-                    else {
+        return when (val result = photoUploader.createAlbum(album.name)) {
+            is Result.Success -> {
+                val googleAlbumId = result.data
+                val currentAlbums = repository.albums.value
+                val updatedAlbumsWithId = currentAlbums.map {
+                    if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
+                }
+                repository.updateAlbums(updatedAlbumsWithId)
+                println("    Created album with ID: $googleAlbumId for ${album.name}")
+                googleAlbumId
+            }
+
+            is Result.Error -> {
+                println("    Failed to create album for ${album.name}: ${result.error}")
+                updateAlbumStatus(
+                    album.id, UploadStatus.Error(
                         UiTextResource(
                             Res.string.error_album_creation_failed_with_message,
-                            listOf(msg)
+                            listOf(result.error)
                         )
-                    }
+                    )
                 )
-            )
-            return null
-        }
+                null
+            }
 
-        if (googleAlbumId == null) {
-            println("    Failed to create album for ${album.name}")
-            updateAlbumStatus(
-                album.id,
-                UploadStatus.Error(UiTextResource(Res.string.error_album_creation_failed))
-            )
-            return null
+            is Result.Exception -> {
+                val message = result.throwable.message ?: "Unknown error"
+                println("    Failed to create album for ${album.name}: $message")
+                updateAlbumStatus(
+                    album.id, UploadStatus.Error(
+                        if (result.throwable.message == null) {
+                            UiTextResource(Res.string.error_unknown)
+                        } else {
+                            UiTextString(message)
+                        }
+                    )
+                )
+                null
+            }
         }
-
-        val currentAlbums = repository.albums.value
-        val updatedAlbumsWithId = currentAlbums.map {
-            if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
-        }
-        repository.updateAlbums(updatedAlbumsWithId)
-        println("    Created album with ID: $googleAlbumId for ${album.name}")
-        return googleAlbumId
     }
 
     private suspend fun uploadPhotosInAlbum(
@@ -321,18 +325,37 @@ class PhotoUploaderViewModel(
             updatePhotoStatus(album.id, photo.path, UploadStatus.Uploading)
             println("    Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}")
 
-            val uploadToken = photoUploader.uploadPhoto(photo)
-            if (uploadToken != null) {
-                successfullyUploaded.add(photo to uploadToken)
-                updatePhotoStatus(album.id, photo.path, UploadStatus.Success)
-                println("      Success: ${photo.name}")
-            } else {
-                updatePhotoStatus(
-                    album.id,
-                    photo.path,
-                    UploadStatus.Error(UiTextResource(Res.string.error_upload_failed))
-                )
-                println("      ERROR: Failed to upload ${photo.name}")
+            when (val result = photoUploader.uploadPhoto(photo)) {
+                is Result.Success -> {
+                    successfullyUploaded.add(photo to result.data)
+                    updatePhotoStatus(album.id, photo.path, UploadStatus.Success)
+                    println("      Success: ${photo.name}")
+                }
+
+                is Result.Error -> {
+                    updatePhotoStatus(
+                        album.id,
+                        photo.path,
+                        UploadStatus.Error(UiTextResource(Res.string.error_upload_failed_with_message, listOf(result.error)))
+                    )
+                    println("      ERROR: Failed to upload ${photo.name}: ${result.error}")
+                }
+
+                is Result.Exception -> {
+                    val message = result.throwable.message ?: "Unknown error"
+                    println("      ERROR: Failed to upload ${photo.name}: $message")
+                    updatePhotoStatus(
+                        album.id,
+                        photo.path,
+                        UploadStatus.Error(
+                            if (result.throwable.message == null) {
+                                UiTextResource(Res.string.error_unknown)
+                            } else {
+                                UiTextString(message)
+                            }
+                        )
+                    )
+                }
             }
         }
         return successfullyUploaded
@@ -351,60 +374,93 @@ class PhotoUploaderViewModel(
             )
         }
 
-        val results = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)
-
-        if (results != null) {
-            val currentRepoAlbums = repository.albums.value
-            val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
-                if (currentAlbum.id == album.id) {
-                    val updatedPhotos = currentAlbum.photos.map { p ->
-                        val index = uploadedItems.indexOfFirst { it.first.path == p.path }
-                        if (index != -1 && index < results.size) {
-                            val result = results[index]
-                            if (result.status.code == 0 && result.mediaItem != null) {
-                                p.copy(mediaItemId = result.mediaItem.id)
-                            } else {
-                                println("      ERROR: Failed to add ${p.name} to album ${currentAlbum.name}")
-                                p.copy(
-                                    uploadStatus = UploadStatus.Error(
-                                        if (result.status.message != null) UiTextString(result.status.message)
-                                        else UiTextResource(Res.string.error_add_to_album_failed)
+        when (val result = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)) {
+            is Result.Success -> {
+                val results = result.data
+                val currentRepoAlbums = repository.albums.value
+                val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
+                    if (currentAlbum.id == album.id) {
+                        val updatedPhotos = currentAlbum.photos.map { p ->
+                            val index = uploadedItems.indexOfFirst { it.first.path == p.path }
+                            if (index != -1 && index < results.size) {
+                                val mediaResult = results[index]
+                                if (mediaResult.status.code == 0 && mediaResult.mediaItem != null) {
+                                    p.copy(mediaItemId = mediaResult.mediaItem.id)
+                                } else {
+                                    println("      ERROR: Failed to add ${p.name} to album ${currentAlbum.name}")
+                                    p.copy(
+                                        uploadStatus = UploadStatus.Error(
+                                            if (mediaResult.status.message != null) UiTextString(
+                                                mediaResult.status.message
+                                            )
+                                            else UiTextResource(Res.string.error_add_to_album_failed)
+                                        )
                                     )
-                                )
+                                }
+                            } else {
+                                p
                             }
-                        } else {
-                            p
                         }
-                    }
-                    val newCoverPhoto =
-                            updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }
-                                ?: currentAlbum.coverPhoto
+                        val newCoverPhoto =
+                                updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }
+                                    ?: currentAlbum.coverPhoto.copy(mediaItemId = updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }?.mediaItemId)
 
-                    currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
-                } else {
-                    currentAlbum
-                }
-            }
-            repository.updateAlbums(finalUpdatedAlbums)
-        } else {
-            // Handle the case where the batch creation request itself failed (results is null)
-            val currentRepoAlbums = repository.albums.value
-            val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
-                if (currentAlbum.id == album.id) {
-                    val updatedPhotos = currentAlbum.photos.map { p ->
-                        // Mark all photos that were part of this upload attempt as failed
-                        if (uploadedItems.any { it.first.path == p.path }) {
-                            p.copy(uploadStatus = UploadStatus.Error(UiTextResource(Res.string.error_add_media_items_failed)))
-                        } else {
-                            p
-                        }
+                        currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
+                    } else {
+                        currentAlbum
                     }
-                    currentAlbum.copy(photos = updatedPhotos)
-                } else {
-                    currentAlbum
                 }
+                repository.updateAlbums(finalUpdatedAlbums)
             }
-            repository.updateAlbums(finalUpdatedAlbums)
+
+            is Result.Error -> {
+                // Handle the case where the batch creation request itself failed
+                val currentRepoAlbums = repository.albums.value
+                val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
+                    if (currentAlbum.id == album.id) {
+                        val updatedPhotos = currentAlbum.photos.map { p ->
+                            // Mark all photos that were part of this upload attempt as failed
+                            if (uploadedItems.any { it.first.path == p.path }) {
+                                p.copy(uploadStatus = UploadStatus.Error(UiTextResource(Res.string.error_add_media_items_failed_with_message, listOf(result.error))))
+                            } else {
+                                p
+                            }
+                        }
+                        currentAlbum.copy(photos = updatedPhotos)
+                    } else {
+                        currentAlbum
+                    }
+                }
+                repository.updateAlbums(finalUpdatedAlbums)
+            }
+
+            is Result.Exception -> {
+                val message = result.throwable.message ?: "Unknown error"
+                println("      ERROR: Failed to add media items to album ${album.name}: $message")
+                val currentRepoAlbums = repository.albums.value
+                val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
+                    if (currentAlbum.id == album.id) {
+                        val updatedPhotos = currentAlbum.photos.map { p ->
+                            // Mark all photos that were part of this upload attempt as failed
+                            if (uploadedItems.any { it.first.path == p.path }) {
+                                p.copy(uploadStatus = UploadStatus.Error(
+                                    if (result.throwable.message == null) {
+                                        UiTextResource(Res.string.error_unknown)
+                                    } else {
+                                        UiTextString(message)
+                                    }
+                                ))
+                            } else {
+                                p
+                            }
+                        }
+                        currentAlbum.copy(photos = updatedPhotos)
+                    } else {
+                        currentAlbum
+                    }
+                }
+                repository.updateAlbums(finalUpdatedAlbums)
+            }
         }
     }
 

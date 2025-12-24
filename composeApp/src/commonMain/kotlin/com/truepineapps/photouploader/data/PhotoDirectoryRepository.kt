@@ -140,7 +140,7 @@ class PhotoDirectoryRepository(
             val coverPhoto = photoFiles.first()
             albums.add(
                 Album(
-                    id = currentDir.toString().replace("/", "|"), // Escape slashes for navigation
+                    id = (platformFileSystem.getPath(currentDir, currentContext) ?: "").replace("/", "|"), // Escape slashes for navigation
                     kmpFile = currentDir,
                     path = (platformFileSystem.getPath(currentDir, currentContext) ?: "").toPath(),
                     name = albumName,

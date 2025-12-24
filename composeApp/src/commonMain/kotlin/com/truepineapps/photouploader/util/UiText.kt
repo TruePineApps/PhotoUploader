@@ -50,6 +50,9 @@ data class UiTextResource(
     val resource: StringResource,
     val formatArgs: List<Any> = emptyList(),
 ) : UiText() {
+
+    constructor(resource: StringResource, vararg args: Any) : this(resource, args.toList())
+
     /** @return the resource key followed by the arguments */
     override fun toString(): String {
         var result = resource.key

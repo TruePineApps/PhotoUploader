@@ -11,8 +11,8 @@ data class Photo(
     val isEnabled: Boolean = true,
     val isCoverPhoto: Boolean = false,
     /** Google Photo ID after upload */
-    var mediaItemId: String? = null,
-    var uploadStatus: UploadStatus = UploadStatus.None,
+    val mediaItemId: String? = null,
+    val uploadStatus: UploadStatus = UploadStatus.None,
 ) {
     /** File name without extension */
     fun getDisplayName(): String {

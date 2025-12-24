@@ -70,3 +70,9 @@ data class MediaItem(
 data class UpdateAlbumCoverRequest(
     val coverPhotoMediaItemId: String,
 )
+
+@Serializable
+data class GooglePhotosErrorResponse(val error: GooglePhotosErrorContent)
+
+@Serializable
+data class GooglePhotosErrorContent(val code: Int, val message: String, val status: String)

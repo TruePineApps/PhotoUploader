@@ -4,6 +4,7 @@ import com.mohamedrejeb.calf.core.PlatformContext
 import com.truepineapps.photouploader.io.PlatformFileSystem
 import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.util.FileUtils
+import com.truepineapps.photouploader.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -38,42 +39,43 @@ class PhotoUploader(
 
     /**
      * Creates an album in Google Photos
-     * @return Album ID if successful, null otherwise
+     * @return Result with Album ID if successful, Error message otherwise
      */
-    suspend fun createAlbum(albumTitle: String): String? {
+    suspend fun createAlbum(albumTitle: String): Result<String, String> {
         return try {
             val requestBody = CreateAlbumRequest(
                 album = AlbumData(title = albumTitle)
             )
 
-            val response: HttpResponse =
-                    client.post("https://photoslibrary.googleapis.com/v1/albums") {
-                        header(HttpHeaders.Authorization, "Bearer $accessToken")
-                        contentType(ContentType.Application.Json)
-                        setBody(json.encodeToString(requestBody))
-                    }
+            val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/albums") {
+                header(HttpHeaders.Authorization, "Bearer $accessToken")
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(requestBody))
+            }
 
             if (response.status.isSuccess()) {
-                val albumResponse =
-                        json.decodeFromString<AlbumResponse>(response.bodyAsText())
-                albumResponse.id
+                val albumResponse = json.decodeFromString<AlbumResponse>(response.bodyAsText())
+                Result.Success(albumResponse.id)
             } else {
+                val errorBody = response.bodyAsText()
                 println("Failed to create album: ${response.status}")
-                println("Response: ${response.bodyAsText()}")
-                null
+                println("Response: $errorBody")
+                val message = parseErrorMessage(errorBody).let {
+                    if (it.isNullOrBlank()) "" else "$it "
+                }
+                Result.Error("$message(${response.status})")
             }
         } catch (e: Exception) {
             println("Exception creating album: ${e.message}")
-            e.printStackTrace()
-            null
+            Result.Exception(e)
         }
     }
 
     /**
      * Uploads a photo file and returns the upload token
-     * @return Upload token if successful, null otherwise
+     * @return Result with Upload token if successful, Error message otherwise
      */
-    suspend fun uploadPhoto(photo: Photo): String? {
+    suspend fun uploadPhoto(photo: Photo): Result<String, String> {
         return try {
             // Upload the bytes to Google Photos
             val response: HttpResponse =
@@ -81,8 +83,7 @@ class PhotoUploader(
                         headers {
                             append(HttpHeaders.Authorization, "Bearer $accessToken")
                             append(
-                                "X-Goog-Upload-Content-Type",
-                                FileUtils.getMimeType(photo.name)
+                                "X-Goog-Upload-Content-Type", FileUtils.getMimeType(photo.name)
                             )
                             append("X-Goog-Upload-Protocol", "raw")
                             append("X-Goog-Upload-File-Name", photo.name)
@@ -93,15 +94,19 @@ class PhotoUploader(
                     }
 
             if (response.status.isSuccess()) {
-                response.bodyAsText() // The upload token is returned as plain text
+                Result.Success(response.bodyAsText()) // The upload token is returned as plain text
             } else {
+                val errorBody = response.bodyAsText()
                 println("Failed to upload photo: ${response.status}")
-                null
+                println("Response: $errorBody")
+                val message = parseErrorMessage(errorBody).let {
+                    if (it.isNullOrBlank()) "" else "$it "
+                }
+                Result.Error("$message(${response.status})")
             }
         } catch (e: Exception) {
             println("Exception uploading photo: ${e.message}")
-            e.printStackTrace()
-            null
+            Result.Exception(e)
         }
     }
 
@@ -136,15 +141,14 @@ class PhotoUploader(
     suspend fun addPhotosToAlbum(
         albumId: String,
         newMediaItems: List<NewMediaItem>,
-    ): List<MediaItemResult>? {
+    ): Result<List<MediaItemResult>, String> {
         val batchSize = GOOGLE_PHOTO_BATCH_SIZE
         val allResults = mutableListOf<MediaItemResult>()
 
-        newMediaItems.chunked(batchSize).forEachIndexed { batchIndex, batch ->
-            try {
+        try {
+            newMediaItems.chunked(batchSize).forEachIndexed { batchIndex, batch ->
                 val requestBody = BatchCreateMediaItemsRequest(
-                    albumId = albumId,
-                    newMediaItems = batch
+                    albumId = albumId, newMediaItems = batch
                 )
 
                 val response: HttpResponse =
@@ -164,20 +168,24 @@ class PhotoUploader(
                     println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
 
                     // Log any failures
-                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {                        println("      Failed item: ${it.status.message}")
+                    result.newMediaItemResults.filter { it.status.code != 0 }.forEach {
+                        println("      Failed item: ${it.status.message}")
                     }
                 } else {
+                    val errorBody = response.bodyAsText()
                     println("Failed to add photos to album: ${response.status}")
-                    println("Response: ${response.bodyAsText()}")
-                    return null
+                    println("Response: $errorBody")
+                    val message = parseErrorMessage(errorBody).let {
+                        if (it.isNullOrBlank()) "" else "$it "
+                    }
+                    return Result.Error("$message(${response.status})")
                 }
-            } catch (e: Exception) {
-                println("Exception adding photos to album (batch ${batchIndex + 1}): ${e.message}")
-                e.printStackTrace()
-                return null
             }
+        } catch (e: Exception) {
+            println("Exception adding photos to album: ${e.message}")
+            return Result.Exception(e)
         }
-        return allResults
+        return Result.Success(allResults)
     }
 
     suspend fun updateAlbumCover(albumId: String, coverMediaItemId: String) {
@@ -199,5 +207,14 @@ class PhotoUploader(
             e.printStackTrace()
         }
     }
-}
 
+    private fun parseErrorMessage(responseBody: String): String? {
+        return try {
+            val errorResponse = json.decodeFromString<GooglePhotosErrorResponse>(responseBody)
+            errorResponse.error.message
+        } catch (e: Exception) {
+            println("Parsing error response failed: ${e.message}")
+            null
+        }
+    }
+}
