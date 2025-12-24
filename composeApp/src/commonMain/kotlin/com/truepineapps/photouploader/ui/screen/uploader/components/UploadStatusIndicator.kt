@@ -7,8 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleUp
@@ -20,13 +19,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.arrow_upload_progress
@@ -45,78 +42,77 @@ fun UploadStatusIndicator(
     isEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val iconColor = when {
-            !isEnabled -> Color.Gray
-            uploadStatus is UploadStatus.Error -> Color.Red
-            uploadStatus is UploadStatus.UploadingError -> Color(0xFFFFA500) // Orange
-            uploadStatus is UploadStatus.Success -> Color.Green
-            else -> MaterialTheme.colorScheme.primary
+    val iconColor = when {
+        !isEnabled -> Color.Gray
+        uploadStatus is UploadStatus.Error -> Color.Red
+        uploadStatus is UploadStatus.UploadingError -> Color(0xFFFFA500) // Orange
+        uploadStatus is UploadStatus.Success -> Color.Green
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    val statusIcon = getStatusIcon(uploadStatus, isAlbum, isEnabled)
+
+    if (statusIcon != null) {
+        val rotation by if (uploadStatus is UploadStatus.Uploading || uploadStatus is UploadStatus.UploadingError) {
+            val infiniteTransition = rememberInfiniteTransition()
+            infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        } else {
+            androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
         }
 
-        val statusIcon = getStatusIcon(uploadStatus, isAlbum, isEnabled)
-
-        if (statusIcon != null) {
-            val rotation by if (uploadStatus is UploadStatus.Uploading || uploadStatus is UploadStatus.UploadingError) {
-                val infiniteTransition = rememberInfiniteTransition()
-                infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    )
-                )
-            } else {
-                androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
-            }
-
-            if (statusIcon is StatusIcon.Vector) {
+        if (statusIcon is StatusIcon.Vector) {
+            Icon(
+                imageVector = statusIcon.imageVector,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = modifier.size(Dimensions.icon_size).rotate(rotation)
+            )
+        } else if (statusIcon is StatusIcon.Drawable) {
+            val imageModifier = modifier.size(Dimensions.icon_size).rotate(rotation)
+            if (statusIcon.isVector) {
                 Icon(
-                    imageVector = statusIcon.imageVector,
+                    imageVector = vectorResource(statusIcon.resource),
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(Dimensions.icon_size).rotate(rotation)
+                    modifier = imageModifier
                 )
-            } else if (statusIcon is StatusIcon.Drawable) {
-                // For SVG/PNG resources
-                if (statusIcon.isVector) {
-                     Icon(
-                        imageVector = vectorResource(statusIcon.resource),
-                        contentDescription = null,
-                        tint = iconColor,
-                        modifier = Modifier.size(Dimensions.icon_size).rotate(rotation)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(statusIcon.resource),
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(iconColor),
-                        modifier = Modifier.size(Dimensions.icon_size)
-                    )
-                }
+            } else {
+                Image(
+                    painter = painterResource(statusIcon.resource),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(iconColor),
+                    modifier = imageModifier
+                )
             }
         }
+    }
+}
 
-        val errorMessage = when (uploadStatus) {
-            is UploadStatus.Error -> uploadStatus.message
-            is UploadStatus.UploadingError -> uploadStatus.message
-            else -> null
-        }
+@Composable
+fun UploadErrorText(
+    uploadStatus: UploadStatus,
+    modifier: Modifier = Modifier
+) {
+    val errorMessage = when (uploadStatus) {
+        is UploadStatus.Error -> uploadStatus.message
+        is UploadStatus.UploadingError -> uploadStatus.message
+        else -> null
+    }
 
-        if (errorMessage != null) {
-            Text(
-                text = errorMessage.asString(),
-                color = Color.Red,
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = Dimensions.padding_very_small),
-                maxLines = 2
-            )
-        }
+    if (errorMessage != null) {
+        Text(
+            text = errorMessage.asString(),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = modifier.fillMaxWidth()
+        )
     }
 }
 

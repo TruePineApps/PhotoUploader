@@ -30,4 +30,6 @@ object Dimensions {
     val max_medium_width: Dp = 840.dp
     val max_compact_height: Dp = 800.dp
     val max_medium_height: Dp = 1200.dp
+    val top_offset_themed_icon_button: Dp = (-6).dp
+    val top_offset_checkbox: Dp = (-12).dp
 }

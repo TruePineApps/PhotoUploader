@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.ui.screen.uploader.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -56,64 +57,75 @@ fun PhotoCard(
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.padding_small),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(Dimensions.padding_small)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(end = Dimensions.padding_small)
+            // Top Row: Checkbox -> Image -> Name -> Favorite -> Status
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
             ) {
                 Checkbox(
                     checked = photo.isEnabled,
                     onCheckedChange = onCheckedChange,
-                    enabled = isEditable
+                    enabled = isEditable,
+                    // Fix visual alignment: Pull the checkbox up (~12dp)
+                    modifier = Modifier.offset(y = Dimensions.top_offset_checkbox)
                 )
-                
+
+                val context = LocalPlatformContext.current
+                val imageRequest = remember(photo.kmpFile) {
+                    ImageRequest.Builder(context)
+                        .data(photo.kmpFile)
+                        .crossfade(true)
+                        .memoryCacheKey(photo.path.toString())
+                        .build()
+                }
+
+                AsyncImage(
+                    model = imageRequest,
+                    contentDescription = stringResource(Res.string.preview),
+                    error = rememberVectorPainter(Icons.Filled.BrokenImage),
+                    placeholder = painterResource(Res.drawable.loading_img),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .padding(end = Dimensions.padding_small)
+                        .size(Dimensions.big_icon_size)
+                )
+
+                Text(
+                    text = photo.name,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Favorite / Cover Action moved to the right side
+                // Applied similar offset to align with the top text
                 ThemedIconButton(
                     imageVector = if (photo.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescriptionResource = Res.string.cover_photo,
                     enabled = isEditable,
-                    onClick = { onCoverPhotoChange(photo) }
+                    onClick = { onCoverPhotoChange(photo) },
+                    modifier = Modifier.offset(y = Dimensions.top_offset_themed_icon_button)
+                )
+
+                // Status icon
+                UploadStatusIndicator(
+                    uploadStatus = photo.uploadStatus,
+                    isAlbum = false,
+                    isEnabled = photo.isEnabled,
+                    modifier = Modifier.padding(start = Dimensions.padding_small)
                 )
             }
 
-            // Remember the request based on the specific file.
-            val context = LocalPlatformContext.current
-            val imageRequest = remember(photo.kmpFile) {
-                ImageRequest.Builder(context)
-                    .data(photo.kmpFile)
-                    .crossfade(true)
-                    .memoryCacheKey(photo.path.toString())
-                    .build()
-            }
-
-            AsyncImage(
-                model = imageRequest,
-                contentDescription = stringResource(Res.string.preview),
-                error = rememberVectorPainter(Icons.Filled.BrokenImage),
-                placeholder = painterResource(Res.drawable.loading_img),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .padding(end = Dimensions.padding_small)
-                    .size(Dimensions.big_icon_size)
-            )
-
-            Text(
-                text = photo.name,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            UploadStatusIndicator(
+            // Bottom: Error Message, if any
+            UploadErrorText(
                 uploadStatus = photo.uploadStatus,
-                isAlbum = false,
-                isEnabled = photo.isEnabled,
-                modifier = Modifier.padding(start = Dimensions.padding_small)
+                modifier = Modifier.padding(top = Dimensions.padding_small)
             )
         }
     }
