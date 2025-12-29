@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -22,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
@@ -30,9 +28,9 @@ import com.truepineapps.photouploader.resources.arrow_upload_progress
 import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
 import com.truepineapps.photouploader.ui.Dimensions
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -67,30 +65,22 @@ fun UploadStatusIndicator(
             androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
         }
 
+        val imageModifier = modifier.size(Dimensions.icon_size).rotate(rotation)
+
         if (statusIcon is StatusIcon.Vector) {
             Icon(
                 imageVector = statusIcon.imageVector,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = modifier.size(Dimensions.icon_size).rotate(rotation)
+                modifier = imageModifier
             )
         } else if (statusIcon is StatusIcon.Drawable) {
-            val imageModifier = modifier.size(Dimensions.icon_size).rotate(rotation)
-            if (statusIcon.isVector) {
-                Icon(
-                    imageVector = vectorResource(statusIcon.resource),
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = imageModifier
-                )
-            } else {
-                Image(
-                    painter = painterResource(statusIcon.resource),
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(iconColor),
-                    modifier = imageModifier
-                )
-            }
+            Icon(
+                painter = painterResource(statusIcon.resource),
+                contentDescription = null,
+                tint = iconColor,
+                modifier = imageModifier
+            )
         }
     }
 }
@@ -118,7 +108,7 @@ fun UploadErrorText(
 
 private sealed class StatusIcon {
     data class Vector(val imageVector: ImageVector) : StatusIcon()
-    data class Drawable(val resource: org.jetbrains.compose.resources.DrawableResource, val isVector: Boolean = false) : StatusIcon()
+    data class Drawable(val resource: DrawableResource) : StatusIcon()
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -137,8 +127,8 @@ private fun getStatusIcon(
             else StatusIcon.Vector(Icons.Filled.UploadFile)
         }
         UploadStatus.Waiting -> StatusIcon.Vector(Icons.Filled.ArrowCircleUp)
-        UploadStatus.Uploading, is UploadStatus.UploadingError -> StatusIcon.Drawable(Res.drawable.arrow_upload_progress, isVector = true)
-        UploadStatus.Success -> StatusIcon.Drawable(Res.drawable.arrow_upload_ready, isVector = true)
+        UploadStatus.Uploading, is UploadStatus.UploadingError -> StatusIcon.Drawable(Res.drawable.arrow_upload_progress)
+        UploadStatus.Success -> StatusIcon.Drawable(Res.drawable.arrow_upload_ready)
         is UploadStatus.Error -> StatusIcon.Vector(Icons.Filled.Error)
     }
 }
