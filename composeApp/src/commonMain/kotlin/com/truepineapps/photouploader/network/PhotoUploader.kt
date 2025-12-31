@@ -166,14 +166,19 @@ class PhotoUploader(
         println("Request failed: ${response.status}")
         println("Response: $errorBody")
 
-        if (response.status == HttpStatusCode.Unauthorized) {
-            throw UploadException.GlobalException(UiTextResource(Res.string.error_sign_in_failed))
-        }
-
         val message = parseErrorMessage(errorBody).let {
             if (it.isNullOrBlank()) "" else "$it "
         }
         val fullMessage = "$message(${response.status})"
+
+        if (response.status == HttpStatusCode.Unauthorized) {
+            throw UploadException.GlobalException(
+                UiTextResource(
+                    Res.string.error_sign_in_failed,
+                    fullMessage
+                )
+            )
+        }
 
         when {
             isAlbumCreation -> throw UploadException.AlbumException(

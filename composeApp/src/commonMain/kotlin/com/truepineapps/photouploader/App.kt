@@ -17,6 +17,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -154,14 +155,18 @@ private fun ThemedLocalizedApp(
         navController.popBackStack(PhotoUploaderDestination.route, inclusive = false)
         Unit
     }
-    
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     uiState.globalErrorMessage?.let {
         val message = it.asString()
         LaunchedEffect(it) {
             scope.launch {
-                snackbarHostState.showSnackbar(message = message)
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long,
+                    withDismissAction = true
+                )
                 viewModel.clearGlobalErrorMessage()
             }
         }
@@ -169,7 +174,17 @@ private fun ThemedLocalizedApp(
 
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                // Custom Snackbar with error styling
+                androidx.compose.material3.Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                    actionColor = MaterialTheme.colorScheme.onError
+                )
+            }
+        },
         topBar = {
             PhotoLoaderAppBar(
                 menuNavigator = MenuNavigatorImpl(navController),
@@ -180,7 +195,7 @@ private fun ThemedLocalizedApp(
                 showDirPicker = showDirPickerAction,
                 uploadPhotos = {
                     // The ViewModel's uploadPhotos launches a coroutine that just needs to be
-                    // triggered here. The returned Job? can be ignored here or handled if needed.
+                    // triggered here. The returned Job can be ignored here or handled if needed.
                     viewModel.uploadPhotos()
                 },
                 canChooseDirectory = !busy,

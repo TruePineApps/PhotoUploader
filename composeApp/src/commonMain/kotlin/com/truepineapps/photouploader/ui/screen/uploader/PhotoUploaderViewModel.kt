@@ -175,24 +175,45 @@ class PhotoUploaderViewModel(
     fun uploadPhotos(): Job? {
         val state = uiState.value
         if (state.albums.isNotEmpty() && !state.busy()) {
-        updateIsUploading(true)
-        return viewModelScope.launch {
-            try {
-                uploadPhotosImpl(state.albums)
-            } catch (e: UploadException.GlobalException) {
-                _viewState.update { it.copy(globalErrorMessage = e.uiText) }
-            } catch (e: Exception) {
-                val uiText =
-                        if (e.message == null) UiTextResource(Res.string.error_unknown) else UiTextString(
-                            e.message!!
-                        )
-                _viewState.update { it.copy(globalErrorMessage = uiText) }
-            } finally {
-                updateIsUploading(false)
+            updateIsUploading(true)
+            return viewModelScope.launch {
+                try {
+                    uploadPhotosImpl(state.albums)
+                } catch (e: UploadException.GlobalException) {
+                    resetNonFinalUploadStatuses()
+                    _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+                } catch (e: Exception) {
+                    resetNonFinalUploadStatuses()
+
+                    val uiText = if (e.message == null) {
+                        UiTextResource(Res.string.error_unknown)
+                    } else {
+                        UiTextString(e.message!!)
+                    }
+                    _viewState.update { it.copy(globalErrorMessage = uiText) }
+                } finally {
+                    updateIsUploading(false)
+                }
             }
         }
-        }
         return null
+    }
+
+    private fun resetNonFinalUploadStatuses() {
+        val albumsWithResetStatus = repository.albums.value.map { currentAlbum ->
+            if (currentAlbum.isEnabled && !currentAlbum.uploadStatus.isFinal) {
+                val updatedPhotos = currentAlbum.photos.map { p ->
+                    if (p.isEnabled && !p.uploadStatus.isFinal) p.copy(uploadStatus = UploadStatus.None) else p
+                }
+                currentAlbum.copy(
+                    uploadStatus = UploadStatus.None,
+                    photos = updatedPhotos
+                )
+            } else {
+                currentAlbum
+            }
+        }
+        repository.updateAlbums(albumsWithResetStatus)
     }
 
     /** Signs in to obtain an access token and starts uploading the photo's from the albums list

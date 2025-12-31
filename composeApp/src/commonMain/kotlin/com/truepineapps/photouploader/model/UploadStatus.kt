@@ -5,7 +5,7 @@ import com.truepineapps.photouploader.util.UiText
 /**
  * Represents the various states of an upload operation for an Album or Photo.
  */
-sealed class UploadStatus {
+sealed class UploadStatus(val isFinal: Boolean = false) {
     /** Initial state, not yet processed. */
     object None : UploadStatus()
 
@@ -19,8 +19,8 @@ sealed class UploadStatus {
     data class UploadingError(val message: UiText) : UploadStatus()
 
     /** The upload completed successfully. */
-    object Success : UploadStatus()
+    object Success : UploadStatus(true)
 
     /** The upload failed with an error. */
-    data class Error(val message: UiText) : UploadStatus()
+    data class Error(val message: UiText) : UploadStatus(true)
 }
