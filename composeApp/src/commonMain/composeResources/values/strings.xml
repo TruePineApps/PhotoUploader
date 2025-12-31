@@ -28,6 +28,12 @@
     <string name="preview">Preview</string>
     <string name="album_cover">Album cover: %1$s</string>
     <string name="cover_photo">Cover photo</string>
+    <string name="album_name">Album Name</string>
+    <plurals name="photos_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
+
     
     <!-- Error messages -->
     <string name="error_unknown">An unknown error occurred.</string>

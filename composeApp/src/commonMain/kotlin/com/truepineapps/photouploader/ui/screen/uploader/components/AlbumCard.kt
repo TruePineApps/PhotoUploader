@@ -15,6 +15,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,10 +30,13 @@ import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_cover
+import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.loading_img
+import com.truepineapps.photouploader.resources.photos_count
 import com.truepineapps.photouploader.ui.Dimensions
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalResourceApi::class)
@@ -44,7 +48,8 @@ fun AlbumCard(
     onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isEditable = album.uploadStatus is UploadStatus.None || album.uploadStatus is UploadStatus.Error
+    val isEditable =
+            album.uploadStatus is UploadStatus.None || album.uploadStatus is UploadStatus.Error
 
     Card(
         modifier = modifier
@@ -101,13 +106,25 @@ fun AlbumCard(
                     TextField(
                         value = album.name,
                         onValueChange = onNameChange,
-                        label = { Text("Album Name") },
+                        label = { Text(stringResource(Res.string.album_name)) },
                         singleLine = true,
                         enabled = isEditable,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            disabledTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                     Text(
-                        text = "${album.photos.size} photos",
+                        text = pluralStringResource(
+                            Res.plurals.photos_count,
+                            album.photos.size,
+                            album.photos.size
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = Dimensions.padding_very_small)
                     )
