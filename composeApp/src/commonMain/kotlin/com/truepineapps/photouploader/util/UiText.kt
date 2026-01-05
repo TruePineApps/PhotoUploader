@@ -63,7 +63,11 @@ data class UiTextResource(
     @Composable
     override fun asString(): String {
         val args = formatArgs.map { arg ->
-            if (arg is UiText) arg.asString() else arg
+            when (arg) {
+                is UiText -> arg.asString()
+                is StringResource -> stringResource(arg)
+                else -> arg
+            }
         }.toTypedArray()
         return stringResource(resource = resource, *args)
     }

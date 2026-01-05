@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
@@ -28,6 +27,7 @@ import com.truepineapps.photouploader.resources.arrow_upload_progress
 import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
 import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.ui.theme.StatusPalette
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -41,10 +41,10 @@ fun UploadStatusIndicator(
     modifier: Modifier = Modifier,
 ) {
     val iconColor = when {
-        !isEnabled -> Color.Gray
-        uploadStatus is UploadStatus.Error -> Color.Red
-        uploadStatus is UploadStatus.UploadingError -> Color(0xFFFFA500) // Orange
-        uploadStatus is UploadStatus.Success -> Color.Green
+        !isEnabled -> StatusPalette.Disabled
+        uploadStatus is UploadStatus.Error -> StatusPalette.Error
+        uploadStatus is UploadStatus.UploadingError -> StatusPalette.Warning
+        uploadStatus is UploadStatus.Success -> StatusPalette.Success
         else -> MaterialTheme.colorScheme.primary
     }
 

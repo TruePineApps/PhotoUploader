@@ -13,6 +13,10 @@ import java.io.InputStreamReader
 // User ID, the library uses this string to name the file where it saves the Access Token
 private const val USER = "user"
 
+private const val ACCESS_TYPE_OFFLINE = "offline"
+
+private const val CLIENT_SECRETS_JSON = "client_secrets.json"
+
 /**
  * A concrete implementation of [GoogleAuthService] tailored for desktop environments.
  *
@@ -38,8 +42,12 @@ class DesktopGoogleAuthService : GoogleAuthService {
     // Scopes determine the level of access you are requesting. Here we want to append to Google Photo.
     // See https://developers.google.com/photos/overview/authorization
     private val scopes = listOf(
+        // To upload the photo bytes, create a media item for a photo, create albums, and add enrichments.
         "https://www.googleapis.com/auth/photoslibrary.appendonly",
-        "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata"
+        // Read access to media items and albums created by PhotoUploader
+        "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata",
+        // To set the album cover
+        "https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata"
     )
 
     // Directory to store user credentials for this application.
@@ -49,10 +57,9 @@ class DesktopGoogleAuthService : GoogleAuthService {
 
     private fun getFlow(): GoogleAuthorizationCodeFlow {
         // Load client secrets.
-        // TODO: set client_id, project_id and client_secret.
         val secretsStream =
-                DesktopGoogleAuthService::class.java.getResourceAsStream("/client_secrets.json")
-                    ?: throw IllegalStateException("client_secrets.json not found in resources")
+                DesktopGoogleAuthService::class.java.getResourceAsStream("/$CLIENT_SECRETS_JSON")
+                    ?: throw IllegalStateException("$CLIENT_SECRETS_JSON not found in resources")
 
         val clientSecrets = GoogleClientSecrets.load(jsonFactory, InputStreamReader(secretsStream))
 
@@ -64,7 +71,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
             scopes
         )
             .setDataStoreFactory(dataStoreFactory)
-            .setAccessType("offline")
+            .setAccessType(ACCESS_TYPE_OFFLINE)
             .build()
     }
 

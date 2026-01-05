@@ -115,12 +115,12 @@ class PhotoUploader(
                 val result =
                         json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
                 allResults.addAll(result.newMediaItemResults)
-                val successCount = result.newMediaItemResults.count { it.status.code == 0 }
-                val failCount = result.newMediaItemResults.count { it.status.code != 0 }
+                val successCount = result.newMediaItemResults.count { it.isSuccess() }
+                val failCount = result.newMediaItemResults.count { !it.isSuccess() }
 
                 println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
-                result.newMediaItemResults.filter { it.status.code != 0 }.forEach {
-                    println("      Failed item: ${it.status.message}")
+                result.newMediaItemResults.filter { !it.isSuccess() }.forEach {
+                    println("      Failed item: ${it.status}")
                 }
             } else {
                 handleError(response, isBatchAdd = true)
@@ -167,39 +167,39 @@ class PhotoUploader(
         println("Response: $errorBody")
 
         val message = parseErrorMessage(errorBody).let {
-            if (it.isNullOrBlank()) "" else "$it "
-        }
-        val fullMessage = "$message(${response.status})"
-
-        if (response.status == HttpStatusCode.Unauthorized) {
-            throw UploadException.GlobalException(
-                UiTextResource(
-                    Res.string.error_sign_in_failed,
-                    fullMessage
-                )
-            )
+            if (it.isNullOrBlank()) "${response.status}" else "$it (${response.status})"
         }
 
         when {
+            response.status == HttpStatusCode.Unauthorized -> throw UploadException.GlobalException(
+                UiTextResource(
+                    Res.string.error_sign_in_failed,
+                    message
+                ),
+                response.status
+            )
             isAlbumCreation -> throw UploadException.AlbumException(
                 UiTextResource(
                     Res.string.error_album_creation_failed_with_message,
-                    fullMessage
-                )
+                    message
+                ),
+                response.status
             )
 
             isBatchAdd -> throw UploadException.PhotoException(
                 UiTextResource(
                     Res.string.error_add_media_items_failed_with_message,
-                    fullMessage
-                )
+                    message
+                ),
+                response.status
             )
 
             else -> throw UploadException.PhotoException(
                 UiTextResource(
                     Res.string.error_upload_failed_with_message,
-                    fullMessage
-                )
+                    message
+                ),
+                response.status
             )
         }
     }

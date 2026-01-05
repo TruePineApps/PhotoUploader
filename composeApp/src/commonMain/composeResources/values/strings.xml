@@ -20,6 +20,7 @@
     <string name="app_id">Application ID</string>
     <string name="licenses">Licenses</string>
     <string name="license_text">License text</string>
+    <string name="sign_out">Sign out</string>
     <string name="close_button">Close</string>
     <string name="back_button">Back</string>
     <string name="choose_folder">Choose folder</string>
@@ -28,7 +29,7 @@
     <string name="preview">Preview</string>
     <string name="album_cover">Album cover: %1$s</string>
     <string name="cover_photo">Cover photo</string>
-    <string name="album_name">Album Name</string>
+    <string name="album_name">Album name</string>
     <plurals name="photos_count">
         <item quantity="one">%1$d photo</item>
         <item quantity="other">%1$d photos</item>
@@ -39,11 +40,12 @@
     <string name="error_unknown">An unknown error occurred.</string>
     <string name="error_platform_context_not_set">Platform context not set</string>
     <string name="error_sign_in_failed">Failed to sign in: %1$s</string>
+    <string name="session_expired">Session expired. Please click Upload to sign in again.</string>
     <string name="error_album_creation_failed_with_message">Failed to create album: %1$s</string>
     <string name="error_album_creation_failed">Failed to create album.</string>
     <string name="error_upload_failed">Upload failed</string>
     <string name="error_upload_failed_with_message">Upload failed: %1$s</string>
-    <string name="error_add_to_album_failed">Failed to add to album</string>
+    <string name="error_add_to_album_failed">Failed to add to album: %1$s</string>
     <string name="error_add_media_items_failed">Failed to add media items to album</string>
     <string name="error_add_media_items_failed_with_message">Failed to add media items to album: %1$s</string>
     <string name="error_one_or_more_photos_failed">One or more photos failed: %1$s</string>

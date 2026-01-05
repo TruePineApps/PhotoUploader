@@ -17,10 +17,12 @@ import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.error_unknown
+import com.truepineapps.photouploader.resources.session_expired
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
 import com.truepineapps.photouploader.util.UiText
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -93,7 +95,7 @@ class PhotoUploaderViewModel(
     fun updatePath(kmpFile: KmpFile) {
         val path = kmpFile.getAbsolutePath(platformContext!!)
         _viewState.update { it.copy(kmpFile = kmpFile, path = path ?: "") }
-        println("Setting path to $path")
+        println("Setting path to '$path'")
         repository.setPath(kmpFile, platformContext!!)
         reload()
     }
@@ -181,7 +183,14 @@ class PhotoUploaderViewModel(
                     uploadPhotosImpl(state.albums)
                 } catch (e: UploadException.GlobalException) {
                     resetNonFinalUploadStatuses()
-                    _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+                    if (e.status == HttpStatusCode.Unauthorized
+                        || e.uiText.toString()
+                            .contains(other = "UNAUTHENTICATED", ignoreCase = true)
+                    ) {
+                        handleAuthExpiry()
+                    } else {
+                        _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+                    }
                 } catch (e: Exception) {
                     resetNonFinalUploadStatuses()
 
@@ -214,6 +223,26 @@ class PhotoUploaderViewModel(
             }
         }
         repository.updateAlbums(albumsWithResetStatus)
+    }
+
+    /**
+     * Handles 401 errors by signing out locally so the next attempt forces a fresh login.
+     */
+    private suspend fun handleAuthExpiry() {
+        // Clear the invalid token from the local cache/file
+        authService.signOut()
+
+        // Update UI to reflect we are not authenticated
+        _viewState.update {
+            it.copy(
+                isAuthenticated = false,
+                // Show a helpful message: "Session expired. Please click Upload to sign in again."
+                globalErrorMessage = UiTextResource(
+                    Res.string.error_sign_in_failed,
+                    Res.string.session_expired
+                )
+            )
+        }
     }
 
     /** Signs in to obtain an access token and starts uploading the photo's from the albums list
@@ -286,10 +315,10 @@ class PhotoUploaderViewModel(
                 if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
             }
             repository.updateAlbums(updatedAlbumsWithId)
-            println("    Created album with ID: $googleAlbumId for ${album.name}")
+            println("    Created album with ID: $googleAlbumId for '${album.name}'")
             googleAlbumId
         } catch (e: UploadException.AlbumException) {
-            println("    Failed to create album for ${album.name}: ${e.message}")
+            println("    Failed to create album for '${album.name}': ${e.message}")
             updateAlbumStatus(album.id, UploadStatus.Error(e.uiText))
             null
         }
@@ -311,7 +340,7 @@ class PhotoUploaderViewModel(
                 updatePhotoStatus(album.id, photo.path, UploadStatus.Success)
                 println("      Success: ${photo.name}")
             } catch (e: UploadException.PhotoException) {
-                println("      ERROR: Failed to upload ${photo.name}: ${e.message}")
+                println("      ERROR: Failed to upload '${photo.name}': ${e.message}")
                 updatePhotoStatus(album.id, photo.path, UploadStatus.Error(e.uiText))
             }
         }
@@ -339,16 +368,22 @@ class PhotoUploaderViewModel(
                         val index = uploadedItems.indexOfFirst { it.first.path == p.path }
                         if (index != -1 && index < results.size) {
                             val mediaResult = results[index]
-                            if (mediaResult.status.code == 0 && mediaResult.mediaItem != null) {
+                            if (mediaResult.isSuccess() && mediaResult.mediaItem != null) {
                                 p.copy(mediaItemId = mediaResult.mediaItem.id)
                             } else {
-                                println("      ERROR: Failed to add ${p.name} to album ${currentAlbum.name}")
+                                println("      ERROR: Failed to add '${p.name}' to album '${currentAlbum.name}'")
+                                val errorString = mediaResult.status.toString()
+                                val errorMessage = if (errorString.isEmpty()) {
+                                    UiTextResource(Res.string.error_unknown)
+                                } else {
+                                    UiTextString(errorString)
+                                }
                                 p.copy(
                                     uploadStatus = UploadStatus.Error(
-                                        if (mediaResult.status.message != null) UiTextString(
-                                            mediaResult.status.message
+                                        UiTextResource(
+                                            Res.string.error_add_to_album_failed,
+                                            errorMessage
                                         )
-                                        else UiTextResource(Res.string.error_add_to_album_failed)
                                     )
                                 )
                             }
@@ -368,7 +403,7 @@ class PhotoUploaderViewModel(
             }
             repository.updateAlbums(finalUpdatedAlbums)
         } catch (e: UploadException.PhotoException) {
-            println("      ERROR: Failed to add media items to album ${album.name}: ${e.message}")
+            println("      ERROR: Failed to add media items to album '${album.name}': ${e.message}")
             val currentRepoAlbums = repository.albums.value
             val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
                 if (currentAlbum.id == album.id) {

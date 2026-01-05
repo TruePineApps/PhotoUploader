@@ -35,17 +35,11 @@ data class Album(
                     photos.first { it.uploadStatus is UploadStatus.Error }.uploadStatus as UploadStatus.Error
             // Uploading is in progress, but an error has occurred.
             if (isUploading) return UploadStatus.UploadingError(
-                UiTextResource(
-                    Res.string.error_one_or_more_photos_failed,
-                    listOf(firstError.message)
-                )
+                UiTextResource(Res.string.error_one_or_more_photos_failed, firstError.message)
             )
             // An error occurred, and nothing is uploading anymore.
             return UploadStatus.Error(
-                UiTextResource(
-                    Res.string.error_one_or_more_photos_failed,
-                    listOf(firstError.message)
-                )
+                UiTextResource(Res.string.error_one_or_more_photos_failed, firstError.message)
             )
         }
 

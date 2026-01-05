@@ -56,6 +56,7 @@ import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
+import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
@@ -198,6 +199,7 @@ private fun ThemedLocalizedApp(
                     // triggered here. The returned Job can be ignored here or handled if needed.
                     viewModel.uploadPhotos()
                 },
+                signOut = { viewModel.signOut() },
                 canChooseDirectory = !busy,
                 canUploadPhotos = canUpload,
                 scrollBehavior = scrollBehavior,
@@ -237,6 +239,7 @@ fun PhotoLoaderAppBar(
     navigateUp: () -> Unit,
     showDirPicker: () -> Unit,
     uploadPhotos: () -> Unit,
+    signOut: () -> Unit,
     canChooseDirectory: Boolean,
     canUploadPhotos: Boolean,
     modifier: Modifier = Modifier,
@@ -311,6 +314,10 @@ fun PhotoLoaderAppBar(
                 DropdownMenuItem(
                     text = { Text(stringResource(Res.string.licenses)) },
                     onClick = { menuNavigator.navigateToLicenseScreen(); expanded = false }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.sign_out)) },
+                    onClick = { signOut(); expanded = false }
                 )
             }
         },

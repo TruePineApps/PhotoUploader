@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.data
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
+import com.truepineapps.photouploader.io.getDisplayName
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.util.FileUtils
@@ -72,12 +73,12 @@ class PhotoDirectoryRepository(
      * Scans the directory structure starting from [rootDir] and returns a list of [Album]s.
      */
     private fun scanDirectoryInternal(rootDir: KmpFile?): List<Album> {
-        println("Scanning directory: $rootDir")
 
         requireNotNull(rootDir)
 
         // Get a safe non-mutable context variable
         val currentContext = context ?: throw IllegalStateException("currentContext is null")
+        println("Scanning directory: ${rootDir.getDisplayName(currentContext)}")
 
         // The root itself might contain photos
         val albums = mutableListOf<Album>()
