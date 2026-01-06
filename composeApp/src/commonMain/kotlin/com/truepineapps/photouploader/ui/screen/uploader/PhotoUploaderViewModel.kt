@@ -3,7 +3,9 @@ package com.truepineapps.photouploader.ui.screen.uploader
 import androidx.lifecycle.viewModelScope
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
+import com.truepineapps.photouploader.auth.AuthException
 import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.auth.UserProfile
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.io.getAbsolutePath
 import com.truepineapps.photouploader.model.Album
@@ -47,6 +49,7 @@ class PhotoUploaderViewModel(
     ) { viewState, albums ->
         UiState(
             isAuthenticated = viewState.isAuthenticated,
+            userProfile = viewState.userProfile,
             isShowDirPicker = viewState.isShowDirPicker,
             isUploading = viewState.isUploading,
             path = viewState.path,
@@ -65,18 +68,34 @@ class PhotoUploaderViewModel(
 
     private fun checkInitialAuth() {
         viewModelScope.launch {
-            val token = authService.restoreSignIn()
-            if (token != null) {
-                _viewState.update { it.copy(isAuthenticated = true) }
+            try {
+                val userProfile = authService.restoreSignIn()
+                if (userProfile != null) {
+                    _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
+                }
+            } catch (e: Exception) {
+                // Ignore errors during initial restore
+                e.printStackTrace()
             }
         }
     }
 
     fun signIn() {
         viewModelScope.launch {
-            val token = authService.signIn()
-            if (token != null) {
-                _viewState.update { it.copy(isAuthenticated = true) }
+            try {
+                val userProfile = authService.signIn()
+                if (userProfile != null) {
+                    _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
+                }
+            } catch (e: AuthException) {
+                _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+            } catch (e: Exception) {
+                val uiText = if (e.message == null) {
+                    UiTextResource(Res.string.error_unknown)
+                } else {
+                    UiTextString(e.message!!)
+                }
+                _viewState.update { it.copy(globalErrorMessage = uiText) }
             }
         }
     }
@@ -84,7 +103,7 @@ class PhotoUploaderViewModel(
     fun signOut() {
         viewModelScope.launch {
             authService.signOut()
-            _viewState.update { it.copy(isAuthenticated = false) }
+            _viewState.update { it.copy(isAuthenticated = false, userProfile = null) }
         }
     }
 
@@ -191,6 +210,9 @@ class PhotoUploaderViewModel(
                     } else {
                         _viewState.update { it.copy(globalErrorMessage = e.uiText) }
                     }
+                } catch (e: AuthException) {
+                    resetNonFinalUploadStatuses()
+                    _viewState.update { it.copy(globalErrorMessage = e.uiText) }
                 } catch (e: Exception) {
                     resetNonFinalUploadStatuses()
 
@@ -236,6 +258,7 @@ class PhotoUploaderViewModel(
         _viewState.update {
             it.copy(
                 isAuthenticated = false,
+                userProfile = null,
                 // Show a helpful message: "Session expired. Please click Upload to sign in again."
                 globalErrorMessage = UiTextResource(
                     Res.string.error_sign_in_failed,
@@ -252,10 +275,20 @@ class PhotoUploaderViewModel(
         val context = platformContext
             ?: throw IllegalStateException("Platform context not set")
 
-        val accessToken = authService.signIn()
-            ?: throw UploadException.GlobalException(UiTextResource(Res.string.error_sign_in_failed))
+        println("Starting upload for ${albums.size} albums")
 
-        val photoUploader = PhotoUploader(accessToken, context)
+        val userProfile = authService.signIn()
+            ?: throw UploadException.GlobalException(
+                UiTextResource(
+                    Res.string.error_sign_in_failed,
+                    Res.string.error_unknown
+                )
+            )
+
+        // Update state with the profile if we got it fresh
+        _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
+
+        val photoUploader = PhotoUploader(userProfile.accessToken, context)
         val albumsToUpload = albums.filter { it.isEnabled && it.photos.any { p -> p.isEnabled } }
 
         // Set initial 'Waiting' status on all items to be uploaded
@@ -475,6 +508,7 @@ class PhotoUploaderViewModel(
 
 data class ViewState(
     val isAuthenticated: Boolean = false,
+    val userProfile: UserProfile? = null,
     val isShowDirPicker: Boolean = false,
     val isUploading: Boolean = false,
     val kmpFile: KmpFile? = null,
@@ -484,6 +518,7 @@ data class ViewState(
 
 data class UiState(
     val isAuthenticated: Boolean = false,
+    val userProfile: UserProfile? = null,
     val isShowDirPicker: Boolean = false,
     val isUploading: Boolean = false,
     val path: String = "",

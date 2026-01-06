@@ -1,12 +1,22 @@
 package com.truepineapps.photouploader.auth
 
+import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
+import com.google.api.client.http.GenericUrl
+import com.google.api.client.http.HttpResponseException
 import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.JsonObjectParser
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_sign_in_failed
+import com.truepineapps.photouploader.resources.network_error
+import com.truepineapps.photouploader.resources.unknown_error
+import com.truepineapps.photouploader.util.UiTextResource
+import com.truepineapps.photouploader.util.UiTextString
 import java.io.File
 import java.io.InputStreamReader
 
@@ -47,7 +57,11 @@ class DesktopGoogleAuthService : GoogleAuthService {
         // Read access to media items and albums created by PhotoUploader
         "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata",
         // To set the album cover
-        "https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata"
+        "https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata",
+        // To get the user's name and avatar
+        "https://www.googleapis.com/auth/userinfo.profile",
+        // To get the user's email
+        "https://www.googleapis.com/auth/userinfo.email"
     )
 
     // Directory to store user credentials for this application.
@@ -75,20 +89,29 @@ class DesktopGoogleAuthService : GoogleAuthService {
             .build()
     }
 
-    override suspend fun signIn(): String? {
+    override suspend fun signIn(): UserProfile? {
         // Check if we are already signed in.
-        val existingToken = restoreSignIn()
-        if (existingToken != null) {
-            return existingToken
+        val existingProfile = restoreSignIn()
+        if (existingProfile != null) {
+            return existingProfile
         }
 
-        // Create am embedded server to receive the authorization code.
-        val receiver = LocalServerReceiver.Builder().setPort(8888).build()
-        // Trigger the sign-in flow: Open the browser, wait for the callback, and shut it down. Use
-        // the persisted data store named USER.
-        val credential = AuthorizationCodeInstalledApp(getFlow(), receiver).authorize(USER)
-        // Return the access token for Google Photo.
-        return credential?.accessToken
+        try {
+            // Create am embedded server to receive the authorization code.
+            val receiver = LocalServerReceiver.Builder().setPort(8888).build()
+            // Trigger the sign-in flow: Open the browser, wait for the callback, and shut it down. Use
+            // the persisted data store named USER.
+            val credential = AuthorizationCodeInstalledApp(getFlow(), receiver).authorize(USER)
+            if (credential == null) {
+                println("Failed to get credential")
+                return null
+            }
+
+            return fetchUserProfile(credential)
+        } catch (e: Exception) {
+            handleException(e)
+            return null // Unreachable if handleException always throws, but keeps compiler happy
+        }
     }
 
     override suspend fun signOut() {
@@ -100,12 +123,74 @@ class DesktopGoogleAuthService : GoogleAuthService {
         }
     }
 
-    override suspend fun restoreSignIn(): String? {
+    override suspend fun restoreSignIn(): UserProfile? {
         val credential = getFlow().loadCredential(USER)
         return if (credential != null && (credential.expiresInSeconds ?: 0) > 60) {
-            credential.accessToken
+            try {
+                fetchUserProfile(credential)
+            } catch (e: Exception) {
+                println("Failed to fetch user profile: ${e.message}")
+                // If fetching profile fails (e.g. invalid token), we just return null to indicate not signed in
+                null
+            }
         } else {
             null
+        }
+    }
+
+    private fun fetchUserProfile(credential: Credential): UserProfile {
+        val requestFactory = httpTransport.createRequestFactory { request ->
+            credential.initialize(request)
+            request.parser = JsonObjectParser(jsonFactory)
+        }
+        val url = GenericUrl("https://www.googleapis.com/oauth2/v2/userinfo")
+        val request = requestFactory.buildGetRequest(url)
+        val response = request.execute()
+
+        // The response parsing depends on how you want to handle JSON.
+        // Using a Map is usually simplest without creating a UserInfo class.
+        val userInfo = response.parseAs(HashMap::class.java)
+
+        val name = userInfo["name"] as? String ?: "Google User"
+        val email = userInfo["email"] as? String
+        val picture = userInfo["picture"] as? String
+
+        // Note: executing the request might refresh the token, so we get the access token from the credential AFTER the request
+        return UserProfile(name, email, picture, credential.accessToken)
+    }
+
+    private fun handleException(e: Exception) {
+        e.printStackTrace()
+        when (e) {
+            is HttpResponseException -> {
+                val statusCode = e.statusCode
+                val message = e.statusMessage ?: Res.string.network_error
+
+                if (statusCode == 401 || statusCode == 403) {
+                    throw AuthException.TokenExpired(
+                        UiTextResource(
+                            Res.string.error_sign_in_failed,
+                            message
+                        ), statusCode
+                    )
+                } else {
+                    throw AuthException.NetworkError(
+                        UiTextResource(
+                            Res.string.error_sign_in_failed,
+                            message
+                        ), statusCode
+                    )
+                }
+            }
+
+            else -> {
+                val uiText = if (e.message == null) {
+                    UiTextResource(Res.string.unknown_error)
+                } else {
+                    UiTextString(e.message!!)
+                }
+                throw AuthException.SignInFailed(uiText)
+            }
         }
     }
 }

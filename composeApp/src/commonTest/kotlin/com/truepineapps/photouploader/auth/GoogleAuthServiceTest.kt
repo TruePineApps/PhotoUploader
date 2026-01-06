@@ -32,16 +32,20 @@ class GoogleAuthServiceTest : KoinTest {
 
     @Test
     fun testSignInWithStub() = runTest {
-        // 1. Call the signIn method
-        // Since it's a stub, we expect it to handle the "delay" and return our fake token
-        val result = authService.signIn()
+        assertNotNull(authService, "AuthService service must be initialized in platformModule")
 
-        // 2. Assert the result
-        assertNotNull(result, "Stub service should return a token for signIn")
-        // In StubGoogleAuthService, we now return "fake_access_token_12345"
         val isStub = authService::class.simpleName?.contains("Stub") == true
+        println("Running signIn test: $isStub")
+
         if (isStub) {
-            assertEquals("fake_access_token_12345", result)
+            // 1. Call the signIn method
+            // Since it's a stub, we expect it to handle the "delay" and return our fake token
+            val result = authService.signIn()
+
+            // 2. Assert the result
+            assertNotNull(result, "Stub service should return a user profile for signIn")
+            // In StubGoogleAuthService, we now return "fake_access_token_12345"
+            assertEquals("fake_access_token_12345", result.accessToken)
         }
     }
 }

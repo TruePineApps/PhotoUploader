@@ -5,7 +5,6 @@
     <string name="loading">Loading %1$s</string>
     <string name="error">Error</string>
     <string name="retry_button">Retry</string>
-    <string name="unknown_error">Unknown error</string>
     <string name="show_selection_dialog">Show selection dialog</string>
     <string name="menu">Menu</string>
     <string name="preferences">Preferences</string>
@@ -35,6 +34,8 @@
         <item quantity="other">%1$d photos</item>
     </plurals>
 
+    <string name="connected_as">Connected to Google Photos as %1$s</string>
+    <string name="user_avatar_content_desc">User avatar</string>
     
     <!-- Error messages -->
     <string name="error_unknown">An unknown error occurred.</string>
@@ -49,4 +50,6 @@
     <string name="error_add_media_items_failed">Failed to add media items to album</string>
     <string name="error_add_media_items_failed_with_message">Failed to add media items to album: %1$s</string>
     <string name="error_one_or_more_photos_failed">One or more photos failed: %1$s</string>
+    <string name="network_error">Network error</string>
+    <string name="unknown_error">Unknown error</string>
 </resources>

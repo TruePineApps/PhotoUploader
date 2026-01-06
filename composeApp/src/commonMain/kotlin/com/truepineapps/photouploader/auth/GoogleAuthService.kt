@@ -32,16 +32,17 @@ interface GoogleAuthService {
     /**
      * Triggers the sign-in flow.
      * If the user is already signed in and valid, then the valid token will be returned.
-     * @Return the OAuth 2.0 Access Token (Bearer Token) as a String, or null if sign-in failed or
-     * was cancelled.
+     * @Return the User Profile containing the OAuth 2.0 Access Token, or null if sign-in
+     * was cancelled by the user.
+     * @Throws AuthException if the sign-in process fails due to network or other errors.
      */
-    suspend fun signIn(): String?
+    suspend fun signIn(): UserProfile?
     
     suspend fun signOut()
     
     /**
      * Checks if the user is already signed in and valid.
-     * @Return the Access Token if valid, null otherwise.
+     * @Return the User Profile containing the Access Token if valid, null otherwise.
      */
-    suspend fun restoreSignIn(): String?
+    suspend fun restoreSignIn(): UserProfile?
 }

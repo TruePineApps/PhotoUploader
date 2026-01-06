@@ -1,20 +1,25 @@
 package com.truepineapps.photouploader
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PermMedia
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -37,15 +42,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
+import coil3.compose.AsyncImage
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
+import com.truepineapps.photouploader.auth.UserProfile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.app_name
@@ -53,11 +61,13 @@ import com.truepineapps.photouploader.resources.appicon
 import com.truepineapps.photouploader.resources.back_button
 import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
+import com.truepineapps.photouploader.resources.connected_as
 import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.upload_photos
+import com.truepineapps.photouploader.resources.user_avatar_content_desc
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
@@ -202,6 +212,7 @@ private fun ThemedLocalizedApp(
                 signOut = { viewModel.signOut() },
                 canChooseDirectory = !busy,
                 canUploadPhotos = canUpload,
+                userProfile = uiState.userProfile,
                 scrollBehavior = scrollBehavior,
                 actions = actions.value
             )
@@ -242,12 +253,15 @@ fun PhotoLoaderAppBar(
     signOut: () -> Unit,
     canChooseDirectory: Boolean,
     canUploadPhotos: Boolean,
+    userProfile: UserProfile?,
     modifier: Modifier = Modifier,
     actions: @Composable (RowScope.() -> Unit) = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
 ) {
     // The expanded state of the dropdown menu.
     var expanded by remember { mutableStateOf(false) }
+    // The expanded state of the avatar dropdown menu.
+    var avatarExpanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
         title = { Text(text = title, color = MaterialTheme.colorScheme.primary) },
@@ -271,6 +285,53 @@ fun PhotoLoaderAppBar(
                     onClick = navigateUp,
                     enabled = true
                 )
+            } else if (userProfile != null) {
+                Box {
+                    if (userProfile.avatarUrl != null) {
+                        AsyncImage(
+                            model = userProfile.avatarUrl,
+                            contentDescription = stringResource(Res.string.user_avatar_content_desc),
+                            modifier = Modifier
+                                .padding(Dimensions.padding_small)
+                                .size(Dimensions.medium_icon_size)
+                                .clip(CircleShape)
+                                .clickable { avatarExpanded = true }
+                        )
+                    } else {
+                        // Fallback icon if no avatar URL
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = stringResource(Res.string.user_avatar_content_desc),
+                            modifier = Modifier
+                                .padding(Dimensions.padding_small)
+                                .size(Dimensions.medium_icon_size)
+                                .clip(CircleShape)
+                                .clickable { avatarExpanded = true }
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = avatarExpanded,
+                        onDismissRequest = { avatarExpanded = false }
+                    ) {
+                        val displayName = if (userProfile.email != null) {
+                            "${userProfile.name} (${userProfile.email})"
+                        } else {
+                            userProfile.name
+                        }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.connected_as, displayName)) },
+                            onClick = { avatarExpanded = false },
+                            enabled = false // Info only
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.sign_out)) },
+                            onClick = {
+                                signOut()
+                                avatarExpanded = false
+                            }
+                        )
+                    }
+                }
             } else {
                 Image(
                     bitmap = imageResource(Res.drawable.appicon),
@@ -314,10 +375,6 @@ fun PhotoLoaderAppBar(
                 DropdownMenuItem(
                     text = { Text(stringResource(Res.string.licenses)) },
                     onClick = { menuNavigator.navigateToLicenseScreen(); expanded = false }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(Res.string.sign_out)) },
-                    onClick = { signOut(); expanded = false }
                 )
             }
         },
