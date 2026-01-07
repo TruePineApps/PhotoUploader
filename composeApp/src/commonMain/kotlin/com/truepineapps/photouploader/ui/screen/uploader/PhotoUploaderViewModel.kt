@@ -25,6 +25,7 @@ import com.truepineapps.photouploader.util.UiText
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,21 +42,14 @@ class PhotoUploaderViewModel(
 ) : LoadingViewModel(repository) {
 
     var platformContext: PlatformContext? = null
+    private var signInJob: Job? = null
 
     private val _viewState = MutableStateFlow(ViewState())
 
     val uiState: StateFlow<UiState> = combine(
         _viewState, repository.albums
     ) { viewState, albums ->
-        UiState(
-            isAuthenticated = viewState.isAuthenticated,
-            userProfile = viewState.userProfile,
-            isShowDirPicker = viewState.isShowDirPicker,
-            isUploading = viewState.isUploading,
-            path = viewState.path,
-            albums = albums,
-            globalErrorMessage = viewState.globalErrorMessage
-        )
+        UiState(viewState, albums)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
@@ -71,7 +65,7 @@ class PhotoUploaderViewModel(
             try {
                 val userProfile = authService.restoreSignIn()
                 if (userProfile != null) {
-                    _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
+                    _viewState.update { it.copy(userProfile = userProfile) }
                 }
             } catch (e: Exception) {
                 // Ignore errors during initial restore
@@ -80,30 +74,78 @@ class PhotoUploaderViewModel(
         }
     }
 
+    /**
+     * Public entry point for manual Sign In button (if any).
+     */
     fun signIn() {
-        viewModelScope.launch {
+        if (signInJob?.isActive == true) return
+
+        signInJob = viewModelScope.launch {
             try {
-                val userProfile = authService.signIn()
-                if (userProfile != null) {
-                    _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
-                }
-            } catch (e: AuthException) {
-                _viewState.update { it.copy(globalErrorMessage = e.uiText) }
-            } catch (e: Exception) {
-                val uiText = if (e.message == null) {
-                    UiTextResource(Res.string.error_unknown)
-                } else {
-                    UiTextString(e.message!!)
-                }
-                _viewState.update { it.copy(globalErrorMessage = uiText) }
+                performSignIn()
+            } catch (e: CancellationException) {
+                // Job was cancelled (e.g. via cancelSignIn), stop gracefully
+                println("Sign in cancelled: ${e.message}")
+            } finally {
+                signInJob = null
             }
         }
+    }
+
+    /**
+     * Centralized suspend function that handles the sign-in flow, error handling,
+     * and UI state updates.
+     * @return true if the user is successfully authenticated, false otherwise.
+     */
+    private suspend fun performSignIn(): Boolean {
+        // If we are already authenticated, no need to do anything
+        if (_viewState.value.isAuthenticated) return true
+
+        try {
+            _viewState.update { it.copy(status = AppStatus.SIGNING_IN) }
+
+            // This blocks until the user signs in or cancels
+            val userProfile = authService.signIn()
+
+            if (userProfile != null) {
+                _viewState.update { it.copy(userProfile = userProfile) }
+                return true
+            }
+        } catch (e: CancellationException) {
+            println("User cancelled sign in: ${e.message}")
+            throw e // Re-throw to ensure the calling Job is cancelled
+        } catch (e: AuthException) {
+            _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+        } catch (e: Exception) {
+            println("Sign in failed: ${e.message}")
+            val uiText = if (e.message == null) {
+                UiTextResource(Res.string.error_unknown)
+            } else {
+                UiTextString(e.message!!)
+            }
+            _viewState.update { it.copy(globalErrorMessage = uiText) }
+        } finally {
+            _viewState.update { it.copy(status = AppStatus.IDLE) }
+        }
+
+        return false
+    }
+
+    /**
+     * Cancels the current sign-in job if it's still running.
+     */
+    fun cancelSignIn() {
+        // This will cancel the job running performSignIn(), triggering the CancellationException there
+        // The finally block in performSignIn() will handle the state update
+        println("Cancel sign in")
+        signInJob?.cancel(/*CancellationException("Canceled") */)
+        signInJob = null
     }
 
     fun signOut() {
         viewModelScope.launch {
             authService.signOut()
-            _viewState.update { it.copy(isAuthenticated = false, userProfile = null) }
+            _viewState.update { it.copy(userProfile = null) }
         }
     }
 
@@ -120,11 +162,9 @@ class PhotoUploaderViewModel(
     }
 
     fun updateShowDirPicker(isShowing: Boolean) {
-        _viewState.update { it.copy(isShowDirPicker = isShowing) }
-    }
-
-    fun updateIsUploading(isUploading: Boolean) {
-        _viewState.update { it.copy(isUploading = isUploading) }
+        _viewState.update {
+            it.copy(status = if (isShowing) AppStatus.CHOOSING_DIRECTORY else AppStatus.IDLE)
+        }
     }
 
     fun toggleAlbum(albumId: String) {
@@ -195,11 +235,24 @@ class PhotoUploaderViewModel(
      */
     fun uploadPhotos(): Job? {
         val state = uiState.value
-        if (state.albums.isNotEmpty() && !state.busy()) {
-            updateIsUploading(true)
-            return viewModelScope.launch {
+        if (state.albums.isNotEmpty() && state.idle()) {
+            val job = viewModelScope.launch {
                 try {
-                    uploadPhotosImpl(state.albums)
+                    // Wait for sign-in to complete
+                    val isAuthSuccess = performSignIn()
+
+                    // Only proceed if authenticated
+                    if (isAuthSuccess) {
+                        // Clear the signInJob reference so future "Cancel Sign In" clicks don't
+                        // affect the active upload
+                        if (signInJob == coroutineContext[Job]) {
+                            signInJob = null
+                        }
+
+                        // Start the actual upload
+                        _viewState.update { it.copy(status = AppStatus.UPLOADING) }
+                        uploadPhotosImpl(state.albums)
+                    }
                 } catch (e: UploadException.GlobalException) {
                     resetNonFinalUploadStatuses()
                     if (e.status == HttpStatusCode.Unauthorized
@@ -213,7 +266,11 @@ class PhotoUploaderViewModel(
                 } catch (e: AuthException) {
                     resetNonFinalUploadStatuses()
                     _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+                } catch (e: CancellationException) {
+                    // Job was cancelled (e.g. via cancelSignIn), stop gracefully
+                    println("Upload process cancelled: ${e.message}")
                 } catch (e: Exception) {
+                    println("Upload failed: ${e.message}")
                     resetNonFinalUploadStatuses()
 
                     val uiText = if (e.message == null) {
@@ -223,9 +280,20 @@ class PhotoUploaderViewModel(
                     }
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
-                    updateIsUploading(false)
+                    _viewState.update { it.copy(status = AppStatus.IDLE) }
+                    // Ensure signInJob is cleared if this specific job finishes
+                    if (signInJob == coroutineContext[Job]) {
+                        signInJob = null
+                    }
                 }
             }
+
+            // Assign this job to signInJob.
+            // If the user clicks "Cancel" in the AppBar dialog while isSigningIn is true,
+            // cancelSignIn() will cancel THIS job, stopping the upload flow immediately.
+            signInJob = job
+
+            return job
         }
         return null
     }
@@ -257,7 +325,6 @@ class PhotoUploaderViewModel(
         // Update UI to reflect we are not authenticated
         _viewState.update {
             it.copy(
-                isAuthenticated = false,
                 userProfile = null,
                 // Show a helpful message: "Session expired. Please click Upload to sign in again."
                 globalErrorMessage = UiTextResource(
@@ -274,19 +341,10 @@ class PhotoUploaderViewModel(
     private suspend fun uploadPhotosImpl(albums: List<Album>) {
         val context = platformContext
             ?: throw IllegalStateException("Platform context not set")
+        val userProfile = _viewState.value.userProfile
+            ?: throw IllegalStateException("User profile not set")
 
         println("Starting upload for ${albums.size} albums")
-
-        val userProfile = authService.signIn()
-            ?: throw UploadException.GlobalException(
-                UiTextResource(
-                    Res.string.error_sign_in_failed,
-                    Res.string.error_unknown
-                )
-            )
-
-        // Update state with the profile if we got it fresh
-        _viewState.update { it.copy(isAuthenticated = true, userProfile = userProfile) }
 
         val photoUploader = PhotoUploader(userProfile.accessToken, context)
         val albumsToUpload = albums.filter { it.isEnabled && it.photos.any { p -> p.isEnabled } }
@@ -319,8 +377,10 @@ class PhotoUploaderViewModel(
         val googleAlbumId = createGoogleAlbum(album, photoUploader) ?: return
         val uploadedItems = uploadPhotosInAlbum(album, photoUploader)
 
-        // If no photos were successfully uploaded (e.g. all failed), there's nothing left to do.
+        // If no photos were successfully uploaded (e.g. all failed), the only thing to do is set
+        // the album to a final status.
         if (uploadedItems.isEmpty()) {
+            println("    No photos uploaded successfully for album ${album.name}")
             val finalAlbum = repository.albums.value.find { it.id == album.id }!!
             updateAlbumStatus(
                 album.id,
@@ -334,6 +394,8 @@ class PhotoUploaderViewModel(
         // Use the updated album to set the cover photo to the media item id added earlier
         val finalAlbum = repository.albums.value.find { it.id == album.id }!!
         setAlbumCover(finalAlbum, googleAlbumId, photoUploader)
+
+        // Mark the album as final
         updateAlbumStatus(
             album.id,
             finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus()
@@ -506,24 +568,48 @@ class PhotoUploaderViewModel(
     }
 }
 
-data class ViewState(
-    val isAuthenticated: Boolean = false,
-    val userProfile: UserProfile? = null,
-    val isShowDirPicker: Boolean = false,
-    val isUploading: Boolean = false,
-    val kmpFile: KmpFile? = null,
-    val path: String = "",
-    val globalErrorMessage: UiText? = null,
-)
+enum class AppStatus {
+    IDLE,
+    CHOOSING_DIRECTORY,
+    SIGNING_IN,
+    UPLOADING
+}
 
-data class UiState(
-    val isAuthenticated: Boolean = false,
+data class ViewState(
     val userProfile: UserProfile? = null,
-    val isShowDirPicker: Boolean = false,
-    val isUploading: Boolean = false,
+    val status: AppStatus = AppStatus.IDLE,
+    private val kmpFile: KmpFile? = null,
     val path: String = "",
-    val albums: List<Album> = emptyList(),
     val globalErrorMessage: UiText? = null,
 ) {
-    fun busy() = isShowDirPicker || isUploading
+    val isAuthenticated = userProfile != null
+}
+
+data class UiState(
+    val viewState: ViewState = ViewState(),
+    val albums: List<Album> = emptyList(),
+) {
+    val userProfile: UserProfile? get() = viewState.userProfile
+    val isAuthenticated: Boolean get() = viewState.isAuthenticated
+    val isShowDirPicker: Boolean get() = viewState.status == AppStatus.CHOOSING_DIRECTORY
+    val isSigningIn: Boolean get() = viewState.status == AppStatus.SIGNING_IN
+    val isUploading: Boolean get() = viewState.status == AppStatus.UPLOADING
+    val path: String get() = viewState.path
+    val globalErrorMessage: UiText? get() = viewState.globalErrorMessage
+
+    fun busy() = viewState.status != AppStatus.IDLE
+    fun idle() = viewState.status == AppStatus.IDLE
+
+
+
+    override fun toString(): String {
+        return "UiState(userProfile=$userProfile, " +
+                "isAuthenticated=$isAuthenticated, " +
+                "isShowDirPicker=$isShowDirPicker, " +
+                "isSigningIn=$isSigningIn, " +
+                "isUploading=$isUploading, " +
+                "path='$path', " +
+                "globalErrorMessage=$globalErrorMessage, " +
+                "album size=${albums.size})"
+    }
 }

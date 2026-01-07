@@ -17,8 +17,14 @@ import com.truepineapps.photouploader.resources.network_error
 import com.truepineapps.photouploader.resources.unknown_error
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.awaitCancellation
 
 // User ID, the library uses this string to name the file where it saves the Access Token
 private const val USER = "user"
@@ -79,12 +85,8 @@ class DesktopGoogleAuthService : GoogleAuthService {
 
         // Build the flow and set up the data store factory.
         return GoogleAuthorizationCodeFlow.Builder(
-            httpTransport,
-            jsonFactory,
-            clientSecrets,
-            scopes
-        )
-            .setDataStoreFactory(dataStoreFactory)
+            httpTransport, jsonFactory, clientSecrets, scopes
+        ).setDataStoreFactory(dataStoreFactory)
             .setAccessType(ACCESS_TYPE_OFFLINE)
             .build()
     }
@@ -96,21 +98,79 @@ class DesktopGoogleAuthService : GoogleAuthService {
             return existingProfile
         }
 
-        try {
-            // Create am embedded server to receive the authorization code.
-            val receiver = LocalServerReceiver.Builder().setPort(8888).build()
-            // Trigger the sign-in flow: Open the browser, wait for the callback, and shut it down. Use
-            // the persisted data store named USER.
-            val credential = AuthorizationCodeInstalledApp(getFlow(), receiver).authorize(USER)
-            if (credential == null) {
-                println("Failed to get credential")
-                return null
-            }
+        return try {
+            withContext(Dispatchers.IO) {
+                /*  Create an embedded server to receive the authorization code. */
 
-            return fetchUserProfile(credential)
+                // LocalServerReceiver will automatically find an available free port.
+                // Google Cloud accepts any port on localhost for Desktop Client IDs.
+                val receiver = LocalServerReceiver.Builder().build()
+
+                // Launch a separate child coroutine to monitor cancellation.
+                // If this 'withContext' block is cancelled, this child is cancelled immediately.
+                // Its 'finally' block will run instantly, allowing us to kill the receiver.
+                val cancellationMonitor = launch {
+                    try {
+                        // Suspend indefinitely until cancelled
+                        awaitCancellation()
+                    } finally {
+                        // This runs immediately when the job is cancelled
+                        try {
+                            receiver.stop()
+                        } catch (e: Exception) {
+                            println("CancelMonitor: Failed to stop receiver: ${e.message}")
+                        }
+                    }
+                }
+
+                try {
+                    // AuthorizationCodeInstalledApp...authorize() blocks the thread.
+                    // Because we are in withContext(Dispatchers.IO), if the parent job is cancelled
+                    // (e.g. user clicks cancel in UI), this block gets a CancellationException.
+                    // To make it responsive, we wrap the blocking call.
+                    // To support cancellation, we should run it interruptingly.
+                    runInterruptible(Dispatchers.IO) {
+                        try {
+                            // Trigger the sign-in flow: Open the browser, wait for the callback, and shut it down. Use
+                            // the persisted data store named USER.
+                            val credential = AuthorizationCodeInstalledApp(getFlow(), receiver)
+                                .authorize(USER)
+
+                            if (credential != null && cancellationMonitor.isActive) {
+                                fetchUserProfile(credential)
+                            } else {
+                                null
+                            }
+                        } catch (e: Exception) {
+                            if (cancellationMonitor.isCancelled) {
+                                // Canceling hard stops the receiver, which may throw any error.
+                                // Ignore these side effects.
+                                return@runInterruptible null
+                            } else {
+                                throw e
+                            }
+                        }
+                    }
+                } finally {
+                    /* Cleanup */
+
+                    // Cancel the monitor so it doesn't hang around
+                    cancellationMonitor.cancel()
+
+                    // Make sure the receiver is stopped as soon as possible
+                    try {
+                        receiver.stop()
+                    } catch (e: Exception) {
+                        println("Failed to stop receiver: ${e.message}")
+                    }
+                }
+            }
+        } catch (e: CancellationException) {
+            println("Sign-in cancelled via UI: ${e.message}")
+            throw e
         } catch (e: Exception) {
             handleException(e)
-            return null // Unreachable if handleException always throws, but keeps compiler happy
+            null // Unreachable if handleException always throws, but keeps compiler happy
         }
     }
 
@@ -149,7 +209,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
 
         // The response parsing depends on how you want to handle JSON.
         // Using a Map is usually simplest without creating a UserInfo class.
-        val userInfo = response.parseAs(HashMap::class.java)
+        val userInfo = response.parseAs(java.util.HashMap::class.java)
 
         val name = userInfo["name"] as? String ?: "Google User"
         val email = userInfo["email"] as? String
@@ -160,6 +220,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
     }
 
     private fun handleException(e: Exception) {
+        if (e is AuthException) throw e
         e.printStackTrace()
         when (e) {
             is HttpResponseException -> {

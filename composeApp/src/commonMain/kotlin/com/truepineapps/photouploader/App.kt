@@ -16,10 +16,12 @@ import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -59,6 +61,7 @@ import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.app_name
 import com.truepineapps.photouploader.resources.appicon
 import com.truepineapps.photouploader.resources.back_button
+import com.truepineapps.photouploader.resources.cancel
 import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.connected_as
@@ -68,6 +71,7 @@ import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.user_avatar_content_desc
+import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
@@ -201,6 +205,7 @@ private fun ThemedLocalizedApp(
                 menuNavigator = MenuNavigatorImpl(navController),
                 title = title,
                 canNavigateBack = navController.previousBackStackEntry != null,
+                isSigningIn = uiState.isSigningIn,
                 closeDialog = if (closeAction.value == defaultCloseAction) null else closeAction.value,
                 navigateUp = { navController.navigateUp() },
                 showDirPicker = showDirPickerAction,
@@ -209,6 +214,7 @@ private fun ThemedLocalizedApp(
                     // triggered here. The returned Job can be ignored here or handled if needed.
                     viewModel.uploadPhotos()
                 },
+                cancelSignIn = { viewModel.cancelSignIn() },
                 signOut = { viewModel.signOut() },
                 canChooseDirectory = !busy,
                 canUploadPhotos = canUpload,
@@ -246,10 +252,12 @@ fun PhotoLoaderAppBar(
     scrollBehavior: TopAppBarScrollBehavior?,
     title: String,
     canNavigateBack: Boolean,
+    isSigningIn: Boolean,
     closeDialog: (() -> Unit)?,
     navigateUp: () -> Unit,
     showDirPicker: () -> Unit,
     uploadPhotos: () -> Unit,
+    cancelSignIn: () -> Unit,
     signOut: () -> Unit,
     canChooseDirectory: Boolean,
     canUploadPhotos: Boolean,
@@ -260,6 +268,8 @@ fun PhotoLoaderAppBar(
 ) {
     // The expanded state of the dropdown menu.
     var expanded by remember { mutableStateOf(false) }
+    // The expanded state of the sign in in progress dropdown menu.
+    var signInMenuExpanded by remember { mutableStateOf(false) }
     // The expanded state of the avatar dropdown menu.
     var avatarExpanded by remember { mutableStateOf(false) }
 
@@ -268,7 +278,37 @@ fun PhotoLoaderAppBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-            if (closeDialog != null) {
+            if (isSigningIn) {
+                Box {
+                    IconButton(onClick = { signInMenuExpanded = true }) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(Dimensions.icon_size),
+                            strokeWidth = Dimensions.stroke_size,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = signInMenuExpanded,
+                        onDismissRequest = { signInMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.waiting_for_browser_sign_in)) },
+                            onClick = { signInMenuExpanded = false },
+                            enabled = false
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.cancel)) },
+                            onClick = {
+                                signInMenuExpanded = false
+                                cancelSignIn()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Close, contentDescription = null)
+                            }
+                        )
+                    }
+                }
+            } else if (closeDialog != null) {
                 ThemedIconButton(
                     imageVector = Icons.Filled.Close,
                     contentDescriptionResource = Res.string.close_button,
