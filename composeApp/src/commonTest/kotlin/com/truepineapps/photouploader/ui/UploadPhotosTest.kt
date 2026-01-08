@@ -15,6 +15,7 @@ import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.StatusInfo
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
+import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
 import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
 import com.truepineapps.photouploader.resources.error_upload_failed_with_message
@@ -460,7 +461,7 @@ class UploadPhotosTest : KoinTest {
             UploadStatus.Error(
                 UiTextResource(
                     Res.string.error_album_creation_failed_with_message,
-                    "(400 Bad Request)"
+                    "400 Bad Request"
                 )
             ).message.toString(),
             albumStatus.message.toString()
@@ -504,7 +505,7 @@ class UploadPhotosTest : KoinTest {
         val expectedPhotoErrorStatus = UploadStatus.Error(
             UiTextResource(
                 Res.string.error_upload_failed_with_message,
-                "(500 Internal Server Error)"
+                "500 Internal Server Error"
             )
         )
         assertEquals(
@@ -560,12 +561,13 @@ class UploadPhotosTest : KoinTest {
         val albumStatus = album.uploadStatus
         assertTrue(albumStatus is UploadStatus.Error, "Album status")
         assertEquals(
-            UploadStatus.Error(UiTextResource(
+            UploadStatus.Error(
+                UiTextResource(
                     Res.string.error_one_or_more_photos_failed,
                     listOf(
                         UiTextResource(
                             Res.string.error_add_media_items_failed_with_message,
-                            "(500 Internal Server Error)"
+                            "500 Internal Server Error"
                         )
                     )
                 )
@@ -613,14 +615,20 @@ class UploadPhotosTest : KoinTest {
         assertTrue(
             updatedPhoto2.uploadStatus is UploadStatus.Error, "Photo should fail to add to album"
         )
+        val expectedPhotoErrorMessage = UploadStatus.Error(
+            UiTextResource(
+                Res.string.error_add_to_album_failed,
+                "3: Failed to add to album"
+            )
+        ).message.toString()
         assertEquals(
-            "Failed to add to album",
+            expectedPhotoErrorMessage,
             updatedPhoto2.uploadStatus.message.toString(),
             "Photo error message"
         )
         assertTrue(album.uploadStatus is UploadStatus.Error, "Album should fail to add photos")
         assertEquals(
-            "${Res.string.error_one_or_more_photos_failed.key} 'Failed to add to album'",
+            "${Res.string.error_one_or_more_photos_failed.key} '$expectedPhotoErrorMessage'",
             album.uploadStatus.message.toString(),
             "Album error text"
         )
