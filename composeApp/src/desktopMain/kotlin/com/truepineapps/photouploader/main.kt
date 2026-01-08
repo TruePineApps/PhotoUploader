@@ -5,15 +5,29 @@ import androidx.compose.ui.window.application
 import com.truepineapps.photouploader.di.initKoin
 import com.truepineapps.photouploader.ui.DesktopPlatformPicker
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
+import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import io.ktor.client.HttpClient
 
 fun main() = application {
-    initKoin(isPickerDefined = true) {
+    val koinApp = initKoin(isPickerDefined = true) {
         // Pass the desktop directory picker
         modules(module { single<PlatformPicker> { DesktopPlatformPicker() } })
     }
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            println("Window close requested. Shutting down resources...")
+
+            // Get the HttpClient from Koin and make sure it is closed.
+            val httpClient = koinApp.koin.get<HttpClient>()
+            httpClient.close()
+
+            // Stop Koin to clean up all singletons
+            stopKoin()
+
+            // 5. Explicitly exit the application.
+            exitApplication()
+        },
         title = "PhotoUploader",
     ) {
         App()

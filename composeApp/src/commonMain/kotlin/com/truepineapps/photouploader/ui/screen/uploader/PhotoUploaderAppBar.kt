@@ -49,6 +49,7 @@ import com.truepineapps.photouploader.resources.menu
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.upload_photos
+import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.user_avatar_content_desc
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
 import com.truepineapps.photouploader.ui.Dimensions
@@ -93,6 +94,7 @@ fun PhotoUploaderAppBar(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isSigningIn = uiState.isSigningIn
+    val isUploading = uiState.isUploading
     val canChooseDirectory = uiState.idle()
     // Only allow uploading if we have albums, path is set, and not currently busy
     val canUploadPhotos = uiState.albums.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle()
@@ -104,7 +106,9 @@ fun PhotoUploaderAppBar(
         scrollBehavior = scrollBehavior,
         navigationIcon = {
             if (isSigningIn) {
-                SignInProgressMenu { viewModel.cancelSignIn() }
+                ProgressMenu(stringResource(Res.string.waiting_for_browser_sign_in)) {
+                    viewModel.cancelProcess()
+                }
             } else if (closeDialog != null) {
                 ThemedIconButton(
                     imageVector = Icons.Filled.Close,
@@ -140,16 +144,22 @@ fun PhotoUploaderAppBar(
                 enabled = canChooseDirectory,
                 onClick = showDirPicker
             )
-            ThemedIconButton(
-                imageVector = Icons.Filled.Upload,
-                contentDescriptionResource = Res.string.upload_photos,
-                enabled = canUploadPhotos,
-                onClick = {
-                    // The ViewModel's uploadPhotos launches a coroutine that just needs to be
-                    // triggered here. The returned Job can be ignored here or handled if needed.
-                    viewModel.uploadPhotos()
-                },
-            )
+            if (isUploading) {
+                ProgressMenu(stringResource(Res.string.uploading)) {
+                    viewModel.cancelProcess()
+                }
+            } else {
+                ThemedIconButton(
+                    imageVector = Icons.Filled.Upload,
+                    contentDescriptionResource = Res.string.upload_photos,
+                    enabled = canUploadPhotos,
+                    onClick = {
+                        // The ViewModel's uploadPhotos launches a coroutine that just needs to be
+                        // triggered here. The returned Job can be ignored here or handled if needed.
+                        viewModel.uploadPhotos()
+                    },
+                )
+            }
             MoreMenu(menuNavigator)
         },
         colors = colors
@@ -158,12 +168,12 @@ fun PhotoUploaderAppBar(
 
 
 @Composable
-private fun SignInProgressMenu(cancelSignIn: () -> Unit) {
+private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
     // The expanded state of the sign in in progress dropdown menu.
-    var signInMenuExpanded by remember { mutableStateOf(false) }
+    var progressMenuExpanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { signInMenuExpanded = true }) {
+        IconButton(onClick = { progressMenuExpanded = true }) {
             CircularProgressIndicator(
                 modifier = Modifier.size(Dimensions.icon_size),
                 strokeWidth = Dimensions.stroke_size,
@@ -171,19 +181,19 @@ private fun SignInProgressMenu(cancelSignIn: () -> Unit) {
             )
         }
         DropdownMenu(
-            expanded = signInMenuExpanded,
-            onDismissRequest = { signInMenuExpanded = false }
+            expanded = progressMenuExpanded,
+            onDismissRequest = { progressMenuExpanded = false }
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.waiting_for_browser_sign_in)) },
-                onClick = { signInMenuExpanded = false },
+                onClick = { progressMenuExpanded = false },
                 enabled = false
             )
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.cancel)) },
                 onClick = {
-                    signInMenuExpanded = false
-                    cancelSignIn()
+                    progressMenuExpanded = false
+                    onCancel()
                 },
                 leadingIcon = {
                     Icon(Icons.Default.Close, contentDescription = null)

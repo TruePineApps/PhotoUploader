@@ -42,7 +42,7 @@ class PhotoUploaderViewModel(
 ) : LoadingViewModel(repository) {
 
     var platformContext: PlatformContext? = null
-    private var signInJob: Job? = null
+    private var processJob: Job? = null
 
     private val _viewState = MutableStateFlow(ViewState())
 
@@ -78,16 +78,16 @@ class PhotoUploaderViewModel(
      * Public entry point for manual Sign In button (if any).
      */
     fun signIn() {
-        if (signInJob?.isActive == true) return
+        if (processJob?.isActive == true) return
 
-        signInJob = viewModelScope.launch {
+        processJob = viewModelScope.launch {
             try {
                 performSignIn()
             } catch (e: CancellationException) {
-                // Job was cancelled (e.g. via cancelSignIn), stop gracefully
+                // Job was cancelled (e.g. via cancelProcess), stop gracefully
                 println("Sign in cancelled: ${e.message}")
             } finally {
-                signInJob = null
+                processJob = null
             }
         }
     }
@@ -132,14 +132,14 @@ class PhotoUploaderViewModel(
     }
 
     /**
-     * Cancels the current sign-in job if it's still running.
+     * Cancels the current sign-in or upload job if it's still running.
      */
-    fun cancelSignIn() {
+    fun cancelProcess() {
         // This will cancel the job running performSignIn(), triggering the CancellationException there
         // The finally block in performSignIn() will handle the state update
-        println("Cancel sign in")
-        signInJob?.cancel(/*CancellationException("Canceled") */)
-        signInJob = null
+        println("Cancel process")
+        processJob?.cancel()
+        processJob = null
     }
 
     fun signOut() {
@@ -243,12 +243,6 @@ class PhotoUploaderViewModel(
 
                     // Only proceed if authenticated
                     if (isAuthSuccess) {
-                        // Clear the signInJob reference so future "Cancel Sign In" clicks don't
-                        // affect the active upload
-                        if (signInJob == coroutineContext[Job]) {
-                            signInJob = null
-                        }
-
                         // Start the actual upload
                         _viewState.update { it.copy(status = AppStatus.UPLOADING) }
                         uploadPhotosImpl(state.albums)
@@ -267,8 +261,12 @@ class PhotoUploaderViewModel(
                     resetNonFinalUploadStatuses()
                     _viewState.update { it.copy(globalErrorMessage = e.uiText) }
                 } catch (e: CancellationException) {
-                    // Job was cancelled (e.g. via cancelSignIn), stop gracefully
+                    // Job was cancelled (e.g. via cancelProcess), stop gracefully
                     println("Upload process cancelled: ${e.message}")
+                    // When uploading, reset statuses to remove "Uploading" indicators
+                    if (_viewState.value.status == AppStatus.UPLOADING) {
+                        resetNonFinalUploadStatuses()
+                    }
                 } catch (e: Exception) {
                     println("Upload failed: ${e.message}")
                     resetNonFinalUploadStatuses()
@@ -281,17 +279,17 @@ class PhotoUploaderViewModel(
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
                     _viewState.update { it.copy(status = AppStatus.IDLE) }
-                    // Ensure signInJob is cleared if this specific job finishes
-                    if (signInJob == coroutineContext[Job]) {
-                        signInJob = null
+                    // Ensure processJob is cleared if this specific job finishes
+                    if (processJob == coroutineContext[Job]) {
+                        processJob = null
                     }
                 }
             }
 
-            // Assign this job to signInJob.
-            // If the user clicks "Cancel" in the AppBar dialog while isSigningIn is true,
-            // cancelSignIn() will cancel THIS job, stopping the upload flow immediately.
-            signInJob = job
+            // Assign this job to processJob.
+            // If the user clicks "Cancel" in the AppBar dialog while isSigningIn or isUploading is
+            // true, cancelProcess() will cancel THIS job, stopping the upload flow immediately.
+            processJob = job
 
             return job
         }
