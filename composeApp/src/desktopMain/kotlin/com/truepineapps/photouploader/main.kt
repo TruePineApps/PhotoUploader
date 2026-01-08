@@ -25,7 +25,7 @@ fun main() = application {
             // Stop Koin to clean up all singletons
             stopKoin()
 
-            // 5. Explicitly exit the application.
+            // Explicitly exit the application.
             exitApplication()
         },
         title = "PhotoUploader",
