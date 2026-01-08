@@ -179,6 +179,19 @@ class PhotoUploaderViewModel(
         repository.updateAlbums(updatedAlbums)
     }
 
+    fun toggleAlbums(albums: List<Album>, isEnabled: Boolean) {
+        val currentAlbums = repository.albums.value
+        val albumIdsToUpdate = albums.map { it.id }.toSet()
+        val updatedAlbums = currentAlbums.map { album ->
+            if (album.id in albumIdsToUpdate) {
+                album.copy(isEnabled = isEnabled)
+            } else {
+                album
+            }
+        }
+        repository.updateAlbums(updatedAlbums)
+    }
+
     fun togglePhoto(albumId: String, photoPath: Path) {
         val currentAlbums = repository.albums.value
         val updatedAlbums = currentAlbums.map { album ->
@@ -597,8 +610,6 @@ data class UiState(
 
     fun busy() = viewState.status != AppStatus.IDLE
     fun idle() = viewState.status == AppStatus.IDLE
-
-
 
     override fun toString(): String {
         return "UiState(userProfile=$userProfile, " +

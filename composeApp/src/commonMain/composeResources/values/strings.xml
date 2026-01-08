@@ -39,6 +39,8 @@
     <string name="waiting_for_browser_sign_in">Waiting for browser sign-in...</string>
     <string name="uploading">Uploading...</string>
     <string name="cancel">Cancel</string>
+    <string name="collapse_album">Collapse album</string>
+    <string name="expand_album">Collapse album</string>
     
     <!-- Error messages -->
     <string name="error_unknown">An unknown error occurred.</string>

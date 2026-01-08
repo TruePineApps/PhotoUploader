@@ -62,6 +62,7 @@ fun PhotoUploaderScreen(
                     albums = uiState.albums,
                     onAlbumClick = { album -> navigateToPhotos(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
+                    onAlbumGroupToggle = viewModel::toggleAlbums,
                     onAlbumRename = viewModel::renameAlbum,
                     modifier = Modifier.fillMaxSize()
                 )
