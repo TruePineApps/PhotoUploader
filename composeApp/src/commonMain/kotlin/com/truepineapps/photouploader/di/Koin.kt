@@ -87,5 +87,4 @@ private fun coreModule(isPickerDefined: Boolean) = module {
     single { LocaleViewModel(userPreferencesRepository = get()) }
     single { SettingsViewModel(userPreferencesRepository = get()) }
     single<Clock> { Clock.System }
-    single { Logger.withTag("PhotoUploader") }
 }

@@ -179,6 +179,14 @@ val DEFAULT_DATE_TIME_FORMAT by lazy {
 
 val DEFAULT_TIME_FORMAT by lazy { LocalTime.Format { hour(); char(':'); minute() } }
 
+val DEFAULT_TIMESTAMP_FORMAT by lazy {
+    LocalDateTime.Format {
+        year(); char('-'); monthNumber(); char('-'); day()
+        char(' ')
+        hour(); char(':'); minute(); char(':'); second(); char('.') ; secondFraction(3)
+    }
+}
+
 /** Short default date format for formatting only */
 val DEFAULT_INSTANT_DATE_FORMAT by lazy {
     DateTimeComponents.Format { year(); char('-'); monthNumber(); char('-'); day() }

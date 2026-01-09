@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.di
 
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.AndroidAppInfo
 import com.truepineapps.photouploader.AndroidPlatformInfo
 import com.truepineapps.photouploader.AppInfo
@@ -13,4 +14,5 @@ actual fun platformModule(): Module = module {
     single<GoogleAuthService> { StubGoogleAuthService() }
     single<AppInfo> { AndroidAppInfo }
     single<PlatformInfo> { AndroidPlatformInfo }
+    single { Logger.withTag("PhotoUploader") }
 }
