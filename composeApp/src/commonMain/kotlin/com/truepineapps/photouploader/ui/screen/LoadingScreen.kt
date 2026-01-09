@@ -16,38 +16,41 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.data.DataLoadingState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.loading
 import com.truepineapps.photouploader.resources.unknown_error
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun LoadingScreen(
     loadingViewModel: LoadingViewModel,
     modifier: Modifier = Modifier,
+    log: Logger = koinInject(),
     successContent: @Composable () -> Unit,
 ) {
     val name = loadingViewModel::class.simpleName ?: ""
-    println("LoadingScreen started with $name")
+    log.d { "LoadingScreen started with $name" }
     val currentLoadingState by loadingViewModel.loadingState.collectAsState()
     when (currentLoadingState) {
         is DataLoadingState.Loading -> {
             /* Show progress indicator */
-            println("LoadingScreen: Loading...")
+            log.d { "LoadingScreen: Loading..." }
             ProgressScreen(action = Res.string.loading, name = name, modifier = modifier)
         }
 
         is DataLoadingState.Success -> {
             /* UiState is updated successfully, display data */
-            println("LoadingScreen: Loading succeeded, show success")
+            log.d { "LoadingScreen: Loading succeeded, show success" }
             successContent()
         }
 
         is DataLoadingState.Error -> {
             /* Handle error */
             val message = (currentLoadingState as DataLoadingState.Error).exception.message ?: stringResource(Res.string.unknown_error)
-            println("LoadingScreen for $name Error: $message")
+            log.e("LoadingScreen for $name Error: $message")
             ErrorScreen(
                 message = message,
                 retryAction = { loadingViewModel.reload() },
@@ -63,6 +66,7 @@ fun LoadingScreen(
 fun LoadingScreen(
     loadingViewModels: List<LoadingViewModel>,
     modifier: Modifier = Modifier,
+    log: Logger = koinInject(),
     successContent: @Composable () -> Unit,
 ) {
     val loadingStatesMap = loadingViewModels.map { vm -> vm to vm.loadingState.collectAsState() }
@@ -82,7 +86,7 @@ fun LoadingScreen(
             failures.add(entry.first)
         }
         val message = messageBuilder.toString().trim()
-        println("LoadingScreen errors:\n$message")
+        log.e("LoadingScreen errors:\n$message")
         ErrorScreen(
             message = message,
             retryAction = { failures.forEach { vm -> vm.reload() } },

@@ -1,9 +1,11 @@
 package com.truepineapps.photouploader.auth
 
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.di.platformModule
 import kotlinx.coroutines.test.runTest
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -16,12 +18,13 @@ class GoogleAuthServiceTest : KoinTest {
 
     // Inject the service using Koin
     private val authService: GoogleAuthService by inject()
+    private val log: Logger by inject()
 
     @BeforeTest
     fun setup() {
         startKoin {
             // Load the same module used in the app
-            modules(platformModule())
+            modules(platformModule(), module { single { Logger.withTag("Test") } })
         }
     }
 
@@ -36,6 +39,7 @@ class GoogleAuthServiceTest : KoinTest {
 
         val isStub = authService::class.simpleName?.contains("Stub") == true
         println("Running signIn test: $isStub")
+        log.d { "Running signIn test: $isStub" }
 
         if (isStub) {
             // 1. Call the signIn method

@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.auth
 
+import co.touchlab.kermit.Logger
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -18,13 +19,13 @@ import com.truepineapps.photouploader.resources.unknown_error
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
 import kotlin.coroutines.cancellation.CancellationException
-import kotlinx.coroutines.awaitCancellation
 
 // User ID, the library uses this string to name the file where it saves the Access Token
 private const val USER = "user"
@@ -50,7 +51,9 @@ private const val CLIENT_SECRETS_JSON = "client_secrets.json"
  * library and reading app-created data.
  *  this application..
  */
-class DesktopGoogleAuthService : GoogleAuthService {
+class DesktopGoogleAuthService(
+    private val log: Logger,
+) : GoogleAuthService {
 
     private val jsonFactory = GsonFactory.getDefaultInstance()
     private val httpTransport = NetHttpTransport()
@@ -118,7 +121,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
                         try {
                             receiver.stop()
                         } catch (e: Exception) {
-                            println("CancelMonitor: Failed to stop receiver: ${e.message}")
+                            log.d(e) { "CancelMonitor: Failed to stop receiver" }
                         }
                     }
                 }
@@ -161,12 +164,12 @@ class DesktopGoogleAuthService : GoogleAuthService {
                     try {
                         receiver.stop()
                     } catch (e: Exception) {
-                        println("Failed to stop receiver: ${e.message}")
+                        log.e(e) { "Failed to stop receiver" }
                     }
                 }
             }
         } catch (e: CancellationException) {
-            println("Sign-in cancelled via UI: ${e.message}")
+            log.d { "Sign-in cancelled via UI: ${e.message}" }
             throw e
         } catch (e: Exception) {
             handleException(e)
@@ -189,7 +192,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
             try {
                 fetchUserProfile(credential)
             } catch (e: Exception) {
-                println("Failed to fetch user profile: ${e.message}")
+                log.e(e) { "Failed to fetch user profile" }
                 // If fetching profile fails (e.g. invalid token), we just return null to indicate not signed in
                 null
             }
@@ -221,7 +224,7 @@ class DesktopGoogleAuthService : GoogleAuthService {
 
     private fun handleException(e: Exception) {
         if (e is AuthException) throw e
-        e.printStackTrace()
+        log.e(e) { "Auth Exception" }
         when (e) {
             is HttpResponseException -> {
                 val statusCode = e.statusCode

@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.network
 
+import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.truepineapps.photouploader.io.PlatformFileSystem
 import com.truepineapps.photouploader.model.Photo
@@ -42,6 +43,7 @@ class PhotoUploader(
     private val platformFileSystem: PlatformFileSystem by inject()
     private val client: HttpClient by inject()
     private val json: Json by inject()
+    private val log: Logger by inject()
 
     /**
      * Creates an album in Google Photos
@@ -118,9 +120,9 @@ class PhotoUploader(
                 val successCount = result.newMediaItemResults.count { it.isSuccess() }
                 val failCount = result.newMediaItemResults.count { !it.isSuccess() }
 
-                println("      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed")
+                log.d { "      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed" }
                 result.newMediaItemResults.filter { !it.isSuccess() }.forEach {
-                    println("      Failed item: ${it.status}")
+                    log.e { "      Failed item: ${it.status}" }
                 }
             } else {
                 handleError(response, isBatchAdd = true)
@@ -163,8 +165,8 @@ class PhotoUploader(
         isBatchAdd: Boolean = false,
     ): Nothing {
         val errorBody = response.bodyAsText()
-        println("Request failed: ${response.status}")
-        println("Response: $errorBody")
+        log.e { "Request failed: ${response.status}" }
+        log.e { "Response: $errorBody" }
 
         val message = parseErrorMessage(errorBody).let {
             if (it.isNullOrBlank()) "${response.status}" else "$it (${response.status})"
@@ -209,7 +211,7 @@ class PhotoUploader(
             val errorResponse = json.decodeFromString<GooglePhotosErrorResponse>(responseBody)
             errorResponse.error.message
         } catch (e: Exception) {
-            println("Parsing error response failed: ${e.message}")
+            log.e(e) { "Parsing error response failed" }
             null
         }
     }

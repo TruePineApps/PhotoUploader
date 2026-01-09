@@ -6,8 +6,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE
 import com.truepineapps.photouploader.ui.screen.LoadingScreen
+import org.koin.compose.koinInject
 
 /**
  * CompositionLocal to provide the current effective BCP 47 locale tag (e.g., "en-US")
@@ -23,15 +25,16 @@ val LocalAppLocale = staticCompositionLocalOf { DEFAULT_LOCALE }
 fun AppEnvironment(
     modifier: Modifier = Modifier,
     localeViewModel: LocaleViewModel,
+    log: Logger = koinInject(),
     content: @Composable () -> Unit
 ) {
-    println("Starting AppEnvironment")
+    log.d { "Starting AppEnvironment" }
     LoadingScreen(loadingViewModel = localeViewModel, modifier = modifier) {
 
         // Collect the effective locale tag (e.g., "en-US") from the ViewModel's StateFlow.
         // This triggers recomposition whenever effectiveAppLocale emits a new value.
         val effectiveLocaleTag = localeViewModel.preferredLocaleState.collectAsState().value
-        println("AppEnvironment : effectiveLocaleTag=$effectiveLocaleTag")
+        log.d { "AppEnvironment : effectiveLocaleTag=$effectiveLocaleTag" }
 
         // Provide this effectiveLocaleTag via the LocalAppLocale CompositionLocal.
         // This allows stringResource, painterResource, etc., from Compose Multiplatform

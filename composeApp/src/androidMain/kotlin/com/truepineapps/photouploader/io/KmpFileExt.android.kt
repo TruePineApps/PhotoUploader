@@ -3,10 +3,13 @@ package com.truepineapps.photouploader.io
 import android.net.Uri.decode
 import android.os.Environment
 import androidx.documentfile.provider.DocumentFile
+import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import okio.Source
 import okio.source
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.FileNotFoundException
 
 /**
@@ -43,25 +46,29 @@ actual fun KmpFile.list(context: PlatformContext): List<KmpFile> {
  * @param context not used, standard KmpFile API parameter
  * @return the absolute filesystem path string
  */
-actual fun KmpFile.getAbsolutePath(context: PlatformContext): String? {
-    val uriString = uri.toString()
-    val primaryToken = "primary%3A"
+actual fun KmpFile.getAbsolutePath(context: PlatformContext): String? = object : KoinComponent {
+    val log: Logger by inject()
 
-    if (uriString.contains(primaryToken)) {
-        val relativePath = uriString.substringAfter(primaryToken)
-        // Decodes the rest of the path (e.g. converting %2F back to /) if needed,
-        val decodedRelativePath = decode(relativePath)
+    fun getPath(): String {
+        val uriString = uri.toString()
+        val primaryToken = "primary%3A"
 
-        val externalRoot = Environment.getExternalStorageDirectory().absolutePath
-        // Combine them properly
-        val result = "$externalRoot/$decodedRelativePath"
-        println("getAbsolutePath for $uriString: $result")
-        return result
+        if (uriString.contains(primaryToken)) {
+            val relativePath = uriString.substringAfter(primaryToken)
+            // Decodes the rest of the path (e.g. converting %2F back to /) if needed,
+            val decodedRelativePath = decode(relativePath)
+
+            val externalRoot = Environment.getExternalStorageDirectory().absolutePath
+            // Combine them properly
+            val result = "$externalRoot/$decodedRelativePath"
+            log.d { "getAbsolutePath for $uriString: $result" }
+            return result
+        }
+
+        // Fallback: if it doesn't match the pattern, return the URI string itself as a Path
+        return uriString
     }
-
-    // Fallback: if it doesn't match the pattern, return the URI string itself as a Path
-    return uriString
-}
+}.getPath()
 
 /**
  * Robust check for directory on Android using DocumentFile

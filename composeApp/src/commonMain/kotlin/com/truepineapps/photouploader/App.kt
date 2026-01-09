@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import co.touchlab.kermit.Logger
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.memory.MemoryCache
@@ -46,6 +47,7 @@ import com.truepineapps.photouploader.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
@@ -87,8 +89,10 @@ private fun ThemedLocalizedApp(
     isHorizontalLayout: Boolean,
     modifier: Modifier = Modifier,
     filePicker: PlatformPicker = koinInject(),
-    viewModel: PhotoUploaderViewModel = koinInject(),
+    log: Logger = koinInject(),
 ) {
+    val viewModel: PhotoUploaderViewModel = koinInject { parametersOf(log) }
+
     val appName = stringResource(resource = Res.string.app_name)
     var title by rememberSaveable { mutableStateOf(appName) }
 

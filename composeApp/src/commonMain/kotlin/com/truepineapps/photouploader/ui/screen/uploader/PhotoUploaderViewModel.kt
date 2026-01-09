@@ -1,6 +1,7 @@
 package com.truepineapps.photouploader.ui.screen.uploader
 
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.auth.AuthException
@@ -39,6 +40,7 @@ import okio.Path
 class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
     private val repository: PhotoDirectoryRepository,
+    private val log: Logger,
 ) : LoadingViewModel(repository) {
 
     var platformContext: PlatformContext? = null
@@ -69,7 +71,7 @@ class PhotoUploaderViewModel(
                 }
             } catch (e: Exception) {
                 // Ignore errors during initial restore
-                e.printStackTrace()
+                log.e(e) { "Error during initial auth check" }
             }
         }
     }
@@ -85,7 +87,7 @@ class PhotoUploaderViewModel(
                 performSignIn()
             } catch (e: CancellationException) {
                 // Job was cancelled (e.g. via cancelProcess), stop gracefully
-                println("Sign in cancelled: ${e.message}")
+                log.d { "Sign in cancelled: ${e.message}" }
             } finally {
                 processJob = null
             }
@@ -112,12 +114,12 @@ class PhotoUploaderViewModel(
                 return true
             }
         } catch (e: CancellationException) {
-            println("User cancelled sign in: ${e.message}")
+            log.d { "User cancelled sign in: ${e.message}" }
             throw e // Re-throw to ensure the calling Job is cancelled
         } catch (e: AuthException) {
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
-            println("Sign in failed: ${e.message}")
+            log.e(e) { "Sign in failed" }
             val uiText = if (e.message == null) {
                 UiTextResource(Res.string.error_unknown)
             } else {
@@ -137,7 +139,7 @@ class PhotoUploaderViewModel(
     fun cancelProcess() {
         // This will cancel the job running performSignIn(), triggering the CancellationException there
         // The finally block in performSignIn() will handle the state update
-        println("Cancel process")
+        log.d { "Cancel process" }
         processJob?.cancel()
         processJob = null
     }
@@ -156,7 +158,7 @@ class PhotoUploaderViewModel(
     fun updatePath(kmpFile: KmpFile) {
         val path = kmpFile.getAbsolutePath(platformContext!!)
         _viewState.update { it.copy(kmpFile = kmpFile, path = path ?: "") }
-        println("Setting path to '$path'")
+        log.d { "Setting path to '$path'" }
         repository.setPath(kmpFile, platformContext!!)
         reload()
     }
@@ -275,13 +277,13 @@ class PhotoUploaderViewModel(
                     _viewState.update { it.copy(globalErrorMessage = e.uiText) }
                 } catch (e: CancellationException) {
                     // Job was cancelled (e.g. via cancelProcess), stop gracefully
-                    println("Upload process cancelled: ${e.message}")
+                    log.d { "Upload process cancelled: ${e.message}" }
                     // When uploading, reset statuses to remove "Uploading" indicators
                     if (_viewState.value.status == AppStatus.UPLOADING) {
                         resetNonFinalUploadStatuses()
                     }
                 } catch (e: Exception) {
-                    println("Upload failed: ${e.message}")
+                    log.e(e) { "Upload failed" }
                     resetNonFinalUploadStatuses()
 
                     val uiText = if (e.message == null) {
@@ -355,7 +357,7 @@ class PhotoUploaderViewModel(
         val userProfile = _viewState.value.userProfile
             ?: throw IllegalStateException("User profile not set")
 
-        println("Starting upload for ${albums.size} albums")
+        log.d { "Starting upload for ${albums.size} albums" }
 
         val photoUploader = PhotoUploader(userProfile.accessToken, context)
         val albumsToUpload = albums.filter { it.isEnabled && it.photos.any { p -> p.isEnabled } }
@@ -373,13 +375,13 @@ class PhotoUploaderViewModel(
         }
         repository.updateAlbums(initialUpdate)
 
-        println("Starting upload for ${albumsToUpload.size} albums")
+        log.d { "Starting upload for ${albumsToUpload.size} albums" }
 
         for (album in albumsToUpload) {
             uploadPhotosToNewAlbum(album, photoUploader)
         }
 
-        println("\nUpload process completed!")
+        log.d { "Upload process completed!" }
     }
 
     private suspend fun uploadPhotosToNewAlbum(album: Album, photoUploader: PhotoUploader) {
@@ -391,7 +393,7 @@ class PhotoUploaderViewModel(
         // If no photos were successfully uploaded (e.g. all failed), the only thing to do is set
         // the album to a final status.
         if (uploadedItems.isEmpty()) {
-            println("    No photos uploaded successfully for album ${album.name}")
+            log.d { "    No photos uploaded successfully for album ${album.name}" }
             val finalAlbum = repository.albums.value.find { it.id == album.id }!!
             updateAlbumStatus(
                 album.id,
@@ -421,10 +423,10 @@ class PhotoUploaderViewModel(
                 if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
             }
             repository.updateAlbums(updatedAlbumsWithId)
-            println("    Created album with ID: $googleAlbumId for '${album.name}'")
+            log.d { "    Created album with ID: $googleAlbumId for '${album.name}'" }
             googleAlbumId
         } catch (e: UploadException.AlbumException) {
-            println("    Failed to create album for '${album.name}': ${e.message}")
+            log.e(e) { "    Failed to create album for '${album.name}'" }
             updateAlbumStatus(album.id, UploadStatus.Error(e.uiText))
             null
         }
@@ -440,13 +442,13 @@ class PhotoUploaderViewModel(
         for ((index, photo) in photosToUpload.withIndex()) {
             try {
                 updatePhotoStatus(album.id, photo.path, UploadStatus.Uploading)
-                println("    Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}")
+                log.d { "    Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}" }
                 val uploadToken = photoUploader.uploadPhoto(photo)
                 successfullyUploaded.add(photo to uploadToken)
                 updatePhotoStatus(album.id, photo.path, UploadStatus.Success)
-                println("      Success: ${photo.name}")
+                log.d { "      Success: ${photo.name}" }
             } catch (e: UploadException.PhotoException) {
-                println("      ERROR: Failed to upload '${photo.name}': ${e.message}")
+                log.e(e) { "      ERROR: Failed to upload '${photo.name}'" }
                 updatePhotoStatus(album.id, photo.path, UploadStatus.Error(e.uiText))
             }
         }
@@ -477,7 +479,7 @@ class PhotoUploaderViewModel(
                             if (mediaResult.isSuccess() && mediaResult.mediaItem != null) {
                                 p.copy(mediaItemId = mediaResult.mediaItem.id)
                             } else {
-                                println("      ERROR: Failed to add '${p.name}' to album '${currentAlbum.name}'")
+                                log.e { "      ERROR: Failed to add '${p.name}' to album '${currentAlbum.name}'" }
                                 val errorString = mediaResult.status.toString()
                                 val errorMessage = if (errorString.isEmpty()) {
                                     UiTextResource(Res.string.error_unknown)
@@ -509,7 +511,7 @@ class PhotoUploaderViewModel(
             }
             repository.updateAlbums(finalUpdatedAlbums)
         } catch (e: UploadException.PhotoException) {
-            println("      ERROR: Failed to add media items to album '${album.name}': ${e.message}")
+            log.e(e) { "      ERROR: Failed to add media items to album '${album.name}'" }
             val currentRepoAlbums = repository.albums.value
             val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
                 if (currentAlbum.id == album.id) {
@@ -537,11 +539,11 @@ class PhotoUploaderViewModel(
     ) {
         val coverMediaItemId = album.coverPhoto.mediaItemId
         if (coverMediaItemId != null) {
-            println("    Setting cover photo to: ${album.coverPhoto.name}")
+            log.d { "    Setting cover photo to: ${album.coverPhoto.name}" }
             try {
                 photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId)
             } catch (e: UploadException) {
-                println("    Failed to update cover photo: ${e.message}")
+                log.e(e) { "    Failed to update cover photo" }
             }
         }
     }

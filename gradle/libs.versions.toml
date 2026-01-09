@@ -1,3 +1,4 @@
+
 [versions]
 agp = "8.13.2"
 android-compileSdk = "36"
@@ -20,6 +21,7 @@ desugar_jdk_libs = "2.1.5"
 googleApiClient = "2.8.1"
 googleOauthClientJetty = "1.39.0"
 junit = "4.13.2"
+kermit = "2.0.8"
 koin = "4.1.1"
 koin-annotations = "2.3.1"
 kotlin = "2.3.0"
@@ -62,6 +64,8 @@ desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref 
 google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
 google-oauth-client-jetty = { module = "com.google.oauth-client:google-oauth-client-jetty", version.ref = "googleOauthClientJetty" }
 junit = { module = "junit:junit", version.ref = "junit" }
+kermit-core = { module = "co.touchlab:kermit", version.ref = "kermit" }
+kermit-koin = { module = "co.touchlab:kermit-koin", version.ref = "kermit" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }

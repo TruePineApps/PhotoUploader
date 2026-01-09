@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.data.preferences
 
+import co.touchlab.kermit.Logger
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import com.truepineapps.photouploader.data.DataLoadingState
@@ -11,16 +12,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class UserPreferencesSettingsRepository(
     private val settings: Settings,
     defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
-) : UserPreferencesRepository {
+) : UserPreferencesRepository, KoinComponent {
     //region Keys
     companion object {
         private const val KEY_LOCALE_TAG = "locale_tag"
     }
     //endregion Keys
+    private val log: Logger by inject()
 
     //region Flow
     private val _preferences = MutableStateFlow(UserPreferences.DEFAULTS)
@@ -28,15 +32,15 @@ class UserPreferencesSettingsRepository(
 
     override val loadingState: Flow<DataLoadingState> = flow {
         try {
-            println("Settings loadingState: Emit loading...")
+            log.d { "Settings loadingState: Emit loading..." }
             emit(DataLoadingState.Loading)
-            println("Settings loadingState: Loading initial preferences...")
+            log.d { "Settings loadingState: Loading initial preferences..." }
             loadInitialPreferences()
-            println("Settings loadingState: Emit success...")
+            log.d { "Settings loadingState: Emit success..." }
             emit(DataLoadingState.Success)
-            println("Settings loadingState: Done emitting")
+            log.d { "Settings loadingState: Done emitting" }
         } catch (e: Exception) {
-            println("Settings loadingState: Emit error")
+            log.e(e) { "Settings loadingState: Emit error" }
             emit(DataLoadingState.Error(e))
         }
     }.flowOn(defaultDispatcher)
@@ -66,7 +70,7 @@ class UserPreferencesSettingsRepository(
             settings[KEY_LOCALE_TAG] = localeTag
             updatePreferences { it.copy(localeTag = localeTag) }
         } catch (e: Exception) {
-            println("Error saving locale preference")
+            log.e(e) { "Error saving locale preference" }
         }
     }
 

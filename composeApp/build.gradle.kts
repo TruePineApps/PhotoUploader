@@ -146,6 +146,9 @@ kotlin {
             // Images
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            // Logging
+            implementation(libs.kermit.core)
+            implementation(libs.kermit.koin)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

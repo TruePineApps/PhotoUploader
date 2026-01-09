@@ -1,16 +1,19 @@
 package com.truepineapps.photouploader.localization
 
+import co.touchlab.kermit.Logger
 import io.ktor.util.date.Month
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.time.format.FormatStyle
 import java.util.Locale
 import java.time.LocalDateTime as JavaLocalDateTime
 import java.time.format.DateTimeFormatter as JavaDateTimeFormatter
 
 class AndroidDateTimeFormatter : DateTimeFormatter, KoinComponent {
+    private val log: Logger by inject()
     override fun formatDateTime(dateTime: LocalDateTime): String  =
         JavaDateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT)
             .format(toJavaDateTime(dateTime.date, dateTime.time))
@@ -42,7 +45,7 @@ class AndroidDateTimeFormatter : DateTimeFormatter, KoinComponent {
             .withLocale(Locale.getDefault()) // Use the JVM's default locale
 
         val referenceString = formatter.format(referenceTime)
-        println("is24HourFormat: $referenceString")
+        log.d { "is24HourFormat: $referenceString" }
         return referenceString.contains("23")
     }
 

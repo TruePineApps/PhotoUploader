@@ -1,5 +1,7 @@
 package com.truepineapps.photouploader.di
 
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.koin.KermitKoinLogger
 import com.russhwolf.settings.Settings
 import com.truepineapps.photouploader.data.preferences.UserPreferencesRepository
 import com.truepineapps.photouploader.data.preferences.UserPreferencesSettingsRepository
@@ -42,6 +44,7 @@ fun initKoin(
     contextDeclaration: KoinAppDeclaration = {},
 ): KoinApplication {
     return startKoin {
+        logger(KermitKoinLogger(Logger.withTag("koin")))
         contextDeclaration()
 
         // Load the common AppModule, the platform-specific modules and the core module
@@ -83,6 +86,6 @@ private fun coreModule(isPickerDefined: Boolean) = module {
     single<UserPreferencesRepository> { UserPreferencesSettingsRepository(get()) }
     single { LocaleViewModel(userPreferencesRepository = get()) }
     single { SettingsViewModel(userPreferencesRepository = get()) }
-
     single<Clock> { Clock.System }
+    single { Logger.withTag("PhotoUploader") }
 }

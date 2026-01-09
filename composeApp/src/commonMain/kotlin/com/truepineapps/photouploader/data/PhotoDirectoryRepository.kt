@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.data
 
+import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
@@ -13,13 +14,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import okio.Path.Companion.toPath
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class PhotoDirectoryRepository(
     private val platformFileSystem: PlatformFileSystem
-) : DataLoadingRepository {
+) : DataLoadingRepository, KoinComponent {
 
     private val _albums = MutableStateFlow<List<Album>>(emptyList())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
+    private val log: Logger by inject()
 
     var context: PlatformContext? = null
     private var currentKmpFile: KmpFile? = null
@@ -59,7 +63,7 @@ class PhotoDirectoryRepository(
             }
             emit(DataLoadingState.Success)
         } catch (e: Exception) {
-            println("Exception while loading photos: ${e::class.simpleName} - ${e.message}")
+            log.e(e) { "Exception while loading photos" }
             emit(DataLoadingState.Error(e))
         }
     }
@@ -78,7 +82,7 @@ class PhotoDirectoryRepository(
 
         // Get a safe non-mutable context variable
         val currentContext = context ?: throw IllegalStateException("currentContext is null")
-        println("Scanning directory: ${rootDir.getDisplayName(currentContext)}")
+        log.d { "Scanning directory: ${rootDir.getDisplayName(currentContext)}" }
 
         // The root itself might contain photos
         val albums = mutableListOf<Album>()
@@ -109,7 +113,7 @@ class PhotoDirectoryRepository(
         }
 
         val entries = platformFileSystem.list(currentDir, currentContext)
-        println("Processing directory: $name with ${entries.size} entries")
+        log.d { "Processing directory: $name with ${entries.size} entries" }
 
         // 1. Identify photos in the current directory
         var isFirst = true

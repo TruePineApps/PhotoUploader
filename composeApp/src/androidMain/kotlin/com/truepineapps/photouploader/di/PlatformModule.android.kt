@@ -14,4 +14,3 @@ actual fun platformModule(): Module = module {
     single<AppInfo> { AndroidAppInfo }
     single<PlatformInfo> { AndroidPlatformInfo }
 }
-

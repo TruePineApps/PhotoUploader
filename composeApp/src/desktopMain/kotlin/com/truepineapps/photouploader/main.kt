@@ -2,6 +2,7 @@ package com.truepineapps.photouploader
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.di.initKoin
 import com.truepineapps.photouploader.ui.DesktopPlatformPicker
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
@@ -14,9 +15,10 @@ fun main() = application {
         // Pass the desktop directory picker
         modules(module { single<PlatformPicker> { DesktopPlatformPicker() } })
     }
+    val log = koinApp.koin.get<Logger>()
     Window(
         onCloseRequest = {
-            println("Window close requested. Shutting down resources...")
+            log.d {"Window close requested. Shutting down resources..."}
 
             // Get the HttpClient from Koin and make sure it is closed.
             val httpClient = koinApp.koin.get<HttpClient>()

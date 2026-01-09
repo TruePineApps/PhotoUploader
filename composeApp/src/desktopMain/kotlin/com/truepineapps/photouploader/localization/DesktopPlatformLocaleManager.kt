@@ -1,16 +1,20 @@
 package com.truepineapps.photouploader.localization
 
+import co.touchlab.kermit.Logger
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.Locale
 
 // Remember the default Locale on app startup to revert to it if needed
 @Suppress("ConstantLocale")
 private val defaultLocale = Locale.getDefault()
 
-class DesktopPlatformLocaleManager: PlatformLocaleManager {
+class DesktopPlatformLocaleManager: PlatformLocaleManager, KoinComponent {
+    private val log: Logger by inject()
     override fun setPlatformLocale(localeTag: String?) {
         try {
             val newLocale = if (localeTag == null) {
-                println("Desktop: Reverting to system locale.")
+                log.d { "Desktop: Reverting to system locale." }
                 defaultLocale
             } else {
                 Locale.forLanguageTag(localeTag)
@@ -18,13 +22,13 @@ class DesktopPlatformLocaleManager: PlatformLocaleManager {
 
             if (newLocale == null) {
                 // If localeTag is invalid, just to reflect the system's current value.
-                println("Desktop: Not changing system locale.")
+                log.d { "Desktop: Not changing system locale." }
             } else {
                 Locale.setDefault(newLocale)
-                println("Desktop: JVM default locale set to: ${newLocale.toLanguageTag()}")
+                log.d { "Desktop: JVM default locale set to: ${newLocale.toLanguageTag()}" }
             }
         } catch (e: Exception) {
-            println("Error setting JVM default locale, not changing system locale. Error: ${e.message}")
+            log.e(e) { "Error setting JVM default locale, not changing system locale." }
         }
     }
 
