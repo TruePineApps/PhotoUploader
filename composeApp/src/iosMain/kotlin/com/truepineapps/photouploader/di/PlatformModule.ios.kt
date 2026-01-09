@@ -11,8 +11,8 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
+    single { Logger.withTag("PhotoUploader") }
     single<GoogleAuthService> { StubGoogleAuthService() }
     single<AppInfo> { IosAppInfo }
     single<PlatformInfo> { IosPlatformInfo }
-    single { Logger.withTag("PhotoUploader") }
 }

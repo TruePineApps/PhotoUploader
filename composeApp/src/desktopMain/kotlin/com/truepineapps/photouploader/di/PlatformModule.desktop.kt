@@ -32,13 +32,13 @@ object TimestampMessageFormatter : MessageStringFormatter {
 }
 
 actual fun platformModule(): Module = module {
-    single<GoogleAuthService> { DesktopGoogleAuthService(get()) }
-    single<AppInfo> { JvmAppInfo }
-    single<PlatformInfo> { JvmPlatformInfo }
     single {
         Logger(
             config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
             tag = "PhotoUploader"
         )
     }
+    single<GoogleAuthService> { DesktopGoogleAuthService(get()) }
+    single<AppInfo> { JvmAppInfo }
+    single<PlatformInfo> { JvmPlatformInfo }
 }

@@ -5,7 +5,6 @@ import com.truepineapps.photouploader.di.platformModule
 import kotlinx.coroutines.test.runTest
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -24,7 +23,7 @@ class GoogleAuthServiceTest : KoinTest {
     fun setup() {
         startKoin {
             // Load the same module used in the app
-            modules(platformModule(), module { single { Logger.withTag("Test") } })
+            modules(platformModule())
         }
     }
 
@@ -38,7 +37,6 @@ class GoogleAuthServiceTest : KoinTest {
         assertNotNull(authService, "AuthService service must be initialized in platformModule")
 
         val isStub = authService::class.simpleName?.contains("Stub") == true
-        println("Running signIn test: $isStub")
         log.d { "Running signIn test: $isStub" }
 
         if (isStub) {
