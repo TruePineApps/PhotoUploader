@@ -8,6 +8,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.pingInterval
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
@@ -51,6 +52,7 @@ val networkModule = module {
                 logger = KtorKermitLogger(get())
                 // Set to ALL to see headers and bodies, or INFO for less noise
                 level = LogLevel.INFO
+                sanitizeHeader { header -> header == HttpHeaders.Authorization }
             }
         }
     }
