@@ -13,7 +13,10 @@ import com.truepineapps.photouploader.ui.components.platformpicker.CalfPlatformP
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.stringResource
 import java.io.File
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.select_photo_folder
 
 /** Directory picking on Linux doesn't work. Copy Windows fallback implementation using the Swing
  * for this case, see https://github.com/MohamedRejeb/Calf/blob/main/calf-file-picker/src/desktopMain/kotlin/com/mohamedrejeb/calf/picker/platform/windows/api/JnaFileChooser.kt
@@ -43,32 +46,30 @@ class DesktopPlatformPicker : CalfPlatformPicker() {
     @Composable
     private fun rememberDirectoryPickerLauncher(onResult: (List<KmpFile>) -> Unit): FilePickerLauncher {
         val scope = rememberCoroutineScope()
-
+        val dialogTitle = stringResource(Res.string.select_photo_folder)
         return remember {
             FilePickerLauncher(
                 type = FilePickerFileType.Folder,
                 selectionMode = FilePickerSelectionMode.Single,
                 onLaunch = {
                     scope.launch {
-                        launchDirectoryPicker(
-                            onResult = { file ->
-                                onResult(
-                                    if (file == null)
-                                        emptyList()
-                                    else
-                                        listOf(KmpFile(file))
-                                )
-                            }
-                        )
+                        launchDirectoryPicker(dialogTitle = dialogTitle) { file ->
+                            onResult(
+                                if (file == null)
+                                    emptyList()
+                                else
+                                    listOf(KmpFile(file))
+                            )
+                        }
                     }
                 },
             )
         }
     }
 
-    suspend fun launchDirectoryPicker(onResult: (File?) -> Unit) =
+    suspend fun launchDirectoryPicker(dialogTitle: String, onResult: (File?) -> Unit) =
         withContext(Dispatchers.Default) {
-            val fileChooser = SwingDirectoryChooser()
+            val fileChooser = SwingDirectoryChooser(dialogTitle)
 
             // Show file chooser
             fileChooser.showOpenDialog()
