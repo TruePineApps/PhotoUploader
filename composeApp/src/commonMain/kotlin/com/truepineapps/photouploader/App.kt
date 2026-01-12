@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -24,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -44,6 +47,7 @@ import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderAppBar
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderDestination
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 import com.truepineapps.photouploader.ui.theme.AppTheme
+import com.truepineapps.photouploader.ui.util.Opacity
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -147,6 +151,7 @@ private fun ThemedLocalizedApp(
         }
     }
 
+    val isEnabled = !uiState.isShowDirPicker
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
         snackbarHost = {
@@ -164,6 +169,7 @@ private fun ThemedLocalizedApp(
             PhotoUploaderAppBar(
                 menuNavigator = MenuNavigatorImpl(navController),
                 title = title,
+                isEnabled = isEnabled,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 closeDialog = if (closeAction.value == defaultCloseAction) null else closeAction.value,
                 navigateUp = { navController.navigateUp() },
@@ -174,20 +180,33 @@ private fun ThemedLocalizedApp(
             )
         },
     ) { innerPadding ->
-        PhotoUploaderAppNavHost(
-            navController = navController,
-            isHorizontalLayout = isHorizontalLayout,
-            onUpdateTopAppBar = { newTitle, newCloseDialog, newActions ->
-                title = newTitle
-                closeAction.value = newCloseDialog ?: defaultCloseAction
-                actions.value = newActions
-            },
-            showDirPicker = showDirPickerAction,
-            viewModel = viewModel,
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            startDestination = startDestination
-        )
+                .fillMaxSize()
+        ) {
+            PhotoUploaderAppNavHost(
+                navController = navController,
+                isHorizontalLayout = isHorizontalLayout,
+                onUpdateTopAppBar = { newTitle, newCloseDialog, newActions ->
+                    title = newTitle
+                    closeAction.value = newCloseDialog ?: defaultCloseAction
+                    actions.value = newActions
+                },
+                showDirPicker = showDirPickerAction,
+                viewModel = viewModel,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
+                startDestination = startDestination
+            )
+            // When disabled, lay a transparent Surface over the top to intercept all clicks.
+            if (!isEnabled) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = Opacity.TRANSPARENT.value) // Transparent
+                ) { /* This Surface consumes all touch events, effectively disabling the content below */ }
+            }
+        }
     }
 }

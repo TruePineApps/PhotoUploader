@@ -34,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
 import com.truepineapps.photouploader.auth.UserProfile
 import com.truepineapps.photouploader.resources.Res
@@ -55,6 +57,7 @@ import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.MenuNavigator
+import com.truepineapps.photouploader.ui.util.Opacity
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -83,6 +86,7 @@ fun PhotoUploaderAppBar(
     menuNavigator: MenuNavigator,
     scrollBehavior: TopAppBarScrollBehavior?,
     title: String,
+    isEnabled: Boolean,
     canNavigateBack: Boolean,
     closeDialog: (() -> Unit)?,
     navigateUp: () -> Unit,
@@ -100,8 +104,13 @@ fun PhotoUploaderAppBar(
     val canUploadPhotos = uiState.albums.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle()
     val userProfile = uiState.userProfile
 
+
+    // Get the disabled text color
+    val titleTextColor = MaterialTheme.colorScheme.primary
+    val disabledTitleTextColor = titleTextColor.copy(alpha = Opacity.DISABLED.value)
+
     CenterAlignedTopAppBar(
-        title = { Text(text = title, color = MaterialTheme.colorScheme.primary) },
+        title = { Text(text = title, color = if (isEnabled) titleTextColor else disabledTitleTextColor) },
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
@@ -117,17 +126,17 @@ fun PhotoUploaderAppBar(
                         closeDialog()
                         navigateUp()
                     },
-                    enabled = true
+                    enabled = isEnabled
                 )
             } else if (canNavigateBack) {
                 ThemedIconButton(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescriptionResource = Res.string.back_button,
                     onClick = navigateUp,
-                    enabled = true
+                    enabled = isEnabled
                 )
             } else if (userProfile != null) {
-                AvatarMenu(userProfile) { viewModel.signOut() }
+                AvatarMenu(userProfile, isEnabled) { viewModel.signOut() }
             } else {
                 Image(
                     bitmap = imageResource(Res.drawable.appicon),
@@ -160,7 +169,7 @@ fun PhotoUploaderAppBar(
                     },
                 )
             }
-            MoreMenu(menuNavigator)
+            MoreMenu(isEnabled, menuNavigator)
         },
         colors = colors
     )
@@ -206,7 +215,8 @@ private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
 @Composable
 fun AvatarMenu(
     userProfile: UserProfile,
-    signOut: () -> Unit
+    isEnabled: Boolean,
+    signOut: () -> Unit,
 ) {
     // The expanded state of the avatar dropdown menu.
     var avatarExpanded by remember { mutableStateOf(false) }
@@ -216,6 +226,10 @@ fun AvatarMenu(
             AsyncImage(
                 model = userProfile.avatarUrl,
                 contentDescription = stringResource(Res.string.user_avatar_content_desc),
+                colorFilter = if (!isEnabled) ColorFilter.colorMatrix(
+                    // A saturation of 0f will remove all color, resulting in a grayscale image.
+                    ColorMatrix().apply { setToSaturation(0f) }
+                ) else null,
                 modifier = Modifier
                     .padding(Dimensions.padding_small)
                     .size(Dimensions.medium_icon_size)
@@ -224,14 +238,12 @@ fun AvatarMenu(
             )
         } else {
             // Fallback icon if no avatar URL
-            Icon(
+            ThemedIconButton(
                 imageVector = Icons.Filled.Person,
-                contentDescription = stringResource(Res.string.user_avatar_content_desc),
-                modifier = Modifier
-                    .padding(Dimensions.padding_small)
-                    .size(Dimensions.medium_icon_size)
-                    .clip(CircleShape)
-                    .clickable { avatarExpanded = true }
+                contentDescriptionResource = Res.string.user_avatar_content_desc,
+                enabled = isEnabled,
+                onClick = { avatarExpanded = true },
+                modifier = Modifier.clip(CircleShape)
             )
         }
         DropdownMenu(
@@ -260,14 +272,14 @@ fun AvatarMenu(
 }
 
 @Composable
-private fun MoreMenu(menuNavigator: MenuNavigator) {
+private fun MoreMenu(isEnabled: Boolean, menuNavigator: MenuNavigator) {
     // The expanded state of the dropdown menu.
     var expanded by remember { mutableStateOf(false) }
 
     ThemedIconButton(
         imageVector = Icons.Filled.MoreVert,
         contentDescriptionResource = Res.string.menu,
-        enabled = true,
+        enabled = isEnabled,
         onClick = { expanded = true }
     )
     DropdownMenu(
@@ -276,15 +288,24 @@ private fun MoreMenu(menuNavigator: MenuNavigator) {
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.preferences)) },
-            onClick = { menuNavigator.navigateToSettings(); expanded = false }
+            onClick = {
+                menuNavigator.navigateToSettings()
+                expanded = false
+            }
         )
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.about)) },
-            onClick = { menuNavigator.navigateToAbout(); expanded = false }
+            onClick = {
+                menuNavigator.navigateToAbout()
+                expanded = false
+            }
         )
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.licenses)) },
-            onClick = { menuNavigator.navigateToLicenseScreen(); expanded = false }
+            onClick = {
+                menuNavigator.navigateToLicenseScreen()
+                expanded = false
+            }
         )
     }
 }

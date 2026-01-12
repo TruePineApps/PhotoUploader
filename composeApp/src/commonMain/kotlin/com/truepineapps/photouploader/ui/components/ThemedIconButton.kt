@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.util.DISABLED_ICON_OPACITY
+import com.truepineapps.photouploader.ui.util.Opacity
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -32,7 +32,7 @@ fun ThemedIconButton(
             containerColor = Color.Transparent,
             contentColor = foregroundColor,
             disabledContainerColor = Color.Transparent,
-            disabledContentColor = foregroundColor.copy(alpha = DISABLED_ICON_OPACITY)
+            disabledContentColor = foregroundColor.copy(alpha = Opacity.DISABLED.value)
         ),
         modifier = modifier.size(Dp(iconSize.value * 1.5f))
     ) {

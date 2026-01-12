@@ -9,4 +9,8 @@
 
 package com.truepineapps.photouploader.ui.util
 
-const val DISABLED_ICON_OPACITY = 0.38f // IconButtonTokens.DisabledIconOpacity
+enum class Opacity(val value: Float) {
+    TRANSPARENT(0f),
+    DISABLED(0.38f), // See also IconButtonTokens.DisabledIconOpacity
+    FULL(1f)
+}
