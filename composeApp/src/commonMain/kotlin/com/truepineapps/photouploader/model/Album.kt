@@ -20,7 +20,12 @@ data class Album(
     val albumId: String? = null,
     val uploadStatus: UploadStatus = UploadStatus.None,
 ) {
-    fun getDerivedUploadStatus(): UploadStatus {
+    fun getDerivedUploadStatus(isCancelled: Boolean = false): UploadStatus {
+        // If the upload was cancelled, that is the primary status.
+        if (isCancelled) {
+            return UploadStatus.Cancelled
+        }
+
         // If the album itself has a specific status (like creation failed), prioritize it.
         if (uploadStatus !is UploadStatus.None && uploadStatus !is UploadStatus.Success) {
             return uploadStatus

@@ -44,6 +44,7 @@ fun UploadStatusIndicator(
         !isEnabled -> StatusPalette.Disabled
         uploadStatus is UploadStatus.Error -> StatusPalette.Error
         uploadStatus is UploadStatus.UploadingError -> StatusPalette.Warning
+        uploadStatus is UploadStatus.Cancelled -> StatusPalette.Warning
         uploadStatus is UploadStatus.Success -> StatusPalette.Success
         else -> MaterialTheme.colorScheme.primary
     }
@@ -129,6 +130,7 @@ private fun getStatusIcon(
         UploadStatus.Waiting -> StatusIcon.Vector(Icons.Filled.ArrowCircleUp)
         UploadStatus.Uploading, is UploadStatus.UploadingError -> StatusIcon.Drawable(Res.drawable.arrow_upload_progress)
         UploadStatus.Success -> StatusIcon.Drawable(Res.drawable.arrow_upload_ready)
+        UploadStatus.Cancelled -> StatusIcon.Drawable(Res.drawable.arrow_upload_ready)
         is UploadStatus.Error -> StatusIcon.Vector(Icons.Filled.Error)
     }
 }
