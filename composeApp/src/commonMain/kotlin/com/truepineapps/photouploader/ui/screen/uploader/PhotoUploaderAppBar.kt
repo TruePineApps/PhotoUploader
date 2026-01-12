@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -47,12 +48,14 @@ import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.connected_as
 import com.truepineapps.photouploader.resources.licenses
-import com.truepineapps.photouploader.resources.menu
+import com.truepineapps.photouploader.resources.more_menu
 import com.truepineapps.photouploader.resources.preferences
+import com.truepineapps.photouploader.resources.sign_in
+import com.truepineapps.photouploader.resources.sign_in_menu
 import com.truepineapps.photouploader.resources.sign_out
+import com.truepineapps.photouploader.resources.sign_out_menu
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
-import com.truepineapps.photouploader.resources.user_avatar_content_desc
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
@@ -65,16 +68,16 @@ import org.jetbrains.compose.resources.stringResource
  * App bar to display from left to right:
  * # NavigationIcon:
  *  - On PhotoUploader Screen: Sign in status:
- *   . not signed in: Launcher icon
- *   . signing in: Progress indicator
- *   . signed in: Avatar with dropdown menu
+ *   . not signed in: Launcher icon with sign in dropdown menu
+ *   . signing in: Progress indicator with cancel dropdown menu
+ *   . signed in: Avatar with sign out dropdown menu
  *  - On Album Screen: Back navigation
  * # Path
  * # Custom actions for the screen
  * # Upload button
- * # Upload status:
+ *  - Upload status:
  *   . not uploading: Upload button
- *   . uploading: Progress indicator
+ *   . uploading: Progress indicator with cancel dropdown menu
  * # Menu button
  *   . Preferences
  *   . About
@@ -110,7 +113,12 @@ fun PhotoUploaderAppBar(
     val disabledTitleTextColor = titleTextColor.copy(alpha = Opacity.DISABLED.value)
 
     CenterAlignedTopAppBar(
-        title = { Text(text = title, color = if (isEnabled) titleTextColor else disabledTitleTextColor) },
+        title = {
+            Text(
+                text = title,
+                color = if (isEnabled) titleTextColor else disabledTitleTextColor
+            )
+        },
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
@@ -138,11 +146,7 @@ fun PhotoUploaderAppBar(
             } else if (userProfile != null) {
                 AvatarMenu(userProfile, isEnabled) { viewModel.signOut() }
             } else {
-                Image(
-                    bitmap = imageResource(Res.drawable.appicon),
-                    contentDescription = "",
-                    modifier = Modifier.size(Dimensions.medium_icon_size)
-                )
+                SignInMenu(isEnabled) { viewModel.signIn() }
             }
         },
         actions = {
@@ -173,6 +177,38 @@ fun PhotoUploaderAppBar(
         },
         colors = colors
     )
+}
+
+@Composable
+private fun SignInMenu(
+    isEnabled: Boolean,
+    signIn: () -> Unit,
+) {
+    // The expanded state of the sign in dropdown menu.
+    var signInExpanded by remember { mutableStateOf(false) }
+
+    Box {
+        Image(
+            bitmap = imageResource(Res.drawable.appicon),
+            contentDescription = stringResource(Res.string.sign_in_menu),
+            modifier = Modifier
+                .size(Dimensions.medium_icon_size)
+                .clickable { signInExpanded = true }
+                .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
+        )
+        DropdownMenu(
+            expanded = signInExpanded,
+            onDismissRequest = { signInExpanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.sign_in)) },
+                onClick = {
+                    signIn()
+                    signInExpanded = false
+                }
+            )
+        }
+    }
 }
 
 
@@ -225,7 +261,7 @@ fun AvatarMenu(
         if (userProfile.avatarUrl != null) {
             AsyncImage(
                 model = userProfile.avatarUrl,
-                contentDescription = stringResource(Res.string.user_avatar_content_desc),
+                contentDescription = stringResource(Res.string.sign_out_menu),
                 colorFilter = if (!isEnabled) ColorFilter.colorMatrix(
                     // A saturation of 0f will remove all color, resulting in a grayscale image.
                     ColorMatrix().apply { setToSaturation(0f) }
@@ -240,7 +276,7 @@ fun AvatarMenu(
             // Fallback icon if no avatar URL
             ThemedIconButton(
                 imageVector = Icons.Filled.Person,
-                contentDescriptionResource = Res.string.user_avatar_content_desc,
+                contentDescriptionResource = Res.string.sign_out_menu,
                 enabled = isEnabled,
                 onClick = { avatarExpanded = true },
                 modifier = Modifier.clip(CircleShape)
@@ -278,7 +314,7 @@ private fun MoreMenu(isEnabled: Boolean, menuNavigator: MenuNavigator) {
 
     ThemedIconButton(
         imageVector = Icons.Filled.MoreVert,
-        contentDescriptionResource = Res.string.menu,
+        contentDescriptionResource = Res.string.more_menu,
         enabled = isEnabled,
         onClick = { expanded = true }
     )

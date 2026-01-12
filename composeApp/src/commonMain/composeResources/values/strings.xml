@@ -6,7 +6,7 @@
     <string name="error">Error</string>
     <string name="retry_button">Retry</string>
     <string name="show_selection_dialog">Show selection dialog</string>
-    <string name="menu">Menu</string>
+    <string name="more_menu">More menu</string>
     <string name="preferences">Preferences</string>
     <string name="language">Language</string>
     <string name="en">English</string>
@@ -19,6 +19,7 @@
     <string name="app_id">Application ID</string>
     <string name="licenses">Licenses</string>
     <string name="license_text">License text</string>
+    <string name="sign_in">Sign in</string>
     <string name="sign_out">Sign out</string>
     <string name="close_button">Close</string>
     <string name="back_button">Back</string>
@@ -35,7 +36,8 @@
     </plurals>
 
     <string name="connected_as">Connected to Google Photos as %1$s</string>
-    <string name="user_avatar_content_desc">User avatar</string>
+    <string name="sign_in_menu">Sign in menu</string>
+    <string name="sign_out_menu">Sign out menu</string>
     <string name="waiting_for_browser_sign_in">Waiting for browser sign-in...</string>
     <string name="uploading">Uploading...</string>
     <string name="cancel">Cancel</string>
