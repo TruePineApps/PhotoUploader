@@ -1,10 +1,10 @@
 package com.truepineapps.photouploader.ui.screen.uploader.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -55,7 +55,7 @@ fun AlbumCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = Dimensions.padding_very_small)
-            .clickable(enabled = isEditable) { onAlbumClick() },
+            .clickable(enabled = true) { onAlbumClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -69,14 +69,14 @@ fun AlbumCard(
             // Top Row: Checkbox, Image, Title, Status Icon
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = album.isEnabled,
                     onCheckedChange = onCheckedChange,
                     enabled = isEditable,
                     // Fix visual alignment: Pull the checkbox up to counteract internal padding (~12dp)
-                    modifier = Modifier.offset(y = Dimensions.top_offset_checkbox)
+//                    modifier = Modifier.offset(y = Dimensions.top_offset_checkbox)
                 )
 
                 // Thumbnail is an AsyncImage
@@ -102,7 +102,7 @@ fun AlbumCard(
                         .size(Dimensions.big_icon_size)
                 )
 
-                Column(modifier = Modifier.weight(1f)) {
+                Column(verticalArrangement = Arrangement.Top, modifier = Modifier.weight(1f)) {
                     TextField(
                         value = album.name,
                         onValueChange = onNameChange,
@@ -130,7 +130,7 @@ fun AlbumCard(
                     )
                 }
 
-                // Status Icon only
+                // Status Icon and status description
                 UploadStatusIndicator(
                     uploadStatus = album.uploadStatus,
                     isAlbum = true,

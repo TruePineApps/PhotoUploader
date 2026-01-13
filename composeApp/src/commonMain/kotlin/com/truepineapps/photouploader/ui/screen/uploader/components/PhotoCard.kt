@@ -113,7 +113,7 @@ fun PhotoCard(
                     modifier = Modifier.offset(y = Dimensions.top_offset_themed_icon_button)
                 )
 
-                // Status icon
+                // Status icon and status description
                 UploadStatusIndicator(
                     uploadStatus = photo.uploadStatus,
                     isAlbum = false,

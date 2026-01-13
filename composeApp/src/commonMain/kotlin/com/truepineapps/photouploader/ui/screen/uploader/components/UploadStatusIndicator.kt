@@ -6,7 +6,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleUp
@@ -18,6 +19,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,6 +32,7 @@ import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.theme.StatusPalette
+import kotlinx.datetime.DateTimeUnit.Companion.SECOND
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -40,47 +45,52 @@ fun UploadStatusIndicator(
     isEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val iconColor = when {
-        !isEnabled -> StatusPalette.Disabled
-        uploadStatus is UploadStatus.Error -> StatusPalette.Error
-        uploadStatus is UploadStatus.UploadingError -> StatusPalette.Warning
-        uploadStatus is UploadStatus.Cancelled -> StatusPalette.Warning
-        uploadStatus is UploadStatus.Success -> StatusPalette.Success
-        else -> MaterialTheme.colorScheme.primary
+    val iconColor = if (!isEnabled) {
+        StatusPalette.Disabled
+    } else {
+        uploadStatus.getColor()
     }
 
     val statusIcon = getStatusIcon(uploadStatus, isAlbum, isEnabled)
 
     if (statusIcon != null) {
         val rotation by if (uploadStatus is UploadStatus.Uploading || uploadStatus is UploadStatus.UploadingError) {
+            val animationDuration = 1 * SECOND.duration.inWholeMilliseconds.toInt()
             val infiniteTransition = rememberInfiniteTransition()
             infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
+                    animation = tween(durationMillis = animationDuration, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
         } else {
-            androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
+            remember { mutableStateOf(0f) }
         }
 
         val imageModifier = modifier.size(Dimensions.icon_size).rotate(rotation)
 
-        if (statusIcon is StatusIcon.Vector) {
-            Icon(
-                imageVector = statusIcon.imageVector,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = imageModifier
-            )
-        } else if (statusIcon is StatusIcon.Drawable) {
-            Icon(
-                painter = painterResource(statusIcon.resource),
-                contentDescription = null,
-                tint = iconColor,
-                modifier = imageModifier
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Top) {
+            if (statusIcon is StatusIcon.Vector) {
+                Icon(
+                    imageVector = statusIcon.imageVector,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = imageModifier
+                )
+            } else if (statusIcon is StatusIcon.Drawable) {
+                Icon(
+                    painter = painterResource(statusIcon.resource),
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = imageModifier
+                )
+            }
+            Text(
+                text = uploadStatus.getDescription(),
+                color = uploadStatus.getColor(),
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
@@ -100,9 +110,9 @@ fun UploadErrorText(
     if (errorMessage != null) {
         Text(
             text = errorMessage.asString(),
-            color = MaterialTheme.colorScheme.error,
+            color = StatusPalette.Error,
             style = MaterialTheme.typography.bodySmall,
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
         )
     }
 }

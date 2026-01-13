@@ -59,4 +59,13 @@
     <string name="error_one_or_more_photos_failed">One or more photos failed: %1$s</string>
     <string name="network_error">Network error</string>
     <string name="unknown_error">Unknown error</string>
+    
+    <!-- Upload statuses -->
+    <string name="status_none"> </string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_uploading">Uploading</string>
+    <string name="status_uploading_error">Uploading error</string>
+    <string name="status_success">Success</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_error">Error</string>
 </resources>
