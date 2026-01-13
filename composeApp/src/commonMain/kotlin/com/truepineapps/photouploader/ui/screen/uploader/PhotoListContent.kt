@@ -35,17 +35,15 @@ fun PhotoListScreen(
         PhotoListContent(
             album = album,
             onUpdateTopAppBar = onUpdateTopAppBar,
-            onBackClick = onBackClick,
             onPhotoToggle = { photoPath -> viewModel.togglePhoto(album.id, photoPath) },
             onCoverPhotoChange = { photo -> viewModel.updateCoverPhoto(album.id, photo) },
+            onPhotoNameChange = { photo, name -> viewModel.renamePhoto(album.id, photo.path, name) },
             modifier = modifier
         )
     } else {
         // Album not found (e.g. because directory changed and we rescanned).
         // Navigate back to the main list.
-        LaunchedEffect(Unit) {
-            onBackClick()
-        }
+        LaunchedEffect(Unit) { onBackClick() }
     }
 }
 
@@ -53,17 +51,14 @@ fun PhotoListScreen(
 fun PhotoListContent(
     album: Album,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
-    onBackClick: () -> Unit,
     onPhotoToggle: (Path) -> Unit,
     onCoverPhotoChange: (Photo) -> Unit,
+    onPhotoNameChange: (Photo, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Update the main TopAppBar with the album name and a back action
     LaunchedEffect(album.name) {
-        onUpdateTopAppBar(
-            album.name, null
-//            onBackClick // This will be used as the close/back action (displayed as back arrow or close icon depending on implementation)
-        ) {}
+        onUpdateTopAppBar(album.name, null) {}
     }
 
     LazyColumn(
@@ -74,6 +69,7 @@ fun PhotoListContent(
                 photo = photo,
                 onCheckedChange = { onPhotoToggle(photo.path) },
                 onCoverPhotoChange = onCoverPhotoChange,
+                onNameChange = { newName -> onPhotoNameChange(photo, newName) },
                 modifier = Modifier.padding(horizontal = Dimensions.padding_small)
             )
         }

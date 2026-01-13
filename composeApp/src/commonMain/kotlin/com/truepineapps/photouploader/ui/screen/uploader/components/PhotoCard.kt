@@ -1,5 +1,7 @@
 package com.truepineapps.photouploader.ui.screen.uploader.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,13 +17,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
@@ -29,6 +32,7 @@ import coil3.request.crossfade
 import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.cover_photo
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.preview
@@ -44,6 +48,7 @@ fun PhotoCard(
     photo: Photo,
     onCheckedChange: (Boolean) -> Unit,
     onCoverPhotoChange: (Photo) -> Unit,
+    onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isEditable = photo.uploadStatus is UploadStatus.None
@@ -58,50 +63,78 @@ fun PhotoCard(
         )
     ) {
         Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.padding_small)
+                .padding(Dimensions.padding_small
+//                    start = Dimensions.padding_small,
+//                    end = Dimensions.padding_small,
+//                    top = Dimensions.padding_small,
+                    // No padding at the bottom since the row is hoisted because of the negative
+                    // offset of the TextField column
+                )
         ) {
             // Top Row: Checkbox -> Image -> Name -> Favorite -> Status
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Checkbox(
-                    checked = photo.isEnabled,
-                    onCheckedChange = onCheckedChange,
-                    enabled = isEditable,
-                    // Fix visual alignment: Pull the checkbox up (~12dp)
-                    modifier = Modifier.offset(y = Dimensions.top_offset_checkbox)
-                )
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Checkbox(
+                        checked = photo.isEnabled,
+                        onCheckedChange = onCheckedChange,
+                        enabled = isEditable,
+                    )
 
-                val context = LocalPlatformContext.current
-                val imageRequest = remember(photo.kmpFile) {
-                    ImageRequest.Builder(context)
-                        .data(photo.kmpFile)
-                        .crossfade(true)
-                        .memoryCacheKey(photo.path.toString())
-                        .build()
+                    val context = LocalPlatformContext.current
+                    val imageRequest = remember(photo.kmpFile) {
+                        ImageRequest.Builder(context)
+                            .data(photo.kmpFile)
+                            .crossfade(true)
+                            .memoryCacheKey(photo.path.toString())
+                            .build()
+                    }
+
+                    AsyncImage(
+                        model = imageRequest,
+                        contentDescription = stringResource(Res.string.preview),
+                        error = rememberVectorPainter(Icons.Filled.BrokenImage),
+                        placeholder = painterResource(Res.drawable.loading_img),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(end = Dimensions.padding_small)
+                            .size(Dimensions.big_icon_size)
+                    )
                 }
-
-                AsyncImage(
-                    model = imageRequest,
-                    contentDescription = stringResource(Res.string.preview),
-                    error = rememberVectorPainter(Icons.Filled.BrokenImage),
-                    placeholder = painterResource(Res.drawable.loading_img),
-                    contentScale = ContentScale.Crop,
+                Box(
                     modifier = Modifier
-                        .padding(end = Dimensions.padding_small)
-                        .size(Dimensions.big_icon_size)
-                )
-
-                Text(
-                    text = photo.name,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                        .align(Alignment.Top)
+                        .weight(1f)
+                        // No additional padding above text field
+                        .offset(y = Dimensions.offset_text_field_vertical)
+                ) {
+                    TextField(
+                        value = photo.name,
+                        onValueChange = onNameChange,
+                        label = { Text(stringResource(Res.string.album_name)) },
+                        singleLine = true,
+                        enabled = isEditable,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            disabledTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 // Favorite / Cover Action moved to the right side
                 // Applied similar offset to align with the top text
@@ -113,7 +146,7 @@ fun PhotoCard(
                     modifier = Modifier.offset(y = Dimensions.top_offset_themed_icon_button)
                 )
 
-                // Status icon and status description
+                // Status Icon and status description
                 UploadStatusIndicator(
                     uploadStatus = photo.uploadStatus,
                     isAlbum = false,
@@ -123,10 +156,17 @@ fun PhotoCard(
             }
 
             // Bottom: Error Message, if any
-            UploadErrorText(
-                uploadStatus = photo.uploadStatus,
-                modifier = Modifier.padding(top = Dimensions.padding_small)
-            )
+            UploadErrorText(uploadStatus = photo.uploadStatus)
         }
     }
+}
+
+@Composable
+fun PreviewPhotoCard(photo: Photo) {
+    PhotoCard(
+        photo = photo,
+        onCoverPhotoChange = { },
+        onCheckedChange = { },
+        onNameChange = { },
+    )
 }

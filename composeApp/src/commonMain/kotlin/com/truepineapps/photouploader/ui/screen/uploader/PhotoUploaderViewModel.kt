@@ -171,15 +171,7 @@ class PhotoUploaderViewModel(
     }
 
     fun toggleAlbum(albumId: String) {
-        val currentAlbums = repository.albums.value
-        val updatedAlbums = currentAlbums.map { album ->
-            if (album.id == albumId) {
-                album.copy(isEnabled = !album.isEnabled)
-            } else {
-                album
-            }
-        }
-        repository.updateAlbums(updatedAlbums)
+        updateAlbum(albumId) { album -> album.copy(isEnabled = !album.isEnabled) }
     }
 
     fun toggleAlbums(albums: List<Album>, isEnabled: Boolean) {
@@ -196,53 +188,29 @@ class PhotoUploaderViewModel(
     }
 
     fun togglePhoto(albumId: String, photoPath: Path) {
-        val currentAlbums = repository.albums.value
-        val updatedAlbums = currentAlbums.map { album ->
-            if (album.id == albumId) {
-                val updatedPhotos = album.photos.map { photo ->
-                    if (photo.path == photoPath) {
-                        photo.copy(isEnabled = !photo.isEnabled)
-                    } else {
-                        photo
-                    }
-                }
-                album.copy(photos = updatedPhotos)
-            } else {
-                album
-            }
-        }
-        repository.updateAlbums(updatedAlbums)
+        updatePhoto(albumId, photoPath) { photo -> photo.copy(isEnabled = !photo.isEnabled) }
     }
 
     fun renameAlbum(albumId: String, newName: String) {
-        val currentAlbums = repository.albums.value
-        val updatedAlbums = currentAlbums.map { album ->
-            if (album.id == albumId) {
-                album.copy(name = newName)
-            } else {
-                album
-            }
-        }
-        repository.updateAlbums(updatedAlbums)
+        updateAlbum(albumId) { it.copy(name = newName) }
+    }
+
+    fun renamePhoto(albumId: String, photoPath: Path, newName: String) {
+        updatePhoto(albumId, photoPath) { it.copy(name = newName) }
     }
 
     fun updateCoverPhoto(albumId: String, coverPhoto: Photo) {
-        val currentAlbums = repository.albums.value
-        val updatedAlbums = currentAlbums.map { album ->
-            if (album.id == albumId) {
-                val updatedPhotos = album.photos.map { photo ->
-                    when {
-                        photo.path == coverPhoto.path -> photo.copy(isCoverPhoto = true)
-                        photo.isCoverPhoto -> photo.copy(isCoverPhoto = false)
-                        else -> photo
-                    }
+        updateAlbum(albumId) { album ->
+            val coverPhotoPath = coverPhoto.path
+            val updatedPhotos = album.photos.map { photo ->
+                when {
+                    photo.path == coverPhotoPath -> photo.copy(isCoverPhoto = true)
+                    photo.isCoverPhoto -> photo.copy(isCoverPhoto = false)
+                    else -> photo
                 }
-                album.copy(photos = updatedPhotos, coverPhoto = coverPhoto)
-            } else {
-                album
             }
+            album.copy(photos = updatedPhotos, coverPhoto = coverPhoto)
         }
-        repository.updateAlbums(updatedAlbums)
     }
 
 
@@ -507,21 +475,14 @@ class PhotoUploaderViewModel(
         }
         try {
             val results = photoUploader.addPhotosToAlbum(googleAlbumId, newMediaItems)
-            val currentRepoAlbums = repository.albums.value
-            val finalUpdatedAlbums = currentRepoAlbums.map { currentAlbum ->
-                if (currentAlbum.id == album.id) {
-                    val updatedPhotos = updatePhotoWithResult(currentAlbum, uploadedItems, results)
-                    val newCoverPhoto =
-                            updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }?.copy(
-                                mediaItemId = updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }?.mediaItemId
-                            ) ?: currentAlbum.coverPhoto
-
-                    currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
-                } else {
-                    currentAlbum
-                }
+            updateAlbum(album.id) { currentAlbum ->
+                val updatedPhotos = updatePhotoWithResult(currentAlbum, uploadedItems, results)
+                val newCoverPhoto =
+                        updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }?.copy(
+                            mediaItemId = updatedPhotos.find { it.path == currentAlbum.coverPhoto.path }?.mediaItemId
+                        ) ?: currentAlbum.coverPhoto
+                currentAlbum.copy(photos = updatedPhotos, coverPhoto = newCoverPhoto)
             }
-            repository.updateAlbums(finalUpdatedAlbums)
         } catch (e: UploadException.PhotoException) {
             log.e(e) { "      ERROR: Failed to add media items to album '${album.name}'" }
             val currentRepoAlbums = repository.albums.value
@@ -593,10 +554,18 @@ class PhotoUploaderViewModel(
     }
 
     private fun updateAlbumStatus(albumId: String, status: UploadStatus) {
+        updateAlbum(albumId) { it.copy(uploadStatus = status) }
+    }
+
+    private fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
+        updatePhoto(albumId, photoPath) { it.copy(uploadStatus = status) }
+    }
+
+    private fun updateAlbum(albumId: String, copyAlbum: (Album) -> Album) {
         val currentAlbums = repository.albums.value
         val updatedAlbums = currentAlbums.map { album ->
             if (album.id == albumId) {
-                album.copy(uploadStatus = status)
+                copyAlbum(album)
             } else {
                 album
             }
@@ -604,25 +573,27 @@ class PhotoUploaderViewModel(
         repository.updateAlbums(updatedAlbums)
     }
 
-    private fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
-        val currentAlbums = repository.albums.value
-        val updatedAlbums = currentAlbums.map { album ->
-            if (album.id == albumId) {
-                val updatedPhotos = album.photos.map { photo ->
-                    if (photo.path == photoPath) {
-                        photo.copy(uploadStatus = status)
-                    } else {
-                        photo
-                    }
+    private fun updatePhoto(albumId: String, photoPath: Path, copyAction: (Photo) -> Photo) {
+        updateAlbum(albumId) { album ->
+            var isPhotoStatusUpdated = false
+            val updatedPhotos = album.photos.map { photo ->
+                if (photo.path == photoPath) {
+                    val updatedPhoto = copyAction(photo)
+                    isPhotoStatusUpdated = (updatedPhoto.uploadStatus != photo.uploadStatus)
+                    updatedPhoto
+                } else {
+                    photo
                 }
-                val tempAlbum = album.copy(photos = updatedPhotos)
+            }
+            val tempAlbum = album.copy(photos = updatedPhotos)
+            if (isPhotoStatusUpdated) {
                 tempAlbum.copy(uploadStatus = tempAlbum.getDerivedUploadStatus())
             } else {
-                album
+                tempAlbum
             }
         }
-        repository.updateAlbums(updatedAlbums)
     }
+
 }
 
 /**
