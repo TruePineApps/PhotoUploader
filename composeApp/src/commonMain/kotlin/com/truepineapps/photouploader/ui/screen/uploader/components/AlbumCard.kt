@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -62,47 +63,63 @@ fun AlbumCard(
         )
     ) {
         Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.padding_small)
+                .padding(
+                    start = Dimensions.padding_small,
+                    end = Dimensions.padding_small,
+                    top = Dimensions.padding_small,
+                    // No padding at the bottom since the row is hoisted because of the negative
+                    // offset of the TextField column
+                )
         ) {
             // Top Row: Checkbox, Image, Title, Status Icon
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Checkbox(
-                    checked = album.isEnabled,
-                    onCheckedChange = onCheckedChange,
-                    enabled = isEditable,
-                    // Fix visual alignment: Pull the checkbox up to counteract internal padding (~12dp)
-//                    modifier = Modifier.offset(y = Dimensions.top_offset_checkbox)
-                )
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Checkbox(
+                        checked = album.isEnabled,
+                        onCheckedChange = onCheckedChange,
+                        enabled = isEditable,
+                    )
 
-                // Thumbnail is an AsyncImage
-                val context = LocalPlatformContext.current
-                val imageRequest = remember(album.coverPhoto) {
-                    ImageRequest.Builder(context)
-                        .data(album.coverPhoto.kmpFile)
-                        .crossfade(true)
-                        .memoryCacheKey(album.coverPhoto.path.toString())
-                        .build()
+                    // Thumbnail is an AsyncImage
+                    val context = LocalPlatformContext.current
+                    val imageRequest = remember(album.coverPhoto) {
+                        ImageRequest.Builder(context)
+                            .data(album.coverPhoto.kmpFile)
+                            .crossfade(true)
+                            .memoryCacheKey(album.coverPhoto.path.toString())
+                            .build()
+                    }
+                    AsyncImage(
+                        model = imageRequest,
+                        contentDescription = stringResource(
+                            Res.string.album_cover,
+                            album.coverPhoto.getDisplayName()
+                        ),
+                        error = rememberVectorPainter(Icons.Filled.BrokenImage),
+                        placeholder = painterResource(Res.drawable.loading_img),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(end = Dimensions.padding_small)
+                            .size(Dimensions.big_icon_size)
+                    )
                 }
-                AsyncImage(
-                    model = imageRequest,
-                    contentDescription = stringResource(
-                        Res.string.album_cover,
-                        album.coverPhoto.getDisplayName()
-                    ),
-                    error = rememberVectorPainter(Icons.Filled.BrokenImage),
-                    placeholder = painterResource(Res.drawable.loading_img),
-                    contentScale = ContentScale.Crop,
+                Column(verticalArrangement = Arrangement.Top,
                     modifier = Modifier
-                        .padding(end = Dimensions.padding_small)
-                        .size(Dimensions.big_icon_size)
-                )
-
-                Column(verticalArrangement = Arrangement.Top, modifier = Modifier.weight(1f)) {
+                        .weight(1f)
+                        // No additional padding above text field
+                        .offset(y = Dimensions.offset_text_field_vertical)
+                ) {
                     TextField(
                         value = album.name,
                         onValueChange = onNameChange,
@@ -140,10 +157,17 @@ fun AlbumCard(
             }
 
             // Bottom: Error Message, if any
-            UploadErrorText(
-                uploadStatus = album.uploadStatus,
-                modifier = Modifier.padding(top = Dimensions.padding_small)
-            )
+            UploadErrorText(uploadStatus = album.uploadStatus)
         }
     }
+}
+
+@Composable
+fun PreviewAlbumCard(album: Album) {
+    AlbumCard(
+        album = album,
+        onAlbumClick = { },
+        onCheckedChange = { },
+        onNameChange = { },
+    )
 }
