@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
@@ -35,6 +36,7 @@ import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.photos_count
 import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.ui.util.Opacity
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -49,14 +51,19 @@ fun AlbumCard(
     onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isEditable =
-            album.uploadStatus is UploadStatus.None || album.uploadStatus is UploadStatus.Error
+    val isEditable = album.uploadStatus is UploadStatus.None || album.uploadStatus.isFinal
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = Dimensions.padding_very_small)
-            .clickable(enabled = true) { onAlbumClick() },
+            .clickable(enabled = true) { onAlbumClick() }
+            .alpha(
+                if (album.isEnabled || album.uploadStatus == UploadStatus.Success)
+                    Opacity.FULL.value
+                else
+                    Opacity.DISABLED.value
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -81,7 +88,7 @@ fun AlbumCard(
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row (
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
@@ -114,7 +121,8 @@ fun AlbumCard(
                             .size(Dimensions.big_icon_size)
                     )
                 }
-                Column(verticalArrangement = Arrangement.Top,
+                Column(
+                    verticalArrangement = Arrangement.Top,
                     modifier = Modifier
                         .weight(1f)
                         // No additional padding above text field

@@ -41,6 +41,9 @@ sealed class UploadStatus(val isFinal: Boolean = false) {
     /** The upload failed with an error. */
     data class Error(val message: UiText) : UploadStatus(true)
 
+    val isUploading: Boolean
+        get() = this == Uploading || this is UploadingError
+
     @Composable
     fun getDescription(): String {
         val descriptionRes = when (this) {

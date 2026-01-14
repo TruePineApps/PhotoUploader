@@ -45,16 +45,18 @@ fun UploadStatusIndicator(
     isEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val iconColor = if (!isEnabled) {
+    val userDisabled = !isEnabled && uploadStatus != UploadStatus.Success
+
+    val iconColor = if (userDisabled) {
         StatusPalette.Disabled
     } else {
         uploadStatus.getColor()
     }
 
-    val statusIcon = getStatusIcon(uploadStatus, isAlbum, isEnabled)
+    val statusIcon = getStatusIcon(uploadStatus, isAlbum, userDisabled)
 
     if (statusIcon != null) {
-        val rotation by if (uploadStatus is UploadStatus.Uploading || uploadStatus is UploadStatus.UploadingError) {
+        val rotation by if (uploadStatus.isUploading) {
             val animationDuration = 1 * SECOND.duration.inWholeMilliseconds.toInt()
             val infiniteTransition = rememberInfiniteTransition()
             infiniteTransition.animateFloat(
@@ -126,9 +128,9 @@ private sealed class StatusIcon {
 private fun getStatusIcon(
     uploadStatus: UploadStatus,
     isAlbum: Boolean,
-    isEnabled: Boolean,
+    isDisabled: Boolean,
 ): StatusIcon? {
-    if (!isEnabled) {
+    if (isDisabled) {
         return StatusIcon.Drawable(Res.drawable.file_upload_off)
     }
 

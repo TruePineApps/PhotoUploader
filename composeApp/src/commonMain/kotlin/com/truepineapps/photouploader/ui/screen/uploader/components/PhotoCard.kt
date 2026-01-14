@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
@@ -38,6 +39,7 @@ import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.preview
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
+import com.truepineapps.photouploader.ui.util.Opacity
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +58,13 @@ fun PhotoCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = Dimensions.padding_very_small),
+            .padding(vertical = Dimensions.padding_very_small)
+            .alpha(
+                if (photo.isEnabled || photo.uploadStatus == UploadStatus.Success)
+                    Opacity.FULL.value
+                else
+                    Opacity.DISABLED.value
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -67,13 +75,7 @@ fun PhotoCard(
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.padding_small
-//                    start = Dimensions.padding_small,
-//                    end = Dimensions.padding_small,
-//                    top = Dimensions.padding_small,
-                    // No padding at the bottom since the row is hoisted because of the negative
-                    // offset of the TextField column
-                )
+                .padding(Dimensions.padding_small)
         ) {
             // Top Row: Checkbox -> Image -> Name -> Favorite -> Status
             Row(

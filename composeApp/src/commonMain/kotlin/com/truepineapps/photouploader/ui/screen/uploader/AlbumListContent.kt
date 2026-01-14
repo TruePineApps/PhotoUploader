@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
@@ -32,6 +33,7 @@ import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.screen.uploader.components.AlbumCard
+import com.truepineapps.photouploader.ui.util.Opacity
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,7 +58,8 @@ fun AlbumListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(Dimensions.padding_small),
+                        .padding(Dimensions.padding_small)
+                        .alpha(if (albumsInGroup.any { it.isEnabled }) Opacity.FULL.value else Opacity.DISABLED.value),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(

@@ -391,11 +391,9 @@ class PhotoUploaderViewModel(
         // the album to a final status.
         if (uploadedItems.isEmpty()) {
             log.d { "    No photos uploaded successfully for album ${album.name}" }
-            val finalAlbum = repository.albums.value.find { it.id == album.id }!!
             updateAlbumStatus(
                 album.id,
-                finalAlbum.copy(uploadStatus = UploadStatus.Success)
-                    .getDerivedUploadStatus(isCancelled)
+                album.getDerivedUploadStatus(if (isCancelled) UploadStatus.Cancelled else UploadStatus.Success)
             )
             // If cancelled, rethrow to stop the entire upload process
             if (isCancelled) throw CancellationException("Upload process cancelled by user.")
@@ -411,25 +409,25 @@ class PhotoUploaderViewModel(
         // Mark the album as final
         updateAlbumStatus(
             album.id,
-            finalAlbum.copy(uploadStatus = UploadStatus.Success).getDerivedUploadStatus(isCancelled)
+            finalAlbum.getDerivedUploadStatus(if (isCancelled) UploadStatus.Cancelled else UploadStatus.Success)
         )
     }
 
     private suspend fun createGoogleAlbum(album: Album, photoUploader: PhotoUploader): String? =
-        try {
-            val googleAlbumId = photoUploader.createAlbum(album.name)
-            val currentAlbums = repository.albums.value
-            val updatedAlbumsWithId = currentAlbums.map {
-                if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
+            try {
+                val googleAlbumId = photoUploader.createAlbum(album.name)
+                val currentAlbums = repository.albums.value
+                val updatedAlbumsWithId = currentAlbums.map {
+                    if (it.id == album.id) it.copy(albumId = googleAlbumId) else it
+                }
+                repository.updateAlbums(updatedAlbumsWithId)
+                log.d { "    Created album with ID: $googleAlbumId for '${album.name}'" }
+                googleAlbumId
+            } catch (e: UploadException.AlbumException) {
+                log.e(e) { "    Failed to create album for '${album.name}'" }
+                updateAlbumStatus(album.id, UploadStatus.Error(e.uiText))
+                null
             }
-            repository.updateAlbums(updatedAlbumsWithId)
-            log.d { "    Created album with ID: $googleAlbumId for '${album.name}'" }
-            googleAlbumId
-        } catch (e: UploadException.AlbumException) {
-            log.e(e) { "    Failed to create album for '${album.name}'" }
-            updateAlbumStatus(album.id, UploadStatus.Error(e.uiText))
-            null
-        }
 
     private suspend fun uploadPhotosInAlbum(
         album: Album,
@@ -554,11 +552,21 @@ class PhotoUploaderViewModel(
     }
 
     private fun updateAlbumStatus(albumId: String, status: UploadStatus) {
-        updateAlbum(albumId) { it.copy(uploadStatus = status) }
+        updateAlbum(albumId) {
+            it.copy(
+                uploadStatus = status,
+                isEnabled = it.isEnabled && status != UploadStatus.Success
+            )
+        }
     }
 
     private fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
-        updatePhoto(albumId, photoPath) { it.copy(uploadStatus = status) }
+        updatePhoto(albumId, photoPath) {
+            it.copy(
+                uploadStatus = status,
+                isEnabled = it.isEnabled && status != UploadStatus.Success
+            )
+        }
     }
 
     private fun updateAlbum(albumId: String, copyAlbum: (Album) -> Album) {
@@ -585,15 +593,12 @@ class PhotoUploaderViewModel(
                     photo
                 }
             }
-            val tempAlbum = album.copy(photos = updatedPhotos)
-            if (isPhotoStatusUpdated) {
-                tempAlbum.copy(uploadStatus = tempAlbum.getDerivedUploadStatus())
-            } else {
-                tempAlbum
-            }
+            album.copy(
+                photos = updatedPhotos,
+                uploadStatus = if (isPhotoStatusUpdated) album.getDerivedUploadStatus(album.uploadStatus) else album.uploadStatus
+            )
         }
     }
-
 }
 
 /**

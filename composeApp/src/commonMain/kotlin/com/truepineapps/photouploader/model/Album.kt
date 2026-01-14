@@ -20,36 +20,34 @@ data class Album(
     val albumId: String? = null,
     val uploadStatus: UploadStatus = UploadStatus.None,
 ) {
-    fun getDerivedUploadStatus(isCancelled: Boolean = false): UploadStatus {
+    fun getDerivedUploadStatus(newStatus: UploadStatus): UploadStatus {
         // If the upload was cancelled, that is the primary status.
-        if (isCancelled) {
-            return UploadStatus.Cancelled
-        }
-
-        // If the album itself has a specific status (like creation failed), prioritize it.
-        if (uploadStatus !is UploadStatus.None && uploadStatus !is UploadStatus.Success) {
+        // If the new status is an album specific status (like creation failed), prioritize it.
+        if ((newStatus !is UploadStatus.None && newStatus !is UploadStatus.Success)
+            || newStatus == UploadStatus.Cancelled) {
             return uploadStatus
         }
 
-        val hasError = photos.any { it.uploadStatus is UploadStatus.Error }
-        val isUploading = photos.any { it.uploadStatus is UploadStatus.Uploading }
+        val hasErrorPhoto = photos.any { it.uploadStatus is UploadStatus.Error }
+        val isPhotoUploading = photos.any { it.uploadStatus is UploadStatus.Uploading }
 
         // Handle error states first.
-        if (hasError) {
+        if (hasErrorPhoto) {
             val firstError =
                     photos.first { it.uploadStatus is UploadStatus.Error }.uploadStatus as UploadStatus.Error
             // Uploading is in progress, but an error has occurred.
-            if (isUploading) return UploadStatus.UploadingError(
-                UiTextResource(Res.string.error_one_or_more_photos_failed, firstError.message)
-            )
-            // An error occurred, and nothing is uploading anymore.
-            return UploadStatus.Error(
-                UiTextResource(Res.string.error_one_or_more_photos_failed, firstError.message)
-            )
+            val errorText =
+                    UiTextResource(Res.string.error_one_or_more_photos_failed, firstError.message)
+            return if (isPhotoUploading) {
+                UploadStatus.UploadingError(errorText)
+            } else {
+                // An error occurred, and nothing is uploading anymore.
+                UploadStatus.Error(errorText)
+            }
         }
 
-        // Photos are still uploading (without any errors).
-        if (isUploading) {
+        // Photos are uploading (without any errors).
+        if (isPhotoUploading) {
             return UploadStatus.Uploading
         }
 
@@ -64,7 +62,7 @@ data class Album(
             return UploadStatus.Waiting
         }
 
-        // Fallback to whatever the album's status is (could be None or Success).
-        return uploadStatus
+        // Then the new status is valid (could be None or Success).
+        return newStatus
     }
 }
