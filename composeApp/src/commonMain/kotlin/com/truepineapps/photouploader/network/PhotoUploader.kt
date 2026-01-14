@@ -12,6 +12,7 @@ import com.truepineapps.photouploader.resources.error_upload_failed_with_message
 import com.truepineapps.photouploader.util.FileUtils
 import com.truepineapps.photouploader.util.UiTextResource
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.patch
@@ -44,6 +45,23 @@ class PhotoUploader(
     private val client: HttpClient by inject()
     private val json: Json by inject()
     private val log: Logger by inject()
+
+    /**
+     * Verifies if an album with the given ID exists on Google Photos.
+     * @return `true` if the album exists, `false` if it was not found (404).
+     * @throws UploadException.GlobalException for other HTTP errors.
+     */
+    suspend fun verifyAlbumExists(albumId: String): Boolean {
+        val response: HttpResponse = client.get("https://photoslibrary.googleapis.com/v1/albums/$albumId") {
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+        }
+
+        return when {
+            response.status.isSuccess() -> true
+            response.status == HttpStatusCode.NotFound -> false
+            else -> handleError(response, isAlbumCreation = true)
+        }
+    }
 
     /**
      * Creates an album in Google Photos
