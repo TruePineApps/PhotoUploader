@@ -576,7 +576,7 @@ class PhotoUploaderViewModel(
         }
     }
 
-    private fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
+    internal fun updatePhotoStatus(albumId: String, photoPath: Path, status: UploadStatus) {
         updatePhoto(albumId, photoPath) {
             it.copy(
                 uploadStatus = status,
@@ -609,10 +609,13 @@ class PhotoUploaderViewModel(
                     photo
                 }
             }
-            album.copy(
-                photos = updatedPhotos,
-                uploadStatus = if (isPhotoStatusUpdated) album.getDerivedUploadStatus(album.uploadStatus) else album.uploadStatus
-            )
+
+            // Copy in 2 steps, since getDerivedUploadStatus needs the updated photos to determine the status
+            val updatedAlbum = album.copy(photos = updatedPhotos)
+            if (isPhotoStatusUpdated)
+                updatedAlbum.copy(uploadStatus = updatedAlbum.getDerivedUploadStatus(updatedAlbum.uploadStatus))
+            else
+                updatedAlbum
         }
     }
 }
