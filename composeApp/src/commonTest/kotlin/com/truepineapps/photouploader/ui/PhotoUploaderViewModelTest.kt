@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.ui
 
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
@@ -57,6 +58,7 @@ class PhotoUploaderViewModelTest : KoinTest {
             modules(
                 viewModelModule(),
                 module {
+                    single { Logger.withTag("Test") }
                     single<FileSystem> { fileSystem }
                     single { PhotoDirectoryRepository(FakePlatformFileSystem(fileSystem)) }
                     single<GoogleAuthService> { serviceStub }

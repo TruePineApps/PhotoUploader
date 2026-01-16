@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.ui
 
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
@@ -10,6 +11,8 @@ import com.truepineapps.photouploader.model.UploadStatus
 import com.truepineapps.photouploader.network.AlbumResponse
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsRequest
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
+import com.truepineapps.photouploader.network.GooglePhotosErrorContent
+import com.truepineapps.photouploader.network.GooglePhotosErrorResponse
 import com.truepineapps.photouploader.network.MediaItem
 import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.StatusInfo
@@ -91,7 +94,9 @@ class UploadPhotosTest : KoinTest {
     private fun setupKoin(mockEngine: MockEngine) {
         startKoin {
             modules(
-                viewModelModule(), module {
+                viewModelModule(),
+                module {
+                    single { Logger.withTag("Test") }
                     single<FileSystem> { fileSystem }
                     single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
                     single { PhotoDirectoryRepository(platformFileSystem = get()) }
@@ -102,7 +107,8 @@ class UploadPhotosTest : KoinTest {
                         }
                     }
                     single<GoogleAuthService> { GoogleAuthServiceTestStub(signInToken = "valid_token") }
-                })
+                }
+            )
         }
     }
 
@@ -471,12 +477,13 @@ class UploadPhotosTest : KoinTest {
 
     @Test
     fun `photo and album status is error when photo upload fails`() = runTest {
+        val failUploadForFile = "photo1.jpg"
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine =
-                createMockEngine(requestLog = requests, shouldFailUploadForFile = "photo1.jpg")
+                createMockEngine(requestLog = requests, shouldFailUploadForFile = failUploadForFile)
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), failUploadForFile, isEnabled = true)
         val album1 = Album(
             "a1",
             createTestKmpFile("/a1"),
@@ -505,7 +512,7 @@ class UploadPhotosTest : KoinTest {
         val expectedPhotoErrorStatus = UploadStatus.Error(
             UiTextResource(
                 Res.string.error_upload_failed_with_message,
-                "500 Internal Server Error"
+                "Simulated upload failure for $failUploadForFile (500 Internal Server Error)"
             )
         )
         assertEquals(
@@ -671,7 +678,18 @@ class UploadPhotosTest : KoinTest {
                 url.endsWith(ENDPOINT_UPLOADS) -> {
                     val fileName = request.headers["X-Goog-Upload-File-Name"]
                     if (shouldFailUploadForFile != null && fileName == shouldFailUploadForFile) {
-                        respond("Upload failed", status = HttpStatusCode.InternalServerError)
+                        val errorResponse = GooglePhotosErrorResponse(
+                            error = GooglePhotosErrorContent(
+                                code = HttpStatusCode.InternalServerError.value,
+                                message = "Simulated upload failure for $shouldFailUploadForFile",
+                                status = HttpStatusCode.InternalServerError.description
+                            )
+                        )
+                        respond(
+                            content = json.encodeToString(errorResponse),
+                            status = HttpStatusCode.InternalServerError,
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                        )
                     } else {
                         respond(
                             content = "upload_token_$fileName", status = HttpStatusCode.OK

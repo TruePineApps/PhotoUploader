@@ -4,7 +4,6 @@ import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.io.getDisplayName
 import com.truepineapps.photouploader.model.Album
 import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.util.FileUtils
@@ -82,7 +81,7 @@ class PhotoDirectoryRepository(
 
         // Get a safe non-mutable context variable
         val currentContext = context ?: throw IllegalStateException("currentContext is null")
-        log.d { "Scanning directory: ${rootDir.getDisplayName(currentContext)}" }
+        log.d { "Scanning directory: ${platformFileSystem.getDisplayName(rootDir, currentContext)}" }
 
         // The root itself might contain photos
         val albums = mutableListOf<Album>()

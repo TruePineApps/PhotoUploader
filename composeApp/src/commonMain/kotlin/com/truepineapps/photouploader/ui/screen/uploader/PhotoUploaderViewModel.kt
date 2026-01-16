@@ -391,10 +391,15 @@ class PhotoUploaderViewModel(
         // the album to a final status.
         if (uploadedItems.isEmpty()) {
             log.d { "    No photos uploaded successfully for album ${album.name}" }
-            updateAlbumStatus(
-                album.id,
-                album.getDerivedUploadStatus(if (isCancelled) UploadStatus.Cancelled else UploadStatus.Success)
-            )
+            updateAlbum(album.id) {
+                val newStatus = it.getDerivedUploadStatus(
+                    if (isCancelled) UploadStatus.Cancelled else UploadStatus.Success
+                )
+                it.copy(
+                    uploadStatus = newStatus,
+                    isEnabled = it.isEnabled && newStatus != UploadStatus.Success
+                )
+            }
             // If cancelled, rethrow to stop the entire upload process
             if (isCancelled) throw CancellationException("Upload process cancelled by user.")
             return
