@@ -1,9 +1,10 @@
-package com.truepineapps.photouploader.model
+package com.truepineapps.photouploader.ui.screen.uploader.uistate
 
 import com.mohamedrejeb.calf.io.KmpFile
+import com.truepineapps.photouploader.data.Photo
 import okio.Path
 
-data class Photo(
+data class PhotoUiState(
     val kmpFile: KmpFile,
     val path: Path,
     /** File name */
@@ -21,3 +22,10 @@ data class Photo(
         return if (dotIndex > 0) name.take(dotIndex) else name
     }
 }
+
+fun Photo.toPhotoUiState(isCoverPhoto: Boolean = false) = PhotoUiState(
+    kmpFile = kmpFile,
+    path = path,
+    name = name,
+    isCoverPhoto = isCoverPhoto,
+)

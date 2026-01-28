@@ -28,8 +28,8 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_cover
 import com.truepineapps.photouploader.resources.album_name
@@ -45,13 +45,13 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AlbumCard(
-    album: Album,
+    albumUiState: AlbumUiState,
     onAlbumClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
     onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isEditable = album.uploadStatus is UploadStatus.None || album.uploadStatus.isFinal
+    val isEditable = albumUiState.uploadStatus is UploadStatus.None || albumUiState.uploadStatus.isFinal
 
     Card(
         modifier = modifier
@@ -59,7 +59,7 @@ fun AlbumCard(
             .padding(vertical = Dimensions.padding_very_small)
             .clickable(enabled = true) { onAlbumClick() }
             .alpha(
-                if (album.isEnabled || album.uploadStatus == UploadStatus.Success)
+                if (albumUiState.isEnabled || albumUiState.uploadStatus == UploadStatus.Success)
                     Opacity.FULL.value
                 else
                     Opacity.DISABLED.value
@@ -93,25 +93,25 @@ fun AlbumCard(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Checkbox(
-                        checked = album.isEnabled,
+                        checked = albumUiState.isEnabled,
                         onCheckedChange = onCheckedChange,
                         enabled = isEditable,
                     )
 
                     // Thumbnail is an AsyncImage
                     val context = LocalPlatformContext.current
-                    val imageRequest = remember(album.coverPhoto) {
+                    val imageRequest = remember(albumUiState.coverPhotoUiState) {
                         ImageRequest.Builder(context)
-                            .data(album.coverPhoto.kmpFile)
+                            .data(albumUiState.coverPhotoUiState.kmpFile)
                             .crossfade(true)
-                            .memoryCacheKey(album.coverPhoto.path.toString())
+                            .memoryCacheKey(albumUiState.coverPhotoUiState.path.toString())
                             .build()
                     }
                     AsyncImage(
                         model = imageRequest,
                         contentDescription = stringResource(
                             Res.string.album_cover,
-                            album.coverPhoto.getDisplayName()
+                            albumUiState.coverPhotoUiState.getDisplayName()
                         ),
                         error = rememberVectorPainter(Icons.Filled.BrokenImage),
                         placeholder = painterResource(Res.drawable.loading_img),
@@ -129,7 +129,7 @@ fun AlbumCard(
                         .offset(y = Dimensions.offset_text_field_vertical)
                 ) {
                     TextField(
-                        value = album.name,
+                        value = albumUiState.name,
                         onValueChange = onNameChange,
                         label = { Text(stringResource(Res.string.album_name)) },
                         singleLine = true,
@@ -147,8 +147,8 @@ fun AlbumCard(
                     Text(
                         text = pluralStringResource(
                             Res.plurals.photos_count,
-                            album.photos.size,
-                            album.photos.size
+                            albumUiState.photoUiStates.size,
+                            albumUiState.photoUiStates.size
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = Dimensions.padding_very_small)
@@ -157,23 +157,23 @@ fun AlbumCard(
 
                 // Status Icon and status description
                 UploadStatusIndicator(
-                    uploadStatus = album.uploadStatus,
+                    uploadStatus = albumUiState.uploadStatus,
                     isAlbum = true,
-                    isEnabled = album.isEnabled,
+                    isEnabled = albumUiState.isEnabled,
                     modifier = Modifier.padding(start = Dimensions.padding_small)
                 )
             }
 
             // Bottom: Error Message, if any
-            UploadErrorText(uploadStatus = album.uploadStatus)
+            UploadErrorText(uploadStatus = albumUiState.uploadStatus)
         }
     }
 }
 
 @Composable
-fun PreviewAlbumCard(album: Album) {
+fun PreviewAlbumCard(albumUiState: AlbumUiState) {
     AlbumCard(
-        album = album,
+        albumUiState = albumUiState,
         onAlbumClick = { },
         onCheckedChange = { },
         onNameChange = { },

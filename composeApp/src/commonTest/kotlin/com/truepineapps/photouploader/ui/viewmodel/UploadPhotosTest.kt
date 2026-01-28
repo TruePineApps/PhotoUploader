@@ -1,13 +1,16 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.viewmodel
 
+import app.cash.turbine.test
+import co.touchlab.kermit.CommonWriter
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.data.Album
+import com.truepineapps.photouploader.data.Photo
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
 import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.Photo
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.network.AlbumResponse
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsRequest
 import com.truepineapps.photouploader.network.BatchCreateMediaItemsResponse
@@ -22,8 +25,13 @@ import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
 import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
 import com.truepineapps.photouploader.resources.error_upload_failed_with_message
+import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
+import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
+import com.truepineapps.photouploader.ui.util.createTestKmpFile
+import com.truepineapps.photouploader.ui.util.createTestPlatformContext
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
-import com.truepineapps.photouploader.ui.screen.uploader.UiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.util.UiTextResource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -67,7 +75,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class UploadPhotosTest : KoinTest {
 
@@ -96,7 +103,6 @@ class UploadPhotosTest : KoinTest {
             modules(
                 viewModelModule(),
                 module {
-                    single { Logger.withTag("Test") }
                     single<FileSystem> { fileSystem }
                     single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
                     single { PhotoDirectoryRepository(platformFileSystem = get()) }
@@ -107,6 +113,12 @@ class UploadPhotosTest : KoinTest {
                         }
                     }
                     single<GoogleAuthService> { GoogleAuthServiceTestStub(signInToken = "valid_token") }
+                    single {
+                        Logger(
+                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
+                            tag = "Test"
+                        )
+                    }
                 }
             )
         }
@@ -336,7 +348,7 @@ class UploadPhotosTest : KoinTest {
 
         // Disable one photo in the enabled album
         val enabledAlbum = viewModel.uiState.value.getAlbumContaining("EnabledAlbum")
-        val photoToDisable = enabledAlbum.photos.find { it.name == "photo2.jpg" }!!
+        val photoToDisable = enabledAlbum.photoUiStates.find { it.name == "photo2.jpg" }!!
         viewModel.togglePhoto(enabledAlbum.id, photoToDisable.path)
 
         advanceUntilIdle() // Wait for UI state to update
@@ -379,7 +391,7 @@ class UploadPhotosTest : KoinTest {
         advanceUntilIdle()
 
         // Rename album
-        val album = viewModel.uiState.value.albums.first()
+        val album = viewModel.uiState.value.albumUiStates.first()
         viewModel.renameAlbum(album.id, "Renamed Album Title")
 
         advanceUntilIdle() // Wait for UI state to update
@@ -392,41 +404,161 @@ class UploadPhotosTest : KoinTest {
 
     @Test
     fun `upload status is correctly updated during upload`() = runTest {
+        // Delay network requests to allow the test to observe the status updates
         val requests = mutableListOf<HttpRequestData>()
-        val mockEngine = createMockEngine(requests)
+        val mockEngine = createMockEngine(requestLog = requests)
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "p1.jpg", isEnabled = true)
-        val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "p2.jpg", isEnabled = false)
-        val album1 = Album(
-            "a1",
-            createTestKmpFile("/a1"),
-            "/a1".toPath(),
-            "A1",
-            "G1",
-            listOf(photo1, photo2),
-            photo1,
-            isEnabled = true
+        val photo1Data = createDummyPhotoData("/p1.jpg")
+        val photo2Data = createDummyPhotoData("/p2.jpg")
+        val albumData = createDummyAlbumData(
+            path = "a1",
+            name = "A1",
+            group = "G1",
+            photos = listOf(photo1Data, photo2Data),
         )
 
         val photoRepo: PhotoDirectoryRepository by inject()
-        photoRepo.updateAlbums(listOf(album1))
+        photoRepo.updateAlbums(listOf(albumData)) // Directly emit albums to the repository
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.platformContext = createTestPlatformContext() // Essential for KmpFile operations
 
-        viewModel.uploadPhotos()
-        testDispatcher.scheduler.runCurrent() // Execute only the initial status updates
+        viewModel.uiState.test {
+            // 1. Await initial ViewModel state (empty albumUiStates)
+            val uiState = awaitItem()
+            assertTrue(uiState.albumUiStates.isEmpty(), "Initial state should be empty")
 
-        val updatedAlbum = photoRepo.albums.value.first()
-        val updatedPhoto1 = updatedAlbum.photos.first()
-        val updatedPhoto2 = updatedAlbum.photos.last()
+            // 2. Await state after repository emits `albumData` and ViewModel maps it.
+            // All items should be in their default `UploadStatus.None` state.
+            assertStatus(
+                uiState = awaitItem(),
+                testName = "After data loaded & mapped",
+                expectedAlbumStatus = UploadStatus.None,
+                expectedPhoto1Status = UploadStatus.None,
+                expectedPhoto2Status = UploadStatus.None,
+                expectedPhoto2Enabled = true
+            )
 
-        assertEquals(UploadStatus.Uploading, updatedAlbum.uploadStatus)
-        assertEquals(UploadStatus.Waiting, updatedPhoto1.uploadStatus)
-        assertEquals(UploadStatus.None, updatedPhoto2.uploadStatus)
+            // Disable photo2 in the UI state directly
+            viewModel.togglePhoto("a1", "/p2.jpg".toPath())
+
+            // 3. Await state after `togglePhoto` action. Only photo2Enabled changes.
+            assertStatus(
+                uiState = awaitItem(),
+                testName = "After photo 2 toggled off",
+                expectedAlbumStatus = UploadStatus.None, // Album status remains None
+                expectedPhoto1Status = UploadStatus.None,
+                expectedPhoto2Status = UploadStatus.None,
+                expectedPhoto2Enabled = false // Photo2 should now be disabled
+            )
+
+            // Perform upload - this launches the upload coroutine
+            val uploadJob = viewModel.uploadPhotos()
+
+            // 4. Await state after `uploadPhotosImpl` sets initial 'Waiting' status for enabled,
+            // items, immediately followed by setting the album to 'Uploading'
+            var uploadState = awaitItem()
+            var albumState = uploadState.albumUiStates.first()
+            if (albumState.uploadStatus == UploadStatus.Waiting) {
+                assertStatus(
+                    uiState = uploadState,
+                    testName = "After initial 'Waiting' status set for enabled items",
+                    expectedAlbumStatus = UploadStatus.Waiting, // Album goes to Waiting
+                    expectedPhoto1Status = UploadStatus.Waiting, // Photo1 goes to Waiting
+                    expectedPhoto2Status = UploadStatus.None, // Photo2 remains None (disabled)
+                    expectedPhoto2Enabled = false
+                )
+                uploadState = awaitItem()
+                albumState = uploadState.albumUiStates.first()
+            }
+
+            // 5. Await state after album creation/verification, album status becomes 'Uploading'.
+            val photo1State = albumState.photoUiStates.first { it.name == "p1.jpg" }
+            if (photo1State.uploadStatus == UploadStatus.Waiting) {
+                assertStatus(
+                    uiState = uploadState,
+                    testName = "After album itself starts 'Uploading'",
+                    expectedAlbumStatus = UploadStatus.Uploading, // Album goes to Uploading
+                    expectedPhoto1Status = UploadStatus.Waiting, // Photo1 still Waiting
+                    expectedPhoto2Status = UploadStatus.None,
+                    expectedPhoto2Enabled = false
+                )
+                uploadState = awaitItem()
+            }
+
+            // 6. Await state after the first photo (`p1.jpg`) *starts* uploading.
+            assertStatus(
+                uiState = uploadState,
+                testName = "After photo 1 starts 'Uploading'",
+                expectedAlbumStatus = UploadStatus.Uploading,
+                expectedPhoto1Status = UploadStatus.Uploading, // Photo1 goes to Uploading
+                expectedPhoto2Status = UploadStatus.None,
+                expectedPhoto2Enabled = false
+            )
+
+            // 7. Await state after the first photo (`p1.jpg`) *successfully uploaded bytes* (before batch create).
+            // This is an internal step where photo status changes to Success, but album might still be Uploading.
+            assertStatus(
+                uiState = awaitItem(),
+                testName = "After photo 1 successfully uploaded bytes",
+                expectedAlbumStatus = UploadStatus.Uploading, // Album still Uploading
+                expectedPhoto1Status = UploadStatus.Success, // Photo1 goes to Success
+                expectedPhoto2Status = UploadStatus.None,
+                expectedPhoto2Enabled = false
+            )
+
+            // Let the entire upload job complete and advance time until idle
+            uploadJob?.join()
+            advanceUntilIdle() // Ensure all remaining coroutines and cleanup are done
+
+            // 8. Await the final state after all enabled photos are processed (batch create, set cover).
+            assertStatus(
+                uiState = awaitItem(),
+                testName = "Final state after successful upload",
+                expectedAlbumStatus = UploadStatus.Success, // Album should now be Success
+                expectedPhoto1Status = UploadStatus.Success, // Photo1 confirms Success (potentially already was)
+                expectedPhoto2Status = UploadStatus.None,
+                expectedPhoto2Enabled = false
+            )
+
+            expectNoEvents() // Ensure no further unexpected emissions
+        }
+    }
+
+    // Fixed values for `upload status is correctly updated during upload`
+    private fun assertStatus(
+        testName: String, // A descriptive name for the test step
+        uiState: UiState,
+        expectedAlbumStatus: UploadStatus,
+        expectedPhoto1Status: UploadStatus,
+        expectedPhoto2Status: UploadStatus,
+        expectedPhoto2Enabled: Boolean,
+    ) {
+        assertEquals(1, uiState.albumUiStates.size, "$testName - Expected 1 album UI state")
+
+        val album = uiState.albumUiStates.first()
+        assertEquals(expectedAlbumStatus, album.uploadStatus, "$testName - Album status mismatch")
+
+        assertEquals(2, album.photoUiStates.size, "$testName - Expected 2 photo UI states")
+        val photo1 = album.photoUiStates.first { it.name == "p1.jpg" }
+        val photo2 = album.photoUiStates.first { it.name == "p2.jpg" }
+
+        assertEquals(
+            expectedPhoto1Status,
+            photo1.uploadStatus,
+            "$testName - Photo 1 status mismatch"
+        )
+        assertEquals(
+            expectedPhoto2Status,
+            photo2.uploadStatus,
+            "$testName - Photo 2 status mismatch"
+        )
+        assertEquals(
+            expectedPhoto2Enabled,
+            photo2.isEnabled,
+            "$testName - Photo 2 enabled state mismatch"
+        )
     }
 
     @Test
@@ -436,7 +568,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
         val album1 = Album(
             "a1",
             createTestKmpFile("/a1"),
@@ -444,8 +576,6 @@ class UploadPhotosTest : KoinTest {
             "A1",
             "G1",
             listOf(photo1),
-            photo1,
-            isEnabled = true
         )
         val photoRepo: PhotoDirectoryRepository by inject()
         photoRepo.updateAlbums(listOf(album1))
@@ -458,8 +588,8 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val album = photoRepo.albums.value.first()
-        val photo = album.photos.first()
+        val album = viewModel.uiState.value.albumUiStates.first()
+        val photo = album.photoUiStates.first()
 
         val albumStatus = album.uploadStatus
         assertTrue(albumStatus is UploadStatus.Error, "Album status")
@@ -483,7 +613,7 @@ class UploadPhotosTest : KoinTest {
                 createMockEngine(requestLog = requests, shouldFailUploadForFile = failUploadForFile)
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), failUploadForFile, isEnabled = true)
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), failUploadForFile)
         val album1 = Album(
             "a1",
             createTestKmpFile("/a1"),
@@ -491,8 +621,6 @@ class UploadPhotosTest : KoinTest {
             "A1",
             "G1",
             listOf(photo1),
-            photo1,
-            isEnabled = true
         )
         val photoRepo: PhotoDirectoryRepository by inject()
         photoRepo.updateAlbums(listOf(album1))
@@ -505,8 +633,8 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val album = photoRepo.albums.value.first()
-        val photo = album.photos.first()
+        val album = viewModel.uiState.value.albumUiStates.first()
+        val photo = album.photoUiStates.first()
         val photoStatus = photo.uploadStatus
         assertTrue(photoStatus is UploadStatus.Error, "Photo status")
         val expectedPhotoErrorStatus = UploadStatus.Error(
@@ -522,7 +650,10 @@ class UploadPhotosTest : KoinTest {
         )
 
         val albumStatus = album.uploadStatus
-        assertTrue(albumStatus is UploadStatus.Error, "Album status")
+        assertTrue(
+            albumStatus is UploadStatus.Error,
+            "Album status: Expected Error, was $albumStatus"
+        )
         val expectedAlbumErrorStatus = UploadStatus.Error(
             UiTextResource(
                 Res.string.error_one_or_more_photos_failed,
@@ -542,7 +673,7 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAddToAlbum = true)
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
         val album1 = Album(
             "a1",
             createTestKmpFile("/a1"),
@@ -550,8 +681,6 @@ class UploadPhotosTest : KoinTest {
             "A1",
             "G1",
             listOf(photo1),
-            photo1,
-            isEnabled = true
         )
         val photoRepo: PhotoDirectoryRepository by inject()
         photoRepo.updateAlbums(listOf(album1))
@@ -564,7 +693,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val album = photoRepo.albums.value.first()
+        val album = viewModel.uiState.value.albumUiStates.first()
         val albumStatus = album.uploadStatus
         assertTrue(albumStatus is UploadStatus.Error, "Album status")
         assertEquals(
@@ -590,8 +719,8 @@ class UploadPhotosTest : KoinTest {
                 createMockEngine(requestLog = requests, failAddToAlbumForFileName = "photo2.jpg")
         setupKoin(mockEngine)
 
-        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg", isEnabled = true)
-        val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "photo2.jpg", isEnabled = true)
+        val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
+        val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "photo2.jpg")
         val album1 = Album(
             "a1",
             createTestKmpFile("/a1"),
@@ -599,8 +728,6 @@ class UploadPhotosTest : KoinTest {
             "A1",
             "G1",
             listOf(photo1, photo2),
-            photo1,
-            isEnabled = true
         )
         val photoRepo: PhotoDirectoryRepository by inject()
         photoRepo.updateAlbums(listOf(album1))
@@ -613,9 +740,9 @@ class UploadPhotosTest : KoinTest {
         viewModel.uploadPhotos()?.join()
         advanceUntilIdle()
 
-        val album = photoRepo.albums.value.first()
-        val updatedPhoto1 = album.photos.find { it.name == "photo1.jpg" }!!
-        val updatedPhoto2 = album.photos.find { it.name == "photo2.jpg" }!!
+        val album = viewModel.uiState.value.albumUiStates.first()
+        val updatedPhoto1 = album.photoUiStates.find { it.name == "photo1.jpg" }!!
+        val updatedPhoto2 = album.photoUiStates.find { it.name == "photo2.jpg" }!!
 
         assertEquals(UploadStatus.Success, updatedPhoto1.uploadStatus)
         assertNotNull(updatedPhoto1.mediaItemId)
@@ -645,7 +772,7 @@ class UploadPhotosTest : KoinTest {
     // --- Helpers ---
 
     private fun UiState.getAlbumContaining(namePart: String) =
-            this.albums.find { it.name.contains(namePart) }!!
+            this.albumUiStates.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
@@ -653,100 +780,122 @@ class UploadPhotosTest : KoinTest {
         shouldFailUploadForFile: String? = null,
         shouldFailAddToAlbum: Boolean = false,
         failAddToAlbumForFileName: String? = null,
-    ): MockEngine {
-        return MockEngine { request ->
-            requestLog.add(request)
-            val url = request.url.toString()
-            when {
-                url.endsWith(ENDPOINT_ALBUMS) -> {
-                    if (shouldFailAlbumCreation) {
-                        respond("Error creating album", status = HttpStatusCode.BadRequest)
-                    } else {
-                        val response = AlbumResponse(
-                            id = "album_123", title = "Album Title", productUrl = "http://url"
-                        )
-                        respond(
-                            content = json.encodeToString(response),
-                            status = HttpStatusCode.OK,
-                            headers = headersOf(
-                                HttpHeaders.ContentType, ContentType.Application.Json.toString()
-                            )
-                        )
-                    }
-                }
-
-                url.endsWith(ENDPOINT_UPLOADS) -> {
-                    val fileName = request.headers["X-Goog-Upload-File-Name"]
-                    if (shouldFailUploadForFile != null && fileName == shouldFailUploadForFile) {
-                        val errorResponse = GooglePhotosErrorResponse(
-                            error = GooglePhotosErrorContent(
-                                code = HttpStatusCode.InternalServerError.value,
-                                message = "Simulated upload failure for $shouldFailUploadForFile",
-                                status = HttpStatusCode.InternalServerError.description
-                            )
-                        )
-                        respond(
-                            content = json.encodeToString(errorResponse),
-                            status = HttpStatusCode.InternalServerError,
-                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                        )
-                    } else {
-                        respond(
-                            content = "upload_token_$fileName", status = HttpStatusCode.OK
-                        )
-                    }
-                }
-
-                url.endsWith(ENDPOINT_BATCH_CREATE) -> {
-                    if (shouldFailAddToAlbum) {
-                        respond("Batch create failed", status = HttpStatusCode.InternalServerError)
-                    } else {
-                        val body = request.body as TextContent
-                        val batchRequest =
-                                json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
-                        val results = batchRequest.newMediaItems.mapIndexed { _, item ->
-                            val status =
-                                    if (failAddToAlbumForFileName != null
-                                        && item.simpleMediaItem.fileName == failAddToAlbumForFileName
-                                    ) {
-                                        StatusInfo(code = 3, message = "Failed to add to album")
-                                    } else {
-                                        StatusInfo(0, "OK")
-                                    }
-
-                            MediaItemResult(
-                                uploadToken = item.simpleMediaItem.uploadToken,
-                                status = status,
-                                mediaItem = if (status.code == 0) MediaItem(
-                                    id = "media-id-for-${item.simpleMediaItem.uploadToken}",
-                                    filename = item.simpleMediaItem.fileName
-                                ) else null
-                            )
-                        }
-                        val response = BatchCreateMediaItemsResponse(results)
-
-                        respond(
-                            content = json.encodeToString(response),
-                            status = HttpStatusCode.OK,
-                            headers = headersOf(
-                                HttpHeaders.ContentType, ContentType.Application.Json.toString()
-                            )
-                        )
-                    }
-                }
-
-                url.contains("?updateMask=coverPhotoMediaItemId") -> {
+    ): MockEngine = MockEngine { request ->
+        requestLog.add(request)
+        val url = request.url.toString()
+        when {
+            url.endsWith(ENDPOINT_ALBUMS) -> {
+                if (shouldFailAlbumCreation) {
+                    respond("Error creating album", status = HttpStatusCode.BadRequest)
+                } else {
+                    val response = AlbumResponse(
+                        id = "album_123", title = "Album Title", productUrl = "http://url"
+                    )
                     respond(
-                        content = "{}", status = HttpStatusCode.OK, headers = headersOf(
+                        content = json.encodeToString(response),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
                             HttpHeaders.ContentType, ContentType.Application.Json.toString()
                         )
                     )
                 }
-
-                else -> error("Unhandled request: ${request.url}")
             }
+
+            url.endsWith(ENDPOINT_UPLOADS) -> {
+                val fileName = request.headers["X-Goog-Upload-File-Name"]
+                if (shouldFailUploadForFile != null && fileName == shouldFailUploadForFile) {
+                    val errorResponse = GooglePhotosErrorResponse(
+                        error = GooglePhotosErrorContent(
+                            code = HttpStatusCode.InternalServerError.value,
+                            message = "Simulated upload failure for $shouldFailUploadForFile",
+                            status = HttpStatusCode.InternalServerError.description
+                        )
+                    )
+                    respond(
+                        content = json.encodeToString(errorResponse),
+                        status = HttpStatusCode.InternalServerError,
+                        headers = headersOf(
+                            HttpHeaders.ContentType,
+                            ContentType.Application.Json.toString()
+                        )
+                    )
+                } else {
+                    respond(
+                        content = "upload_token_$fileName", status = HttpStatusCode.OK
+                    )
+                }
+            }
+
+            url.endsWith(ENDPOINT_BATCH_CREATE) -> {
+                if (shouldFailAddToAlbum) {
+                    respond("Batch create failed", status = HttpStatusCode.InternalServerError)
+                } else {
+                    val body = request.body as TextContent
+                    val batchRequest =
+                            json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                    val results = batchRequest.newMediaItems.mapIndexed { _, item ->
+                        val status =
+                                if (failAddToAlbumForFileName != null
+                                    && item.simpleMediaItem.fileName == failAddToAlbumForFileName
+                                ) {
+                                    StatusInfo(code = 3, message = "Failed to add to album")
+                                } else {
+                                    StatusInfo(0, "OK")
+                                }
+
+                        MediaItemResult(
+                            uploadToken = item.simpleMediaItem.uploadToken,
+                            status = status,
+                            mediaItem = if (status.code == 0) MediaItem(
+                                id = "media-id-for-${item.simpleMediaItem.uploadToken}",
+                                filename = item.simpleMediaItem.fileName
+                            ) else null
+                        )
+                    }
+                    val response = BatchCreateMediaItemsResponse(results)
+
+                    respond(
+                        content = json.encodeToString(response),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
+                            HttpHeaders.ContentType, ContentType.Application.Json.toString()
+                        )
+                    )
+                }
+            }
+
+            url.contains("?updateMask=coverPhotoMediaItemId") -> {
+                respond(
+                    content = "{}", status = HttpStatusCode.OK, headers = headersOf(
+                        HttpHeaders.ContentType, ContentType.Application.Json.toString()
+                    )
+                )
+            }
+
+            else -> error("Unhandled request: ${request.url}")
         }
     }
+
+    private fun createDummyPhotoData(path: String) = Photo(
+        kmpFile = createTestKmpFile(path),
+        path = path.toPath(),
+        // Derive name from path
+        name = path.substringAfterLast('/'),
+    )
+
+    private fun createDummyAlbumData(
+        path: String,
+        name: String = "Test Album",
+        photos: List<Photo> = listOf(createDummyPhotoData(path = "$path/p1.jpg")),
+        group: String = "Test Group",
+    ) = Album(
+        id = path.replace('/', '_'),
+        kmpFile = createTestKmpFile(path),
+        path = path.toPath(),
+        name = name,
+        group = group,
+        photos = photos,
+    )
 
     private fun createTestFiles(vararg relativePaths: String) {
         if (!fileSystem.exists(rootPath)) {
@@ -766,6 +915,12 @@ class UploadPhotosTest : KoinTest {
         }
     }
 
+    /**
+     * A helper function for tests that simulates a full user flow for uploading photos.
+     * It initializes the ViewModel, sets the root path for photo scanning, waits for the
+     * scan to complete, initiates the upload process, and then waits for the upload
+     * to finish. This provides a standardized way to test the entire upload sequence.
+     */
     private suspend fun TestScope.uploadPhotos() {
         val viewModel: PhotoUploaderViewModel by inject()
         viewModel.platformContext = createTestPlatformContext()
@@ -785,7 +940,7 @@ class UploadPhotosTest : KoinTest {
         val albumRequests = this.filter { it.url.toString().endsWith(ENDPOINT_ALBUMS) }
         var actualTitle = ""
         val found = albumRequests.any { req ->
-            val title = getAlbumTitle(req)
+            val title = getAlbumTitleFromRequest(req)
             if (title.isNullOrBlank()) {
                 false
             } else if (title == expectedTitle) {
@@ -816,11 +971,11 @@ class UploadPhotosTest : KoinTest {
     private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
         assertTrue(this.none {
             it.url.toString()
-                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitle(it)?.contains(titlePart) == true
+                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitleFromRequest(it)?.contains(titlePart) == true
         }, "Album with title containing '$titlePart' should not have been created")
     }
 
-    private fun getAlbumTitle(request: HttpRequestData): String? {
+    private fun getAlbumTitleFromRequest(request: HttpRequestData): String? {
         val content = request.body
         val text = if (content is TextContent) content.text else ""
         val jsonElement = json.parseToJsonElement(text)

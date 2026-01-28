@@ -1,12 +1,21 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.viewmodel
 
+import app.cash.turbine.test
+import co.touchlab.kermit.CommonWriter
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.data.Album
+import com.truepineapps.photouploader.data.Photo
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.Photo
+import com.truepineapps.photouploader.log.TimestampMessageFormatter
+import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
+import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
+import com.truepineapps.photouploader.ui.util.createTestKmpFile
+import com.truepineapps.photouploader.ui.util.createTestPlatformContext
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.toPhotoUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
@@ -58,10 +67,15 @@ class PhotoUploaderViewModelTest : KoinTest {
             modules(
                 viewModelModule(),
                 module {
-                    single { Logger.withTag("Test") }
                     single<FileSystem> { fileSystem }
                     single { PhotoDirectoryRepository(FakePlatformFileSystem(fileSystem)) }
                     single<GoogleAuthService> { serviceStub }
+                    single {
+                        Logger(
+                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
+                            tag = "Test"
+                        )
+                    }
                 }
             )
         }
@@ -168,13 +182,11 @@ class PhotoUploaderViewModelTest : KoinTest {
             kmpFile = photoFile1,
             path = photoPath1.toPath(),
             name = photoName1,
-            isCoverPhoto = true
         )
         val photo2 = Photo(
             kmpFile = photoFile2,
             path = photoPath2.toPath(),
             name = photoName2,
-            isCoverPhoto = false
         )
         val albumFile = createTestKmpFile(albumPath)
         val album = Album(
@@ -184,37 +196,41 @@ class PhotoUploaderViewModelTest : KoinTest {
             name = "Test Album",
             group = "Test",
             photos = listOf(photo1, photo2),
-            coverPhoto = photo1,
         )
 
         val photoRepo: PhotoDirectoryRepository by inject()
-        photoRepo.updateAlbums(listOf(album))
-
         val viewModel: PhotoUploaderViewModel by inject()
+        viewModel.uiState.test {
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
-        // 3. Trigger the update cover action
-        viewModel.updateCoverPhoto(albumName, photo2)
+            photoRepo.updateAlbums(listOf(album))
+            awaitItem() // consume populated
 
-        // 4. Verify the state
-        val updatedAlbum = photoRepo.albums.value.first()
 
-        assertEquals(
-            photo2,
-            updatedAlbum.coverPhoto,
-            "Album coverPhoto should be updated to the photo2 object"
-        )
+            // 3. Trigger the update cover action
+            viewModel.updateCoverPhoto(albumName, photo2.toPhotoUiState())
 
-        val updatedPhoto1 = updatedAlbum.photos.find { it.path == photo1.path }!!
-        val updatedPhoto2 = updatedAlbum.photos.find { it.path == photo2.path }!!
+            // 4. Verify the state
+            val updatedAlbum = awaitItem().albumUiStates.first()
 
-        assertFalse(
-            updatedPhoto1.isCoverPhoto,
-            "Old cover photo (photo1) should have isCoverPhoto set to false"
-        )
-        assertTrue(
-            updatedPhoto2.isCoverPhoto,
-            "New cover photo (photo2) should have isCoverPhoto set to true"
-        )
+            assertEquals(
+                photo2.toPhotoUiState(),
+                updatedAlbum.coverPhotoUiState,
+                "Album coverPhoto should be updated to the photo2 object"
+            )
+
+            val updatedPhoto1 = updatedAlbum.photoUiStates.find { it.path == photo1.path }!!
+            val updatedPhoto2 = updatedAlbum.photoUiStates.find { it.path == photo2.path }!!
+
+            assertFalse(
+                updatedPhoto1.isCoverPhoto,
+                "Old cover photo (photo1) should have isCoverPhoto set to false"
+            )
+            assertTrue(
+                updatedPhoto2.isCoverPhoto,
+                "New cover photo (photo2) should have isCoverPhoto set to true"
+            )
+        }
     }
 
     @Test
@@ -234,7 +250,6 @@ class PhotoUploaderViewModelTest : KoinTest {
             name = "A1",
             group = "G1",
             photos = listOf(photo1),
-            coverPhoto = photo1
         )
 
         val photoRepo: PhotoDirectoryRepository by inject()

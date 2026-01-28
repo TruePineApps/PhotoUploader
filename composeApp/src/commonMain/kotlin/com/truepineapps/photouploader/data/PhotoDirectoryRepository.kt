@@ -4,8 +4,6 @@ import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.util.FileUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +37,7 @@ class PhotoDirectoryRepository(
 
     // Allow updating albums from outside (e.g. toggling check boxes in ViewModel)
     fun updateAlbums(newAlbums: List<Album>) {
+        log.d("Updating albums, new list size is ${newAlbums.size}")
         _albums.value = newAlbums
         needsRefresh = false
     }
@@ -115,7 +114,6 @@ class PhotoDirectoryRepository(
         log.d { "Processing directory: $name with ${entries.size} entries" }
 
         // 1. Identify photos in the current directory
-        var isFirst = true
         val photoFiles = entries
             .filter {
                 !platformFileSystem.isDir(it, currentContext) &&
@@ -127,11 +125,7 @@ class PhotoDirectoryRepository(
                     kmpFile = path,
                     path = (platformFileSystem.getPath(path, currentContext) ?: "").toPath(),
                     name = platformFileSystem.getName(path, currentContext) ?: "",
-                    isEnabled = true,
-                    isCoverPhoto = isFirst
-                ).also {
-                    isFirst = false
-                }
+                )
             }
 
         // 2. Identify Subdirectories
@@ -141,17 +135,15 @@ class PhotoDirectoryRepository(
 
         // 3. Create an Album if there are photos
         if (photoFiles.isNotEmpty()) {
-            val coverPhoto = photoFiles.first()
             albums.add(
                 Album(
-                    id = (platformFileSystem.getPath(currentDir, currentContext) ?: "").replace("/", "|"), // Escape slashes for navigation
+                    // Replace slashes for navigation
+                    id = (platformFileSystem.getPath(currentDir, currentContext) ?: "").replace("/", "|"),
                     kmpFile = currentDir,
                     path = (platformFileSystem.getPath(currentDir, currentContext) ?: "").toPath(),
                     name = albumName,
                     group = groupName,
                     photos = photoFiles,
-                    coverPhoto = coverPhoto,
-                    isEnabled = true
                 )
             )
         }

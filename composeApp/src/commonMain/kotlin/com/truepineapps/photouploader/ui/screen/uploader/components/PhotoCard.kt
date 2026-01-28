@@ -30,8 +30,8 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.truepineapps.photouploader.model.Photo
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.cover_photo
@@ -47,20 +47,20 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PhotoCard(
-    photo: Photo,
+    photoUiState: PhotoUiState,
     onCheckedChange: (Boolean) -> Unit,
-    onCoverPhotoChange: (Photo) -> Unit,
+    onCoverPhotoChange: (PhotoUiState) -> Unit,
     onNameChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isEditable = photo.uploadStatus is UploadStatus.None
+    val isEditable = photoUiState.uploadStatus is UploadStatus.None
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = Dimensions.padding_very_small)
             .alpha(
-                if (photo.isEnabled || photo.uploadStatus == UploadStatus.Success)
+                if (photoUiState.isEnabled || photoUiState.uploadStatus == UploadStatus.Success)
                     Opacity.FULL.value
                 else
                     Opacity.DISABLED.value
@@ -88,17 +88,17 @@ fun PhotoCard(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Checkbox(
-                        checked = photo.isEnabled,
+                        checked = photoUiState.isEnabled,
                         onCheckedChange = onCheckedChange,
                         enabled = isEditable,
                     )
 
                     val context = LocalPlatformContext.current
-                    val imageRequest = remember(photo.kmpFile) {
+                    val imageRequest = remember(photoUiState.kmpFile) {
                         ImageRequest.Builder(context)
-                            .data(photo.kmpFile)
+                            .data(photoUiState.kmpFile)
                             .crossfade(true)
-                            .memoryCacheKey(photo.path.toString())
+                            .memoryCacheKey(photoUiState.path.toString())
                             .build()
                     }
 
@@ -121,7 +121,7 @@ fun PhotoCard(
                         .offset(y = Dimensions.offset_text_field_vertical)
                 ) {
                     TextField(
-                        value = photo.name,
+                        value = photoUiState.name,
                         onValueChange = onNameChange,
                         label = { Text(stringResource(Res.string.album_name)) },
                         singleLine = true,
@@ -141,32 +141,32 @@ fun PhotoCard(
                 // Favorite / Cover Action moved to the right side
                 // Applied similar offset to align with the top text
                 ThemedIconButton(
-                    imageVector = if (photo.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    imageVector = if (photoUiState.isCoverPhoto) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescriptionResource = Res.string.cover_photo,
                     enabled = isEditable,
-                    onClick = { onCoverPhotoChange(photo) },
+                    onClick = { onCoverPhotoChange(photoUiState) },
                     modifier = Modifier.offset(y = Dimensions.top_offset_themed_icon_button)
                 )
 
                 // Status Icon and status description
                 UploadStatusIndicator(
-                    uploadStatus = photo.uploadStatus,
+                    uploadStatus = photoUiState.uploadStatus,
                     isAlbum = false,
-                    isEnabled = photo.isEnabled,
+                    isEnabled = photoUiState.isEnabled,
                     modifier = Modifier.padding(start = Dimensions.padding_small)
                 )
             }
 
             // Bottom: Error Message, if any
-            UploadErrorText(uploadStatus = photo.uploadStatus)
+            UploadErrorText(uploadStatus = photoUiState.uploadStatus)
         }
     }
 }
 
 @Composable
-fun PreviewPhotoCard(photo: Photo) {
+fun PreviewPhotoCard(photoUiState: PhotoUiState) {
     PhotoCard(
-        photo = photo,
+        photoUiState = photoUiState,
         onCoverPhotoChange = { },
         onCheckedChange = { },
         onNameChange = { },

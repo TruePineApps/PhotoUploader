@@ -104,7 +104,7 @@ fun PhotoUploaderAppBar(
     val isUploading = uiState.isUploading
     val canChooseDirectory = uiState.idle()
     // Only allow uploading if we have albums, path is set, and not currently busy
-    val canUploadPhotos = uiState.albums.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle()
+    val canUploadPhotos = uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle()
     val userProfile = uiState.userProfile
 
 

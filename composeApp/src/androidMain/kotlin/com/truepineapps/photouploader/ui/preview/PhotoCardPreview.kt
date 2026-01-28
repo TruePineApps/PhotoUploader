@@ -1,10 +1,10 @@
-package com.truepineapps.photouploader.preview
+package com.truepineapps.photouploader.ui.preview
 
 import androidx.compose.runtime.Composable
 import androidx.core.net.toUri
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.model.Photo
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.ui.screen.uploader.components.PreviewPhotoCard
 import com.truepineapps.photouploader.ui.theme.AppTheme
 import com.truepineapps.photouploader.util.UiTextString
@@ -14,7 +14,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview(showBackground = true)
 @Composable
 fun PreviewPhotoCard() {
-    val photo = Photo(
+    val photoUiState = PhotoUiState(
         kmpFile = KmpFile(uri = "".toUri()),
         path = "/home".toPath(),
         name = "Test photo",
@@ -24,14 +24,14 @@ fun PreviewPhotoCard() {
         uploadStatus = UploadStatus.None
     )
     AppTheme {
-        PreviewPhotoCard(photo)
+        PreviewPhotoCard(photoUiState)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewPhotoCardError() {
-    val photo = Photo(
+    val photoUiState = PhotoUiState(
         kmpFile = KmpFile(uri = "".toUri()),
         path = "/home".toPath(),
         name = "Test photo",
@@ -41,6 +41,6 @@ fun PreviewPhotoCardError() {
         uploadStatus = UploadStatus.Error(UiTextString("Photo Error message"))
     )
     AppTheme {
-        PreviewPhotoCard(photo)
+        PreviewPhotoCard(photoUiState)
     }
 }

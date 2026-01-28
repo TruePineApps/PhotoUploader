@@ -51,15 +51,15 @@ fun PhotoUploaderScreen(
 
     LoadingScreen(loadingViewModel = viewModel, modifier = modifier) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.albums.isEmpty() && uiState.path.isEmpty()) {
+            if (uiState.albumUiStates.isEmpty() && uiState.path.isEmpty()) {
                 StartScreen(
                     showDirPicker = showDirPicker,
                     canChooseDirectory = !uiState.isUploading,
                     modifier = modifier.fillMaxSize()
                 )
-            } else if (uiState.albums.isNotEmpty()) {
+            } else if (uiState.albumUiStates.isNotEmpty()) {
                 AlbumListContent(
-                    albums = uiState.albums,
+                    albumUiStates = uiState.albumUiStates,
                     onAlbumClick = { album -> navigateToPhotos(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
                     onAlbumGroupToggle = viewModel::toggleAlbums,

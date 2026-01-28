@@ -26,7 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import com.truepineapps.photouploader.model.Album
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.expand_album
@@ -38,14 +38,14 @@ import com.truepineapps.photouploader.ui.util.Opacity
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlbumListContent(
-    albums: List<Album>,
-    onAlbumClick: (Album) -> Unit,
+    albumUiStates: List<AlbumUiState>,
+    onAlbumClick: (AlbumUiState) -> Unit,
     onAlbumToggle: (String) -> Unit,
-    onAlbumGroupToggle: (List<Album>, Boolean) -> Unit,
+    onAlbumGroupToggle: (List<AlbumUiState>, Boolean) -> Unit,
     onAlbumRename: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val groupedAlbums = albums.groupBy { it.group }
+    val groupedAlbums = albumUiStates.groupBy { it.group }
     val expansionState = remember { mutableStateMapOf<String, Boolean>() }
 
     LazyColumn(modifier = modifier.fillMaxSize()) {
@@ -93,7 +93,7 @@ fun AlbumListContent(
             if (expansionState[group] ?: true) {
                 items(albumsInGroup, key = { it.id }) { album ->
                     AlbumCard(
-                        album = album,
+                        albumUiState = album,
                         onAlbumClick = { onAlbumClick(album) },
                         onCheckedChange = { onAlbumToggle(album.id) },
                         onNameChange = { newName -> onAlbumRename(album.id, newName) },

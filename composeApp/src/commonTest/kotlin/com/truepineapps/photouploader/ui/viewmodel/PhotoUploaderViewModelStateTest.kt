@@ -1,14 +1,19 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
+import co.touchlab.kermit.CommonWriter
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.data.Album
+import com.truepineapps.photouploader.data.Photo
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.di.viewModelModule
 import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.Photo
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.log.TimestampMessageFormatter
+import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
+import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
+import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +51,13 @@ class PhotoUploaderViewModelStateTest : KoinTest {
                     single<PlatformFileSystem> { FakePlatformFileSystem(FakeFileSystem()) }
                     single { PhotoDirectoryRepository(get()) }
                     single<GoogleAuthService> { GoogleAuthServiceTestStub() }
-                    single { Logger.withTag("Test") }
+                    single {
+                        Logger(
+                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
+                            tag = "Test"
+                        )
+                    }
+
                 }
             )
         }
@@ -69,24 +80,24 @@ class PhotoUploaderViewModelStateTest : KoinTest {
 
         viewModel.uiState.test {
             // 1. Assert initial state
-            assertEquals(emptyList(), awaitItem().albums)
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
             // 2. Trigger state change
             repository.updateAlbums(initialAlbums)
 
             // 3. Assert populated state and toggle once
             var state = awaitItem()
-            assertTrue(state.albums.find { it.id == "album1" }!!.isEnabled)
+            assertTrue(state.albumUiStates.find { it.id == "album1" }!!.isEnabled)
 
             viewModel.toggleAlbum("album1")
             state = awaitItem()
-            assertFalse(state.albums.find { it.id == "album1" }!!.isEnabled)
-            assertTrue(state.albums.find { it.id == "album2" }!!.isEnabled) // Should not change
+            assertFalse(state.albumUiStates.find { it.id == "album1" }!!.isEnabled)
+            assertTrue(state.albumUiStates.find { it.id == "album2" }!!.isEnabled) // Should not change
 
             // 4. Toggle back
             viewModel.toggleAlbum("album1")
             state = awaitItem()
-            assertTrue(state.albums.find { it.id == "album1" }!!.isEnabled)
+            assertTrue(state.albumUiStates.find { it.id == "album1" }!!.isEnabled)
         }
     }
 
@@ -101,17 +112,21 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         )
 
         viewModel.uiState.test {
-            assertEquals(emptyList(), awaitItem().albums)
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
             repository.updateAlbums(albums)
-            awaitItem() // Consume populated state
+            val populatedState = awaitItem()
+            assertEquals(3, populatedState.albumUiStates.size)
 
-            viewModel.toggleAlbums(listOf(albums[0], albums[2]), isEnabled = false)
+            viewModel.toggleAlbums(
+                listOf(populatedState.albumUiStates[0], populatedState.albumUiStates[2]),
+                isEnabled = false
+            )
 
-            val state = awaitItem()
-            assertFalse(state.albums.find { it.id == "album1" }!!.isEnabled)
-            assertTrue(state.albums.find { it.id == "album2" }!!.isEnabled) // Unchanged
-            assertFalse(state.albums.find { it.id == "album3" }!!.isEnabled)
+            val finalState = awaitItem()
+            assertFalse(finalState.albumUiStates.find { it.id == "album1" }!!.isEnabled)
+            assertTrue(finalState.albumUiStates.find { it.id == "album2" }!!.isEnabled) // Unchanged
+            assertFalse(finalState.albumUiStates.find { it.id == "album3" }!!.isEnabled)
         }
     }
 
@@ -124,16 +139,16 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         val album = createDummyAlbum(id = "album1", photos = listOf(photo1, photo2))
 
         viewModel.uiState.test {
-            assertEquals(emptyList(), awaitItem().albums)
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
             repository.updateAlbums(listOf(album))
             awaitItem() // Consume populated state
 
             viewModel.togglePhoto("album1", "/photo2".toPath())
 
-            val updatedAlbum = awaitItem().albums.first()
-            assertFalse(updatedAlbum.photos.find { it.path == "/photo2".toPath() }!!.isEnabled)
-            assertTrue(updatedAlbum.photos.find { it.path == "/photo1".toPath() }!!.isEnabled)
+            val updatedAlbum = awaitItem().albumUiStates.first()
+            assertFalse(updatedAlbum.photoUiStates.find { it.path == "/photo2".toPath() }!!.isEnabled)
+            assertTrue(updatedAlbum.photoUiStates.find { it.path == "/photo1".toPath() }!!.isEnabled)
         }
     }
 
@@ -144,24 +159,23 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         val album = createDummyAlbum(id = "album1", name = "Old Name")
 
         viewModel.uiState.test {
-            assertEquals(emptyList(), awaitItem().albums)
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
             repository.updateAlbums(listOf(album))
             awaitItem() // Consume populated state
 
             viewModel.renameAlbum("album1", "New Album Name")
 
-            val updatedAlbum = awaitItem().albums.first()
+            val updatedAlbum = awaitItem().albumUiStates.first()
             assertEquals("New Album Name", updatedAlbum.name)
         }
     }
 
     // Helper functions to create test data
-    private fun createDummyPhoto(path: String, status: UploadStatus = UploadStatus.None) = Photo(
+    private fun createDummyPhoto(path: String) = Photo(
         kmpFile = createTestKmpFile(path),
         path = path.toPath(),
         name = "photo.jpg",
-        uploadStatus = status
     )
 
     private fun createDummyAlbum(
@@ -175,6 +189,5 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         name = name,
         group = "Test Group",
         photos = photos,
-        coverPhoto = photos.first()
     )
 }

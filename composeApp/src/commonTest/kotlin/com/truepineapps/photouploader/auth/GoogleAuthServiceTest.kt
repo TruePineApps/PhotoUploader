@@ -13,6 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+// This is basically a test that the AuthService is configured correctly.
 class GoogleAuthServiceTest : KoinTest {
 
     // Inject the service using Koin

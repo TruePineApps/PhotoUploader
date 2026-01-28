@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.model
+package com.truepineapps.photouploader.ui.screen.uploader.uistate
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

@@ -10,8 +10,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.truepineapps.photouploader.model.Album
-import com.truepineapps.photouploader.model.Photo
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.screen.uploader.components.PhotoCard
 import okio.Path
@@ -30,10 +30,10 @@ fun PhotoListScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val album = uiState.albums.find { it.id == albumId }
+    val album = uiState.albumUiStates.find { it.id == albumId }
     if (album != null) {
         PhotoListContent(
-            album = album,
+            albumUiState = album,
             onUpdateTopAppBar = onUpdateTopAppBar,
             onPhotoToggle = { photoPath -> viewModel.togglePhoto(album.id, photoPath) },
             onCoverPhotoChange = { photo -> viewModel.updateCoverPhoto(album.id, photo) },
@@ -49,24 +49,24 @@ fun PhotoListScreen(
 
 @Composable
 fun PhotoListContent(
-    album: Album,
+    albumUiState: AlbumUiState,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     onPhotoToggle: (Path) -> Unit,
-    onCoverPhotoChange: (Photo) -> Unit,
-    onPhotoNameChange: (Photo, String) -> Unit,
+    onCoverPhotoChange: (PhotoUiState) -> Unit,
+    onPhotoNameChange: (PhotoUiState, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Update the main TopAppBar with the album name and a back action
-    LaunchedEffect(album.name) {
-        onUpdateTopAppBar(album.name, null) {}
+    LaunchedEffect(albumUiState.name) {
+        onUpdateTopAppBar(albumUiState.name, null) {}
     }
 
     LazyColumn(
         modifier = modifier.fillMaxSize()
     ) {
-        items(album.photos, key = { it.path.toString() }) { photo ->
+        items(albumUiState.photoUiStates, key = { it.path.toString() }) { photo ->
             PhotoCard(
-                photo = photo,
+                photoUiState = photo,
                 onCheckedChange = { onPhotoToggle(photo.path) },
                 onCoverPhotoChange = onCoverPhotoChange,
                 onNameChange = { newName -> onPhotoNameChange(photo, newName) },

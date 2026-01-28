@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.util
 
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.auth.UserProfile

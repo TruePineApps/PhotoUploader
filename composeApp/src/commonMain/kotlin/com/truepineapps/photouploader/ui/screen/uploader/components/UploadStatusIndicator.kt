@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.truepineapps.photouploader.model.UploadStatus
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.arrow_upload_progress
 import com.truepineapps.photouploader.resources.arrow_upload_ready

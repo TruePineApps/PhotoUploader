@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.util
 
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile

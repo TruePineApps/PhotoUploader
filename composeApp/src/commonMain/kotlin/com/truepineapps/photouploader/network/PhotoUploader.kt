@@ -2,8 +2,8 @@ package com.truepineapps.photouploader.network
 
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
+import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.model.Photo
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
@@ -90,18 +90,18 @@ class PhotoUploader(
      * @throws UploadException.GlobalException for auth errors
      * @throws UploadException.PhotoException for other API errors
      */
-    suspend fun uploadPhoto(photo: Photo): String {
+    suspend fun uploadPhoto(photoName: String, kmpFile: KmpFile): String {
         // Upload the bytes to Google Photos
         val response: HttpResponse =
                 client.post("https://photoslibrary.googleapis.com/v1/uploads") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer $accessToken")
-                        append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photo.name))
+                        append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photoName))
                         append("X-Goog-Upload-Protocol", "raw")
-                        append("X-Goog-Upload-File-Name", photo.name)
+                        append("X-Goog-Upload-File-Name", photoName)
                     }
                     contentType(ContentType.Application.OctetStream)
-                    setBody(photoChannelContent(photo))
+                    setBody(photoChannelContent(kmpFile))
                 }
 
         if (response.status.isSuccess()) {
@@ -138,9 +138,9 @@ class PhotoUploader(
                 val successCount = result.newMediaItemResults.count { it.isSuccess() }
                 val failCount = result.newMediaItemResults.count { !it.isSuccess() }
 
-                log.d { "      Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed" }
+                log.d { "addPhotosToAlbum:       Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed" }
                 result.newMediaItemResults.filter { !it.isSuccess() }.forEach {
-                    log.e { "      Failed item: ${it.status}" }
+                    log.e { "addPhotosToAlbum:       Failed item: ${it.status}" }
                 }
             } else {
                 handleError(response, isBatchAdd = true)
@@ -162,11 +162,11 @@ class PhotoUploader(
         }
     }
 
-    private fun photoChannelContent(photo: Photo): OutgoingContent.WriteChannelContent =
+    private fun photoChannelContent(kmpFile: KmpFile): OutgoingContent.WriteChannelContent =
             object : OutgoingContent.WriteChannelContent() {
                 override val contentType = ContentType.Application.OctetStream
                 override suspend fun writeTo(channel: ByteWriteChannel) {
-                    platformFileSystem.source(photo.kmpFile, context).use { source ->
+                    platformFileSystem.source(kmpFile, context).use { source ->
                         val buffer = Buffer()
                         while (true) {
                             val bytesRead = source.read(buffer, 8192)
@@ -183,8 +183,8 @@ class PhotoUploader(
         isBatchAdd: Boolean = false,
     ): Nothing {
         val errorBody = response.bodyAsText()
-        log.e { "Request failed: ${response.status}" }
-        log.e { "Response: $errorBody" }
+        log.e { "handleError: Request failed: ${response.status}" }
+        log.e { "handleError: Response: $errorBody" }
 
         val message = parseErrorMessage(errorBody).let {
             if (it.isNullOrBlank()) "${response.status}" else "$it (${response.status})"
@@ -229,7 +229,7 @@ class PhotoUploader(
             val errorResponse = json.decodeFromString<GooglePhotosErrorResponse>(responseBody)
             errorResponse.error.message
         } catch (e: Exception) {
-            log.e(e) { "Parsing error response failed" }
+            log.e(e) { "parseErrorMessage: Parsing error response failed" }
             null
         }
     }

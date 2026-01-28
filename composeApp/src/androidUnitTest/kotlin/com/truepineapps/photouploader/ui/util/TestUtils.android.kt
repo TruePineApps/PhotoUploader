@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui
+package com.truepineapps.photouploader.ui.util
 
 import android.content.Context
 import android.net.Uri
