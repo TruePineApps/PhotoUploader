@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
@@ -16,7 +15,7 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
-val appId = "com.truepineapps.photouploader"
+val appId = libs.versions.appId.get()
 // App version from libs.versions.toml
 val versionCode: Int = libs.versions.appVersionCode.get().toInt()
 val versionName: String = libs.versions.appVersionName.get()
@@ -59,13 +58,6 @@ kotlin {
     // Select the JDK to run the Kotlin compiler
     jvmToolchain(21)
 
-    androidTarget {
-        compilerOptions {
-            // Bytecode version for Android
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-
     listOf(
         iosX64(),
         iosArm64(),
@@ -101,18 +93,18 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.ui)
+            implementation(libs.components.resources)
+            implementation(libs.ui.tooling.preview)
 
             // Window size calculation
             implementation(libs.screen.size)
 
             // Extended icons set
-            implementation(compose.materialIconsExtended)
+            implementation(libs.material.icons.extended)
 
             // Dependency injection
             implementation(libs.koin.core)
@@ -153,6 +145,7 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.bundles.shared.commonTest)
+            implementation(libs.junit)
             // File System
             implementation(libs.okio.fakefilesystem)
             // Networking
@@ -160,58 +153,7 @@ kotlin {
             // Mock
             implementation(libs.mockito.junit.jupiter)
         }
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-            // Android lifecycle
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            // Dependency injection
-            implementation(libs.koin.android)
-            // Networking & Serialization
-            implementation(libs.ktor.client.android)
-            // Coroutines
-            implementation(libs.kotlinx.coroutines.android)
-            // Preferences
-            implementation(libs.androidx.datastore.preferences)
-            implementation(libs.androidx.preference.ktx)
-            // Google Auth
-            implementation(libs.play.services.auth)
-        }
-
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(libs.bundles.shared.commonTest)
-                implementation(libs.bundles.shared.androidTest)
-
-                // Robolectric - a simulated Android environment for unit testing
-                implementation(libs.robolectric)
-
-                // Preferences
-                implementation(libs.androidx.datastore.preferences)
-                implementation(libs.androidx.preference.ktx)
-                // ViewModel
-                implementation(libs.androidx.lifecycle.viewmodelCompose)
-            }
-        }
-        val androidInstrumentedTest by getting {
-            dependencies {
-                implementation(libs.bundles.shared.commonTest)
-                implementation(libs.bundles.shared.androidTest)
-
-                // Actual Android execution
-                implementation(libs.androidx.espresso.core)
-                implementation(libs.androidx.rules)
-                implementation(libs.androidx.runner)
-
-                // Preferences
-                implementation(libs.androidx.datastore.preferences)
-                implementation(libs.androidx.preference.ktx)
-                // ViewModel
-                implementation(libs.androidx.lifecycle.viewmodelCompose)
-            }
-        }
         val iosMain by getting {
             dependencies {
                 // Networking & Serialization
@@ -252,59 +194,7 @@ kotlin {
     }
 }
 
-android {
-    namespace = "com.truepineapps.photouploader"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        applicationId = appId
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = versionCode
-        versionName = versionName
-    }
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-
-    // Resolve duplicate file exception:
-    // - META-INF/INDEX.LIST from google-auth-library-oauth2-http and google-auth-library-credentials.
-    // - META-INF/DEPENDENCIES from org.apache.httpcomponents:httpclient:4.5.14/httpclient-4.5.14.jar
-    // and org.apache.httpcomponents:httpcore:4.4.16/httpcore-4.4.16.jar
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "META-INF/INDEX.LIST"
-        }
-    }
-    dependencies {
-        debugImplementation(libs.leakcanary.android)
-    }
-    buildTypes {
-        release {
-            // Enable ProGuard/R8:
-            isMinifyEnabled = true
-
-            // ProGuard rules:
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), // Default Android rules
-                "proguard-rules.pro" // Project rules
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
-    }
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-}
-
 dependencies {
-    testImplementation(libs.junit)
-    debugImplementation(compose.uiTooling)
     // KSP Configuration
     // For Koin, you generally want the KSP processor to run for each platform that needs to use the
     // generated Koin modules. However, the universal "ksp()" configuration has performance issues
@@ -316,17 +206,12 @@ dependencies {
     // Add KSP for each platform if Koin generates platform-specific initializers
     // or if the commonMainMetadata isn't sufficient for platform consumption.
     // The configuration name is usually ksp<TargetName> or ksp<CapitalizedSourceSetName>
-    add("kspAndroid", libs.koin.ksp.compiler)
     add("kspDesktop", libs.koin.ksp.compiler)
 
     // For Apple targets (iOS, macOS, etc.), KSP configurations can be per-target
     add("kspIosX64", libs.koin.ksp.compiler)
     add("kspIosArm64", libs.koin.ksp.compiler)
     add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
-
-    // Core library desugaring for Android running on lower java versions. AGP needs it at the
-    // highest level. Other platforms builds will ignore the dependency.
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
 
