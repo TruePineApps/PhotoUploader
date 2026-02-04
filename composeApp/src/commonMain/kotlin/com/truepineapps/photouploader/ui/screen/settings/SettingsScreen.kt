@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.language
 import com.truepineapps.photouploader.resources.preferences
@@ -32,7 +33,6 @@ import com.truepineapps.photouploader.ui.navigation.NavigationDestination
 import com.truepineapps.photouploader.ui.screen.LoadingScreen
 import com.truepineapps.photouploader.ui.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
 object SettingsDestination : NavigationDestination {
@@ -84,7 +84,7 @@ fun SettingsBody(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
     AppTheme {

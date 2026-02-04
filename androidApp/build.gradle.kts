@@ -1,10 +1,12 @@
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    // Plugin that makes it an Android application module
+    // Plugin that makes this module an Android application
     alias(libs.plugins.androidApplication)
     // KSP
     alias(libs.plugins.ksp)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
@@ -58,61 +60,56 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
-dependencies {
-    /* Core Android dependencies */
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.viewmodelCompose)
-    implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.preference.ktx)
+kotlin {
+    target {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
 
-    // Google Auth dependency
-    implementation(libs.play.services.auth)
-    // For memory leak detection in debug builds
-    debugImplementation(libs.leakcanary.android)
-    // For desugaring Java 8+ features
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    dependencies {
+        implementation(projects.composeApp)
 
-    /* Compose dependencies specific to Android */
-    // For @Preview annotations
-    implementation(libs.ui.tooling.preview)
-    // For UI inspection in debug builds
-    debugImplementation(libs.ui.tooling)
+        /* Android dependencies */
+        implementation(libs.androidx.activity.compose)
+        implementation(libs.androidx.lifecycle.viewmodelCompose)
+        implementation(libs.androidx.lifecycle.runtimeCompose)
+        implementation(libs.androidx.datastore.preferences)
+        implementation(libs.androidx.preference.ktx)
+        implementation(libs.kotlinx.coroutines.android)
+        implementation(libs.androidx.material3.window.size)
+        debugImplementation(libs.androidx.ui.tooling.preview)
+        debugImplementation(libs.androidx.ui.tooling)
 
-    // Koin dependency specific to Android
-    implementation(libs.koin.android)
 
-    // Networking dependencies specific to Android
-    implementation(libs.ktor.client.android)
-    implementation(libs.kotlinx.coroutines.android)
+        // Google Auth dependency
+        implementation(libs.play.services.auth)
+        // For memory leak detection in debug builds
+        debugImplementation(libs.leakcanary.android)
+        // For desugaring Java 8+ features
+        coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    // Handle Koin's KSP configuration for Android
-    ksp(libs.koin.ksp.compiler)
+        // Koin dependency specific to Android
+        implementation(libs.koin.android)
 
-    // Dependency on the shared KMP module , which is called 'composeApp'
-    implementation(project(":composeApp"))
+        // Handle Koin's KSP configuration for Android
+        ksp(libs.koin.ksp.compiler)
 
-    /* Test dependencies */
-    testImplementation(kotlin("test"))
-    testImplementation(libs.junit)
-    testImplementation(libs.mockito.junit.jupiter)
+        /* Test dependencies */
+        testImplementation(kotlin("test"))
+        testImplementation(libs.junit)
+        testImplementation(libs.mockito.junit.jupiter)
 
-    testImplementation(libs.bundles.shared.commonTest)
-    testImplementation(libs.bundles.shared.androidTest)
-    // File System
-    testImplementation(libs.okio.fakefilesystem)
-    // Networking
-    testImplementation(libs.ktor.client.mock)
-    // Mock
-    testImplementation(libs.mockito.junit.jupiter)
+        testImplementation(libs.bundles.shared.commonTest)
+        testImplementation(libs.bundles.shared.androidTest)
+        // File System
+        testImplementation(libs.okio.fakefilesystem)
+        // Networking
+        testImplementation(libs.ktor.client.mock)
+        // Mock
+        testImplementation(libs.mockito.junit.jupiter)
 
-    // Robolectric - a simulated Android environment for unit testing
-    testImplementation(libs.robolectric)
-
-    // Preferences
-    testImplementation(libs.androidx.datastore.preferences)
-    testImplementation(libs.androidx.preference.ktx)
-    // ViewModel
-    testImplementation(libs.androidx.lifecycle.viewmodelCompose)
-
+        // Robolectric - a simulated Android environment for unit testing
+        testImplementation(libs.robolectric)
+    }
 }

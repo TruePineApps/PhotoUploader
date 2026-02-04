@@ -14,8 +14,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,10 +56,10 @@ import org.koin.core.parameter.parametersOf
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun App(
+    windowClass: WindowSizeClass,
     modifier: Modifier = Modifier,
     startDestination: String = PhotoUploaderDestination.route,
 ) {
-    val windowClass = calculateWindowSizeClass()
     val isHorizontalLayout = windowClass.widthSizeClass != WindowWidthSizeClass.Compact
 
     // Configure the Coil image loader for KmpFile and using max 25% of avail memory for thumbnails

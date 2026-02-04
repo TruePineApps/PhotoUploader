@@ -30,8 +30,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
+import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.cover_photo
@@ -39,7 +38,11 @@ import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.preview
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.ui.util.Opacity
+import com.truepineapps.photouploader.util.UiTextString
+import okio.Path.Companion.toPath
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -164,7 +167,16 @@ fun PhotoCard(
 }
 
 @Composable
-fun PreviewPhotoCard(photoUiState: PhotoUiState) {
+fun PreviewPhotoCard(dummyKmpFile: KmpFile, withError: Boolean) {
+    val photoUiState = PhotoUiState(
+        kmpFile = dummyKmpFile,
+        path = "/home".toPath(),
+        name = "Test photo",
+        isEnabled = true,
+        isCoverPhoto = true,
+        mediaItemId = null,
+        uploadStatus = if (withError) UploadStatus.Error(UiTextString("Photo Error message")) else UploadStatus.None
+    )
     PhotoCard(
         photoUiState = photoUiState,
         onCoverPhotoChange = { },

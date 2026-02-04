@@ -20,21 +20,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import com.truepineapps.photouploader.ui.theme.AppTheme
+import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.AppInfo
-import com.truepineapps.photouploader.PlatformAppInfo
 import com.truepineapps.photouploader.PlatformInfo
-import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.PlatformType
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.about_photo_uploader
 import com.truepineapps.photouploader.resources.app_id
 import com.truepineapps.photouploader.resources.platform
 import com.truepineapps.photouploader.resources.version
+import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
+import com.truepineapps.photouploader.ui.theme.AppTheme
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
 object AboutDestination : NavigationDestination {
@@ -81,17 +81,22 @@ private fun PlatformDetailRow(
     }
 }
 
-@Preview
+@Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
 @Composable
 fun AboutScreenPreview(
 ) {
     AppTheme {
         AboutScreen(
-            appInfo = PlatformAppInfo(
-                appId = "com.truepineapps.photouploader",
-                versionName = "1.0.0",
-                versionCode = "1"
-            )
+            appInfo = object: AppInfo {
+                override val appId = "com.truepineapps.photouploader"
+                override val versionName = "1.0.0"
+                override val versionCode = "1"
+            },
+            platformInfo = object : PlatformInfo {
+                override val name = "JVM"
+                override val platformType = PlatformType.NATIVE
+                override val isDebugBuild = true
+            }
         )
     }
 }

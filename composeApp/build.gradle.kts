@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
     alias(libs.plugins.skie)
 }
 
@@ -58,6 +58,20 @@ kotlin {
     // Select the JDK to run the Kotlin compiler
     jvmToolchain(21)
 
+    android {
+        // Namespace must be different from the one in androidApp/build.gradle.kts
+        namespace = "com.truepineapps.photouploader.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+
+        androidResources {
+            enable = true
+        }
+    }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -93,18 +107,18 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.runtime)
-            implementation(libs.foundation)
-            implementation(libs.material3)
-            implementation(libs.ui)
-            implementation(libs.components.resources)
-            implementation(libs.ui.tooling.preview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.ui.tooling.preview)
 
             // Window size calculation
-            implementation(libs.screen.size)
+            implementation(libs.compose.material3.window.size)
 
             // Extended icons set
-            implementation(libs.material.icons.extended)
+            implementation(libs.compose.material.icons.extended)
 
             // Dependency injection
             implementation(libs.koin.core)
@@ -131,7 +145,8 @@ kotlin {
             implementation(libs.multiplatform.settings)
             // DateTime
             implementation(libs.kotlinx.dateTime)
-            // File System
+            // File System, publish KmpFile on the API
+            api(libs.calf.io)
             implementation(libs.calf.file.picker)
             implementation(libs.calf.file.picker.coil)
             implementation(libs.okio)
@@ -152,6 +167,15 @@ kotlin {
             implementation(libs.ktor.client.mock)
             // Mock
             implementation(libs.mockito.junit.jupiter)
+        }
+
+        val androidMain by getting {
+            dependencies {
+                // Android preferences
+                implementation(libs.androidx.preference.ktx)
+                // Networking dependencies specific to Android
+                implementation(libs.ktor.client.android)
+            }
         }
 
         val iosMain by getting {
@@ -195,10 +219,14 @@ kotlin {
 }
 
 dependencies {
+    // For UI inspection in debug builds
+    androidRuntimeClasspath(libs.compose.ui.tooling)
+
     // KSP Configuration
     // For Koin, you generally want the KSP processor to run for each platform that needs to use the
     // generated Koin modules. However, the universal "ksp()" configuration has performance issues
     // and is deprecated on multiplatform since 1.0.1.
+    // androidApp still configures ksp with the normal "ksp()" call in its own build.gradle.kts.
 
     // This makes KSP process commonMain for metadata, useful if Koin generates common code/modules.
     add("kspCommonMainMetadata", libs.koin.ksp.compiler)
@@ -206,6 +234,7 @@ dependencies {
     // Add KSP for each platform if Koin generates platform-specific initializers
     // or if the commonMainMetadata isn't sufficient for platform consumption.
     // The configuration name is usually ksp<TargetName> or ksp<CapitalizedSourceSetName>
+    add("kspAndroid", libs.koin.ksp.compiler)
     add("kspDesktop", libs.koin.ksp.compiler)
 
     // For Apple targets (iOS, macOS, etc.), KSP configurations can be per-target

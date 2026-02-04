@@ -14,12 +14,9 @@ object JvmAppInfo : AppInfo {
         }
     }
 
-    override val appId: String
-        get() = properties.getProperty("app_id") ?: "com.truepineapps.photouploader"
+    override val appId = properties.getProperty("app_id") ?: "com.truepineapps.photouploader"
 
-    override val versionName: String
-        get() = properties.getProperty("version_name") ?: "0.0.1"
+    override val versionName = properties.getProperty("version_name") ?: "0.0.1"
 
-    override val versionCode: String
-        get() = properties.getProperty("version_code") ?: "0"
+    override val versionCode = properties.getProperty("version_code") ?: "0"
 }

@@ -28,15 +28,19 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
+import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.album_cover
 import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.photos_count
 import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.ui.util.Opacity
+import com.truepineapps.photouploader.util.UiTextString
+import okio.Path.Companion.toPath
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -171,7 +175,29 @@ fun AlbumCard(
 }
 
 @Composable
-fun PreviewAlbumCard(albumUiState: AlbumUiState) {
+fun PreviewAlbumCard(dummyKmpFile: KmpFile, withError: Boolean) {
+    val photoUiState = PhotoUiState(
+        kmpFile = dummyKmpFile,
+        path = "/home".toPath(),
+        name = "Test photo",
+        isEnabled = true,
+        isCoverPhoto = true,
+        mediaItemId = null,
+        uploadStatus = if (withError) UploadStatus.Error(UiTextString("Photo Error message")) else UploadStatus.None
+    )
+    val albumUiState = AlbumUiState(
+        id = "1",
+        name = "2026 - This is a Test album with a very long name",
+        kmpFile = dummyKmpFile,
+        path = "/home".toPath(),
+        group = "2026",
+        photoUiStates = emptyList(),
+        coverPhotoUiState = photoUiState,
+        isEnabled = true,
+        googleAlbumId = "",
+        uploadStatus = if (withError) UploadStatus.Error(UiTextString("Album Error message")) else UploadStatus.None
+    )
+
     AlbumCard(
         albumUiState = albumUiState,
         onAlbumClick = { },
