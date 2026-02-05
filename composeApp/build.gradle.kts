@@ -259,44 +259,28 @@ dependencies {
 //         "kspKotlinIosArm64",
 //         "kspKotlinIosSimulatorArm64",
 //     )
+// Since AGP 9.0, kspAndroidMain also exists.
 // For less maintenance when adding platforms, we examine if the task name matches a pattern.
 // This is done by name matching because accurately identifying these tasks by a common supertype
 // (e.g., with tasks.withType<SomeKspTask>()) proved unreliable due to Gradle's task decoration and
 // the specific class hierarchy of KSP tasks.
-tasks.matching { it.name.startsWith("ksp") }.configureEach {
-    // Now we know the name starts with "ksp".
-    // Log for clarity, showing the actual type.
-    project.logger.debug("Found potential KSP task (by name): ${this.name} of type ${this.javaClass.name}")
-
-    // 1. Exclude tasks that should NOT have this 'dependsOn' relationship.
-    //    'kspCommonMainKotlinMetadata' should not depend on itself.
-    //    '*ProcessorClasspath' tasks are for setting up class paths, not direct code generation consumed by other KSP tasks.
-    if (this.name == "kspCommonMainKotlinMetadata" || this.name.contains(
-            "ProcessorClasspath",
-            ignoreCase = true
-        )
-    ) {
-        project.logger.debug("Skipping task '${this.name}' (self or classpath task).")
-        return@configureEach // Exit this configuration block for the current task.
-    }
-
-    // 2. Define the patterns for the platform KSP tasks we want to target.
-    // Regex for typical Kotlin platform KSP tasks (JVM, Android, Native)
-    // e.g., kspKotlinDesktop, kspDebugKotlinAndroid, kspReleaseKotlinIosX64
-    val isKotlinPlatformKspTask =
-            this.name.matches(Regex("ksp([A-Z][a-zA-Z0-9]*)?Kotlin([A-Z][a-zA-Z0-9_]+)"))
-
-    // 3. If the current KSP task matches one of our platform patterns, add the dependency.
-    if (isKotlinPlatformKspTask) {
-        project.logger.info("Configuring task '${this.name}' (name match) to depend on 'kspCommonMainKotlinMetadata'")
-        this.dependsOn("kspCommonMainKotlinMetadata")
-    } else {
-        // This task started with "ksp" but didn't match the more specific platform patterns.
-        // This might include tasks like 'kspAARMetadataExtractor', etc., which are fine to ignore here.
-        project.logger.debug("Task '${this.name}' (name starts with ksp) did not match specific platform patterns for dependsOn.")
-    }
+tasks.matching { task ->
+    // 1. Ensure the task name starts with "ksp". This is the primary identifier.
+    task.name.startsWith("ksp") &&
+    // 2. Exclude the common metadata task itself.
+    task.name != "kspCommonMainKotlinMetadata" &&
+    // 3. Exclude KSP tasks related to classpath setup or internal KSP workings.
+    !task.name.contains("ProcessorClasspath", ignoreCase = true) &&
+    // 4. A more specific check to ensure it's likely a compilation task.
+    //    KSP tasks for compilations usually include the source set name (e.g., Main, Debug, Release).
+    //    This helps avoid random ksp-prefixed tasks that aren't related to compilation.
+    //    The most common pattern is ksp<SourceSetName> or ksp<Variant>Kotlin<Target>.
+    task.name.matches(Regex("ksp(Debug|Release)?(Kotlin)?(Android|Jvm|Ios.*|Desktop|Windows|Macos.*|Linux)?(Main)?"))
+}.configureEach {
+    // For all KSP tasks that match our criteria, add the dependency.
+    project.logger.info("Configuring task '${this.name}' (name match) to depend on 'kspCommonMainKotlinMetadata'")
+    dependsOn("kspCommonMainKotlinMetadata")
 }
-
 
 // 1. Define the task to generate the properties file
 compose.resources {
@@ -306,7 +290,7 @@ compose.resources {
     generateResClass = auto
 }
 
-// For debugging the build configuration: `.gradlew printKotlinDetails` shows the details of the
+// For debugging the build configuration: `./gradlew printKotlinDetails` shows the details of the
 // configuration defined here.
 tasks.register("printKotlinDetails") {
     doLast {
