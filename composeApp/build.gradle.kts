@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -114,14 +113,14 @@ kotlin {
             implementation(libs.compose.components.resources)
             implementation(libs.compose.ui.tooling.preview)
 
-            // Window size calculation
-            implementation(libs.compose.material3.window.size)
+            // Window size calculation, publish calculateWindowSizeClass on the API
+            api(libs.compose.material3.window.size)
 
             // Extended icons set
             implementation(libs.compose.material.icons.extended)
 
-            // Dependency injection
-            implementation(libs.koin.core)
+            // Dependency injection, let platforms define modules so expose that api
+            api(libs.koin.core)
             implementation(libs.koin.annotations)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
@@ -130,8 +129,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.bom)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
-            // Networking & Serialization
-            implementation(libs.ktor.client.core)
+            // Networking & Serialization, publish HttpClient on the API
+            api(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.websockets)
@@ -153,8 +152,8 @@ kotlin {
             // Images
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
-            // Logging
-            implementation(libs.kermit.core)
+            // Logging, add kermit logging to api
+            api(libs.kermit.core)
             implementation(libs.kermit.koin)
         }
         commonTest.dependencies {
@@ -197,11 +196,12 @@ kotlin {
 
         val desktopMain by getting {
             dependencies {
-                implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
+
                 // Networking & Serialization
                 // Choose lightweight CIO engine, if not sufficient move to OkHttp
                 implementation(libs.ktor.client.cio)
+
                 // Google Auth
                 implementation(libs.google.oauth.client.jetty)
                 implementation(libs.google.api.client)
@@ -297,39 +297,6 @@ tasks.matching { it.name.startsWith("ksp") }.configureEach {
     }
 }
 
-compose.desktop {
-    application {
-        mainClass = "com.truepineapps.photouploader.MainKt"
-        description = "Upload a photo collection organized in folders to Google Photo"
-
-        // Explicitly link to your custom "desktop" JVM target
-        from(kotlin.targets.getByName("desktop"))
-
-        buildTypes.release.proguard {
-            version.set("7.5.0")
-            configurationFiles.from("proguard-rules.pro")
-        }
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.truepineapps.photouploader"
-            packageVersion = "1.0.0"
-
-            linux {
-                iconFile.set(project.file("src/desktop/resources/desktopicon.png"))
-            }
-            macOS {
-                iconFile.set(project.file("src/desktop/resources/desktopicon.icns"))
-            }
-            windows {
-                iconFile.set(project.file("src/desktop/resources/desktopicon.ico"))
-                menuGroup = "Photo Uploader"
-                upgradeUuid = "34B4CD27-5D7A-4396-9172-CC11157BECC6"
-            }
-
-        }
-    }
-}
 
 // 1. Define the task to generate the properties file
 compose.resources {
