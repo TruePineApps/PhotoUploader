@@ -15,6 +15,7 @@ import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
 import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -171,6 +172,79 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         }
     }
 
+    @Test
+    fun `toggleGroup correctly updates isEnabled state for the group and its albums`() = runTest {
+        val viewModel: PhotoUploaderViewModel by inject()
+        val repository: PhotoDirectoryRepository by inject()
+
+        // Create albums across two groups
+        val albums = listOf(
+            createDummyAlbum(id = "albumA1", group = "Year 2023"),
+            createDummyAlbum(id = "albumA2", group = "Year 2023"),
+            createDummyAlbum(id = "albumB1", group = "Year 2024")
+        )
+
+        viewModel.uiState.test {
+            // Consume initial empty state
+            assertEquals(emptyList(), awaitItem().albumUiStates)
+
+            // Trigger repository update
+            repository.updateAlbums(albums)
+            // Consume the first state update where albums and groups are populated
+            val initialState = awaitItem()
+            assertGroupAndAlbumStates(
+                initialState,
+                expected2023GroupEnabled = true,
+                expectedAlbumA1Enabled = true,
+                expectedAlbumA2Enabled = true
+            )
+
+            // --- Test 1: Toggle 'Year 2023' to disabled ---
+            val targetGroup = initialState.groupUiStates.find { it.group == "Year 2023" }!!
+            viewModel.toggleGroup(targetGroup, isEnabled = false)
+
+            val disabledGroupState = awaitItem() // State after toggling group "Year 2023" to false
+            assertGroupAndAlbumStates(
+                disabledGroupState,
+                expected2023GroupEnabled = false,
+                expectedAlbumA1Enabled = false,
+                expectedAlbumA2Enabled = false
+            )
+
+            // --- Test 2: Toggle 'Year 2023' back to enabled ---
+            viewModel.toggleGroup(targetGroup, isEnabled = true)
+
+            val enabledGroupState = awaitItem() // State after toggling group "Year 2023" back to true
+            assertGroupAndAlbumStates(
+                enabledGroupState,
+                expected2023GroupEnabled = true,
+                expectedAlbumA1Enabled = true,
+                expectedAlbumA2Enabled = true
+            )
+        }    }
+
+    private fun assertGroupAndAlbumStates(
+        state: UiState,
+        expected2023GroupEnabled: Boolean,
+        expectedAlbumA1Enabled: Boolean,
+        expectedAlbumA2Enabled: Boolean
+    ) {
+        val group2023 = state.groupUiStates.find { it.group == "Year 2023" }
+        val group2024 = state.groupUiStates.find { it.group == "Year 2024" }
+        val albumA1 = state.albumUiStates.find { it.id == "albumA1" }
+        val albumA2 = state.albumUiStates.find { it.id == "albumA2" }
+        val albumB1 = state.albumUiStates.find { it.id == "albumB1" }
+
+        // Assert group states
+        assertEquals(expected2023GroupEnabled, group2023?.isEnabled, "Group 'Year 2023' enabled state mismatch")
+        assertEquals(true, group2024?.isEnabled, "Group 'Year 2024' enabled state mismatch")
+
+        // Assert album states
+        assertEquals(expectedAlbumA1Enabled, albumA1?.isEnabled, "Album 'albumA1' enabled state mismatch")
+        assertEquals(expectedAlbumA2Enabled, albumA2?.isEnabled, "Album 'albumA2' enabled state mismatch")
+        assertEquals(true, albumB1?.isEnabled, "Album 'albumB1' enabled state mismatch")
+    }
+
     // Helper functions to create test data
     private fun createDummyPhoto(path: String) = Photo(
         kmpFile = createTestKmpFile(path),
@@ -181,13 +255,14 @@ class PhotoUploaderViewModelStateTest : KoinTest {
     private fun createDummyAlbum(
         id: String,
         name: String = "Test Album",
+        group: String = "Default Group",
         photos: List<Photo> = listOf(createDummyPhoto(path = "/$id/p1")),
     ) = Album(
         id = id,
         kmpFile = createTestKmpFile("/$id"),
         path = "/$id".toPath(),
         name = name,
-        group = "Test Group",
+        group = group,
         photos = photos,
     )
 }

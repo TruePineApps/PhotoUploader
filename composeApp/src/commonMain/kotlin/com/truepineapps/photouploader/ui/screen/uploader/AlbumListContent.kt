@@ -18,11 +18,6 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,26 +28,27 @@ import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.screen.uploader.components.AlbumCard
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
 import com.truepineapps.photouploader.ui.util.Opacity
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlbumListContent(
-    albumUiStates: List<AlbumUiState>,
+    groupUiStates: List<GroupUiState>,
     onAlbumClick: (AlbumUiState) -> Unit,
     onAlbumToggle: (String) -> Unit,
-    onAlbumGroupToggle: (List<AlbumUiState>, Boolean) -> Unit,
     onAlbumRename: (String, String) -> Unit,
+    onAlbumGroupToggle: (GroupUiState, Boolean) -> Unit,
+    onAlbumGroupExpanded: (GroupUiState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val groupedAlbums = albumUiStates.groupBy { it.group }
-    val expansionState = remember { mutableStateMapOf<String, Boolean>() }
-
     LazyColumn(modifier = modifier.fillMaxSize()) {
-        groupedAlbums.forEach { (group, albumsInGroup) ->
+        groupUiStates.forEach { groupUiState ->
+            val group = groupUiState.group
+            val albumsInGroup = groupUiState.albumsInGroup
+            val isExpanded = groupUiState.isExpanded
             stickyHeader(key = group) {
-                var isChecked by remember(group) { mutableStateOf(true) }
-                val isExpanded = expansionState[group] ?: true
+                val isChecked = groupUiState.isEnabled
 
                 Row(
                     modifier = Modifier
@@ -64,9 +60,8 @@ fun AlbumListContent(
                 ) {
                     Checkbox(
                         checked = isChecked,
-                        onCheckedChange = { checked ->
-                            isChecked = checked
-                            onAlbumGroupToggle(albumsInGroup, checked)
+                        onCheckedChange = { newChecked ->
+                            onAlbumGroupToggle(groupUiState, newChecked)
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -81,7 +76,7 @@ fun AlbumListContent(
                         modifier = Modifier.weight(1f)
                     )
                     ThemedIconButton(
-                        onClick = { expansionState[group] = !isExpanded },
+                        onClick = { onAlbumGroupExpanded(groupUiState) },
                         imageVector = if (isExpanded) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,
                         contentDescriptionResource = if (isExpanded) Res.string.collapse_album else Res.string.expand_album,
                         enabled = true
@@ -90,7 +85,7 @@ fun AlbumListContent(
                 Spacer(modifier = Modifier.height(Dimensions.padding_minimum))
             }
 
-            if (expansionState[group] ?: true) {
+            if (isExpanded) {
                 items(albumsInGroup, key = { it.id }) { album ->
                     AlbumCard(
                         albumUiState = album,

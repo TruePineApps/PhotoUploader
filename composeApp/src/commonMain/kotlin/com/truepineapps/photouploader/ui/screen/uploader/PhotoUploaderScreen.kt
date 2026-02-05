@@ -59,11 +59,12 @@ fun PhotoUploaderScreen(
                 )
             } else if (uiState.albumUiStates.isNotEmpty()) {
                 AlbumListContent(
-                    albumUiStates = uiState.albumUiStates,
+                    groupUiStates = uiState.groupUiStates,
                     onAlbumClick = { album -> navigateToPhotos(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
-                    onAlbumGroupToggle = viewModel::toggleAlbums,
                     onAlbumRename = viewModel::renameAlbum,
+                    onAlbumGroupToggle = viewModel::toggleGroup,
+                    onAlbumGroupExpanded = viewModel::toggleGroupExpanded,
                     modifier = Modifier.fillMaxSize()
                 )
             }

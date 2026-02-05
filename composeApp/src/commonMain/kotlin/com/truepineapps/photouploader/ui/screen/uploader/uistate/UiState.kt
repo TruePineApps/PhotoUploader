@@ -6,6 +6,7 @@ import com.truepineapps.photouploader.util.UiText
 data class UiState(
     val viewState: ViewState = ViewState(),
     val albumUiStates: List<AlbumUiState> = emptyList(),
+    val groupUiStates: List<GroupUiState> = emptyList(),
 ) {
     val userProfile: UserProfile? get() = viewState.userProfile
     val isAuthenticated: Boolean get() = viewState.isAuthenticated

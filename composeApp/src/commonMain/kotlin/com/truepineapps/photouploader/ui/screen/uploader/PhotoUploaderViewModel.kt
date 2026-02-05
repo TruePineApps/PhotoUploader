@@ -23,6 +23,7 @@ import com.truepineapps.photouploader.resources.error_unknown
 import com.truepineapps.photouploader.resources.session_expired
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AppStatus
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.ViewState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.toAlbumUiState
@@ -53,12 +54,28 @@ class PhotoUploaderViewModel(
 
     private val _viewState = MutableStateFlow(ViewState())
     private val _albumUiStates = MutableStateFlow(emptyList<AlbumUiState>())
+    private val _groupUiStates = MutableStateFlow(emptyList<GroupUiState>())
 
     val uiState: StateFlow<UiState> = combine(
-        _viewState, _albumUiStates
-    ) { viewState, albumUiStates ->
-        log.d("Updating uiState, album size: ${albumUiStates.size}")
-        UiState(viewState, albumUiStates)
+        _viewState, _albumUiStates, _groupUiStates
+    ) { viewState, albumUiStates, groupUiStates ->
+        log.d("Updating uiState, album size: ${albumUiStates.size}, group size: ${groupUiStates.size}")
+
+        // Reconstruct GroupUiStates to always contain the latest AlbumUiState list
+        // and merge with the stored group-specific properties (isExpanded, isEnabled).
+        val groupedAlbumsMap = albumUiStates.groupBy { it.group }
+        val currentGroupUiStates = groupedAlbumsMap
+            .map { (groupName, currentAlbumsInGroup) ->
+                val existingGroupState = groupUiStates.find { it.group == groupName }
+                GroupUiState(
+                    group = groupName,
+                    albumsInGroup = currentAlbumsInGroup,
+                    isEnabled = existingGroupState?.isEnabled ?: true,
+                    isExpanded = existingGroupState?.isExpanded ?: true
+                )
+            }.sortedBy { it.group } // Optional: ensure stable order for display
+
+        UiState(viewState, albumUiStates, currentGroupUiStates)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
@@ -72,7 +89,17 @@ class PhotoUploaderViewModel(
         repository.albums
             .onEach { albumsData ->
                 log.d("Updating albums, size: ${albumsData.size}")
-                _albumUiStates.update { albumsData.map { it.toAlbumUiState() } }
+                val newAlbumUiStates = albumsData.map { it.toAlbumUiState() }
+                _albumUiStates.update { newAlbumUiStates }
+
+                // When new repository data comes in, the user selected a different folder, so the
+                // group settings no longer apply. Updating the albums is done when creating the UiState
+                val newGroupNames = newAlbumUiStates.map { it.group }.distinct()
+                _groupUiStates.update {
+                    newGroupNames
+                        .map { group -> GroupUiState(group) }
+                        .sortedBy { it.group }
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -196,17 +223,37 @@ class PhotoUploaderViewModel(
         updateAlbum(albumId) { album -> album.copy(isEnabled = !album.isEnabled) }
     }
 
+    fun toggleGroupExpanded(groupUiState: GroupUiState) {
+        _groupUiStates.update { currentGroupStates ->
+            currentGroupStates.map {
+                if (it.group == groupUiState.group) it.copy(isExpanded = !it.isExpanded) else it
+            }
+        }
+    }
+
+    fun toggleGroup(groupUiState: GroupUiState, isEnabled: Boolean) {
+        _groupUiStates.update { currentGroupStates ->
+            currentGroupStates.map {
+                if (it.group == groupUiState.group) it.copy(isEnabled = isEnabled) else it
+            }
+        }
+        toggleAlbums(groupUiState.albumsInGroup, isEnabled)
+    }
+
     fun toggleAlbums(albumUiStates: List<AlbumUiState>, isEnabled: Boolean) {
         val albumIdsToUpdate = albumUiStates.map { it.id }.toSet()
+        var isUpdated = false
         _albumUiStates.update { currentAlbums ->
             currentAlbums.map { album ->
                 if (album.id in albumIdsToUpdate) {
+                    isUpdated = true
                     album.copy(isEnabled = isEnabled)
                 } else {
                     album
                 }
             }
         }
+        log.d { "toggleAlbums updated: $isUpdated" }
     }
 
     fun togglePhoto(albumId: String, photoPath: Path) {
@@ -582,7 +629,10 @@ class PhotoUploaderViewModel(
             if (index != -1 && index < results.size) {
                 val mediaResult = results[index]
                 if (mediaResult.isSuccess() && mediaResult.mediaItem != null) {
-                    p.copy(mediaItemId = mediaResult.mediaItem.id, uploadStatus = UploadStatus.Success)
+                    p.copy(
+                        mediaItemId = mediaResult.mediaItem.id,
+                        uploadStatus = UploadStatus.Success
+                    )
                 } else {
                     log.e { "updatePhotoWithResult:       ERROR: Failed to add '${p.name}' to album '${currentAlbumUiState.name}'" }
                     val errorString = mediaResult.status.toString()
