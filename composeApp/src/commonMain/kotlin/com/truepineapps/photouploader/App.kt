@@ -13,9 +13,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,15 +50,11 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun App(
-    windowClass: WindowSizeClass,
     modifier: Modifier = Modifier,
     startDestination: String = PhotoUploaderDestination.route,
 ) {
-    val isHorizontalLayout = windowClass.widthSizeClass != WindowWidthSizeClass.Compact
-
     // Configure the Coil image loader for KmpFile and using max 25% of avail memory for thumbnails
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
@@ -79,7 +72,6 @@ fun App(
         AppEnvironment(localeViewModel = koinInject()) {
             ThemedLocalizedApp(
                 startDestination = startDestination,
-                isHorizontalLayout = isHorizontalLayout,
                 modifier = modifier
             )
         }
@@ -90,7 +82,6 @@ fun App(
 @Composable
 private fun ThemedLocalizedApp(
     startDestination: String,
-    isHorizontalLayout: Boolean,
     modifier: Modifier = Modifier,
     filePicker: PlatformPicker = koinInject(),
     log: Logger = koinInject(),
@@ -176,7 +167,7 @@ private fun ThemedLocalizedApp(
                 showDirPicker = showDirPickerAction,
                 scrollBehavior = scrollBehavior,
                 actions = actions.value,
-                viewModel = viewModel
+                viewModel = viewModel,
             )
         },
     ) { innerPadding ->
@@ -187,7 +178,6 @@ private fun ThemedLocalizedApp(
         ) {
             PhotoUploaderAppNavHost(
                 navController = navController,
-                isHorizontalLayout = isHorizontalLayout,
                 onUpdateTopAppBar = { newTitle, newCloseDialog, newActions ->
                     title = newTitle
                     closeAction.value = newCloseDialog ?: defaultCloseAction
@@ -209,4 +199,5 @@ private fun ThemedLocalizedApp(
             }
         }
     }
+
 }

@@ -9,6 +9,7 @@ data class ViewState(
     val status: AppStatus = AppStatus.IDLE,
     private val kmpFile: KmpFile? = null,
     val path: String = "",
+    val selectedAlbumId: String? = null,
     val globalErrorMessage: UiText? = null,
 ) {
     val isAuthenticated = userProfile != null

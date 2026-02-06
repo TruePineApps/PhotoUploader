@@ -219,6 +219,10 @@ class PhotoUploaderViewModel(
         }
     }
 
+    fun updateSelectedAlbum(id: String) {
+        _viewState.update { it.copy(selectedAlbumId = id) }
+    }
+
     fun toggleAlbum(albumId: String) {
         updateAlbum(albumId) { album -> album.copy(isEnabled = !album.isEnabled) }
     }
@@ -729,6 +733,7 @@ class PhotoUploaderViewModel(
                 updatedAlbum
         }
     }
+
 }
 
 /**

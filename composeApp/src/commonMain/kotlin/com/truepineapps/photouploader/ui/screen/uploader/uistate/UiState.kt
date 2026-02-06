@@ -14,6 +14,7 @@ data class UiState(
     val isSigningIn: Boolean get() = viewState.status == AppStatus.SIGNING_IN
     val isUploading: Boolean get() = viewState.status == AppStatus.UPLOADING
     val path: String get() = viewState.path
+    val selectedAlbumId get() = viewState.selectedAlbumId
     val globalErrorMessage: UiText? get() = viewState.globalErrorMessage
 
     fun busy() = viewState.status != AppStatus.IDLE

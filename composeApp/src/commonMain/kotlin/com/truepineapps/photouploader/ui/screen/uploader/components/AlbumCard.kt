@@ -38,6 +38,7 @@ import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
+import com.truepineapps.photouploader.ui.theme.LightPalette
 import com.truepineapps.photouploader.ui.util.Opacity
 import com.truepineapps.photouploader.util.UiTextString
 import okio.Path.Companion.toPath
@@ -50,6 +51,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AlbumCard(
     albumUiState: AlbumUiState,
+    isSelected: Boolean,
     onAlbumClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
     onNameChange: (String) -> Unit,
@@ -57,6 +59,17 @@ fun AlbumCard(
 ) {
     val isEditable = albumUiState.uploadStatus is UploadStatus.None || albumUiState.uploadStatus.isFinal
 
+    val cardColors = if (isSelected) {
+        CardDefaults.cardColors(
+            containerColor = LightPalette.Primary70,
+            contentColor = MaterialTheme.colorScheme.scrim
+        )
+    } else {
+        CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -68,10 +81,7 @@ fun AlbumCard(
                 else
                     Opacity.DISABLED.value
             ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        )
+        colors = cardColors
     ) {
         Column(
             verticalArrangement = Arrangement.Top,
@@ -140,11 +150,11 @@ fun AlbumCard(
                         enabled = isEditable,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            unfocusedContainerColor = cardColors.containerColor,
+                            disabledContainerColor = cardColors.containerColor,
                             focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            disabledTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedTextColor = cardColors.contentColor,
+                            disabledTextColor = cardColors.contentColor,
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -200,6 +210,7 @@ fun PreviewAlbumCard(dummyKmpFile: KmpFile, withError: Boolean) {
 
     AlbumCard(
         albumUiState = albumUiState,
+        isSelected = false,
         onAlbumClick = { },
         onCheckedChange = { },
         onNameChange = { },

@@ -1,18 +1,15 @@
 package com.truepineapps.photouploader
 
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.di.initKoin
 import com.truepineapps.photouploader.ui.DesktopPlatformPicker
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
+import io.ktor.client.HttpClient
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
-import io.ktor.client.HttpClient
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 fun main() = application {
     val koinApp = initKoin(isPickerDefined = true) {
         // Pass the desktop directory picker
@@ -35,7 +32,6 @@ fun main() = application {
         },
         title = "PhotoUploader",
     ) {
-        val windowClass = calculateWindowSizeClass()
-        App(windowClass)
+        App()
     }
 }

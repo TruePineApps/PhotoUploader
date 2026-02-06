@@ -135,12 +135,13 @@ class PhotoDirectoryRepository(
 
         // 3. Create an Album if there are photos
         if (photoFiles.isNotEmpty()) {
+            val albumPath = platformFileSystem.getPath(currentDir, currentContext) ?: ""
             albums.add(
                 Album(
                     // Replace slashes for navigation
-                    id = (platformFileSystem.getPath(currentDir, currentContext) ?: "").replace("/", "|"),
+                    id = albumPath.replace("/", "|"),
                     kmpFile = currentDir,
-                    path = (platformFileSystem.getPath(currentDir, currentContext) ?: "").toPath(),
+                    path = albumPath.toPath(),
                     name = albumName,
                     group = groupName,
                     photos = photoFiles,

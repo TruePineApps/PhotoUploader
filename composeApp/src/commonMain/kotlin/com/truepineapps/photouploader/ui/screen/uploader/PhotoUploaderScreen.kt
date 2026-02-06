@@ -2,7 +2,9 @@ package com.truepineapps.photouploader.ui.screen.uploader
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.app_name
 import com.truepineapps.photouploader.resources.photo_uploader
@@ -24,6 +27,8 @@ import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
 import com.truepineapps.photouploader.ui.screen.LoadingScreen
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
+import com.truepineapps.photouploader.ui.util.isExpandedWidth
 import org.jetbrains.compose.resources.stringResource
 
 object PhotoUploaderDestination : NavigationDestination {
@@ -33,7 +38,6 @@ object PhotoUploaderDestination : NavigationDestination {
 
 @Composable
 fun PhotoUploaderScreen(
-    isHorizontalLayout: Boolean,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
     navigateToPhotos: (String) -> Unit,
@@ -58,17 +62,70 @@ fun PhotoUploaderScreen(
                     modifier = modifier.fillMaxSize()
                 )
             } else if (uiState.albumUiStates.isNotEmpty()) {
+                BoxWithConstraints {
+                    FolderContent(
+                        uiState = uiState,
+                        isHorizontalLayout = isExpandedWidth(maxWidth),
+                        navigateToPhotos = navigateToPhotos,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FolderContent(
+    uiState: UiState,
+    isHorizontalLayout: Boolean,
+    navigateToPhotos: (String) -> Unit,
+    viewModel: PhotoUploaderViewModel,
+    modifier: Modifier = Modifier
+){
+    val albumIdToShow = uiState.selectedAlbumId ?: uiState.albumUiStates.first().id
+    if (isHorizontalLayout) {
+        Logger.d("FolderContent: Horizontal layout")
+        Row(
+            modifier = modifier
+                .padding(Dimensions.padding_small)
+        ) {
+            Box(modifier = Modifier.weight(0.5f)) {
                 AlbumListContent(
                     groupUiStates = uiState.groupUiStates,
-                    onAlbumClick = { album -> navigateToPhotos(album.id) },
+                    selectedAlbumId = albumIdToShow,
+                    onAlbumClick = { album -> viewModel.updateSelectedAlbum(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
                     onAlbumRename = viewModel::renameAlbum,
                     onAlbumGroupToggle = viewModel::toggleGroup,
                     onAlbumGroupExpanded = viewModel::toggleGroupExpanded,
-                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Box(modifier = Modifier.weight(0.5f)) {
+                PhotoListScreen(
+                    albumId = albumIdToShow,
+                    onUpdateTopAppBar = null,
+                    onBackClick = { },
+                    viewModel = viewModel,
                 )
             }
         }
+    } else {
+        Logger.d("FolderContent: Compact layout")
+        AlbumListContent(
+            groupUiStates = uiState.groupUiStates,
+            selectedAlbumId = albumIdToShow,
+            onAlbumClick = { album ->
+                viewModel.updateSelectedAlbum(album.id)
+                navigateToPhotos(album.id)
+            },
+            onAlbumToggle = viewModel::toggleAlbum,
+            onAlbumRename = viewModel::renameAlbum,
+            onAlbumGroupToggle = viewModel::toggleGroup,
+            onAlbumGroupExpanded = viewModel::toggleGroupExpanded,
+            modifier = modifier
+        )
     }
 }
 

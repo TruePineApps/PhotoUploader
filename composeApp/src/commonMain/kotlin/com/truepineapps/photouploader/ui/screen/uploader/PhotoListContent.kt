@@ -1,7 +1,6 @@
 package com.truepineapps.photouploader.ui.screen.uploader
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,10 +9,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.screen.uploader.components.PhotoCard
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import okio.Path
 
 object PhotoListDestination {
@@ -24,7 +23,7 @@ object PhotoListDestination {
 @Composable
 fun PhotoListScreen(
     albumId: String?,
-    onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
+    onUpdateTopAppBar: ((title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit)?,
     onBackClick: () -> Unit,
     viewModel: PhotoUploaderViewModel,
     modifier: Modifier = Modifier,
@@ -50,20 +49,20 @@ fun PhotoListScreen(
 @Composable
 fun PhotoListContent(
     albumUiState: AlbumUiState,
-    onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
+    onUpdateTopAppBar: ((title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit)?,
     onPhotoToggle: (Path) -> Unit,
     onCoverPhotoChange: (PhotoUiState) -> Unit,
     onPhotoNameChange: (PhotoUiState, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Update the main TopAppBar with the album name and a back action
-    LaunchedEffect(albumUiState.name) {
-        onUpdateTopAppBar(albumUiState.name, null) {}
+    // When single screen, update the main TopAppBar with the album name and a back action
+    if (onUpdateTopAppBar != null) {
+        LaunchedEffect(albumUiState.name) {
+            onUpdateTopAppBar(albumUiState.name, null) {}
+        }
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize()
-    ) {
+    LazyColumn(modifier = modifier) {
         items(albumUiState.photoUiStates, key = { it.path.toString() }) { photo ->
             PhotoCard(
                 photoUiState = photo,

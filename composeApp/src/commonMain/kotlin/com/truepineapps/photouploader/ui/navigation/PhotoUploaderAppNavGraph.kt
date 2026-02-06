@@ -37,7 +37,6 @@ import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
 @Composable
 fun PhotoUploaderAppNavHost(
     navController: NavHostController,
-    isHorizontalLayout: Boolean,
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
     viewModel: PhotoUploaderViewModel,
@@ -50,10 +49,9 @@ fun PhotoUploaderAppNavHost(
         /* Photo Uploader Screens */
         composable(route = PhotoUploaderDestination.route) {
             PhotoUploaderScreen(
-                isHorizontalLayout = isHorizontalLayout,
                 onUpdateTopAppBar = onUpdateTopAppBar,
                 showDirPicker = showDirPicker,
-                navigateToPhotos = { albumId -> 
+                navigateToPhotos = { albumId ->
                     navController.navigate("${PhotoListDestination.route}/$albumId")
                 },
                 viewModel = viewModel,

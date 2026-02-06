@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,13 +20,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.screen.uploader.components.AlbumCard
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
 import com.truepineapps.photouploader.ui.util.Opacity
 
@@ -35,6 +34,7 @@ import com.truepineapps.photouploader.ui.util.Opacity
 @Composable
 fun AlbumListContent(
     groupUiStates: List<GroupUiState>,
+    selectedAlbumId: String,
     onAlbumClick: (AlbumUiState) -> Unit,
     onAlbumToggle: (String) -> Unit,
     onAlbumRename: (String, String) -> Unit,
@@ -42,7 +42,7 @@ fun AlbumListContent(
     onAlbumGroupExpanded: (GroupUiState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
+    LazyColumn(modifier = modifier) {
         groupUiStates.forEach { groupUiState ->
             val group = groupUiState.group
             val albumsInGroup = groupUiState.albumsInGroup
@@ -89,6 +89,7 @@ fun AlbumListContent(
                 items(albumsInGroup, key = { it.id }) { album ->
                     AlbumCard(
                         albumUiState = album,
+                        isSelected = (selectedAlbumId == album.id),
                         onAlbumClick = { onAlbumClick(album) },
                         onCheckedChange = { onAlbumToggle(album.id) },
                         onNameChange = { newName -> onAlbumRename(album.id, newName) },
