@@ -9,12 +9,12 @@ data class PhotoUiState(
     val path: Path,
     /** File name */
     val name: String,
-    val isEnabled: Boolean = true,
+    override val isEnabled: Boolean = true,
     val isCoverPhoto: Boolean = false,
     /** Google Photo ID after upload */
     val mediaItemId: String? = null,
-    val uploadStatus: UploadStatus = UploadStatus.None,
-) {
+    override val uploadStatus: UploadStatus = UploadStatus.None,
+) : UploadUiState (uploadStatus, isEnabled) {
     /** File name without extension */
     fun getDisplayName(): String {
         // Safe filename parsing

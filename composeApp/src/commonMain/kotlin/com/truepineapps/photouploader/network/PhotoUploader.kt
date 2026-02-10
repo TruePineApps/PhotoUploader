@@ -37,6 +37,8 @@ import org.koin.core.component.inject
 // Google Photos API allows up to 50 items per batch
 private const val GOOGLE_PHOTO_BATCH_SIZE = 50
 
+private const val BUFFER_SIZE = 8192L
+
 class PhotoUploader(
     val accessToken: String,
     val context: PlatformContext,
@@ -169,7 +171,7 @@ class PhotoUploader(
                     platformFileSystem.source(kmpFile, context).use { source ->
                         val buffer = Buffer()
                         while (true) {
-                            val bytesRead = source.read(buffer, 8192)
+                            val bytesRead = source.read(buffer, BUFFER_SIZE)
                             if (bytesRead == -1L) break
                             channel.writeFully(buffer.readByteArray())
                         }

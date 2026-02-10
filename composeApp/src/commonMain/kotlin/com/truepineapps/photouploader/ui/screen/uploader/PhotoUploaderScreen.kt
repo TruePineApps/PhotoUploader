@@ -95,6 +95,7 @@ fun FolderContent(
                 AlbumListContent(
                     groupUiStates = uiState.groupUiStates,
                     selectedAlbumId = albumIdToShow,
+                    isUploading = uiState.isUploading,
                     onAlbumClick = { album -> viewModel.updateSelectedAlbum(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
                     onAlbumRename = viewModel::renameAlbum,
@@ -116,6 +117,7 @@ fun FolderContent(
         AlbumListContent(
             groupUiStates = uiState.groupUiStates,
             selectedAlbumId = albumIdToShow,
+            isUploading = uiState.isUploading,
             onAlbumClick = { album ->
                 viewModel.updateSelectedAlbum(album.id)
                 navigateToPhotos(album.id)

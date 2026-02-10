@@ -26,6 +26,7 @@ import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.screen.uploader.components.AlbumCard
+import com.truepineapps.photouploader.ui.screen.uploader.components.UploadStatusIndicator
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
 import com.truepineapps.photouploader.ui.util.Opacity
@@ -35,6 +36,7 @@ import com.truepineapps.photouploader.ui.util.Opacity
 fun AlbumListContent(
     groupUiStates: List<GroupUiState>,
     selectedAlbumId: String,
+    isUploading: Boolean,
     onAlbumClick: (AlbumUiState) -> Unit,
     onAlbumToggle: (String) -> Unit,
     onAlbumRename: (String, String) -> Unit,
@@ -48,7 +50,6 @@ fun AlbumListContent(
             val albumsInGroup = groupUiState.albumsInGroup
             val isExpanded = groupUiState.isExpanded
             stickyHeader(key = group) {
-                val isChecked = groupUiState.isEnabled
 
                 Row(
                     modifier = Modifier
@@ -59,7 +60,7 @@ fun AlbumListContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = isChecked,
+                        checked = groupUiState.isEnabled,
                         onCheckedChange = { newChecked ->
                             onAlbumGroupToggle(groupUiState, newChecked)
                         },
@@ -75,6 +76,14 @@ fun AlbumListContent(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.weight(1f)
                     )
+                    // Status Icon and status description
+                    UploadStatusIndicator(
+                        uploadStatus = groupUiState.uploadStatus,
+                        isAlbum = true,
+                        isEnabled = groupUiState.isEnabled,
+                        modifier = Modifier.padding(start = Dimensions.padding_small)
+                    )
+                    // Collapse/Expand button
                     ThemedIconButton(
                         onClick = { onAlbumGroupExpanded(groupUiState) },
                         imageVector = if (isExpanded) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,

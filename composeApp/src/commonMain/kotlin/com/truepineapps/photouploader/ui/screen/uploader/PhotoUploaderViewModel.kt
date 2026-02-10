@@ -67,13 +67,11 @@ class PhotoUploaderViewModel(
         val currentGroupUiStates = groupedAlbumsMap
             .map { (groupName, currentAlbumsInGroup) ->
                 val existingGroupState = groupUiStates.find { it.group == groupName }
-                GroupUiState(
+                existingGroupState?.copyWithDerivedStatus(
                     group = groupName,
-                    albumsInGroup = currentAlbumsInGroup,
-                    isEnabled = existingGroupState?.isEnabled ?: true,
-                    isExpanded = existingGroupState?.isExpanded ?: true
-                )
-            }.sortedBy { it.group } // Optional: ensure stable order for display
+                    albumsInGroup = currentAlbumsInGroup
+                ) ?: GroupUiState(group = groupName, albumsInGroup = currentAlbumsInGroup)
+            }.sortedBy { it.group } // Ensure stable order for display
 
         UiState(viewState, albumUiStates, currentGroupUiStates)
     }.stateIn(
