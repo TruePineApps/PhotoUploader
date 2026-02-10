@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.ui.screen.uploader
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -110,35 +111,25 @@ private fun PhotoListContent(
             return@LaunchedEffect
         }
 
-        // Only count items that are significantly visible to determine the row before last.
+        // Only count the last item if it is significantly visible to determine the row before last.
         val viewportHeight = lazyListState.layoutInfo.viewportEndOffset
-        val significantlyVisibleItems =
-                lazyListState.layoutInfo.visibleItemsInfo.filter { itemInfo ->
-                    val itemHeight = itemInfo.size
-                    val itemOffset = itemInfo.offset
-
-                    val visibleStart = max(itemOffset, 0)
-                    val visibleEnd = min(itemOffset + itemHeight, viewportHeight)
-                    val visibleHeight = max(0, visibleEnd - visibleStart)
-
-                    // Threshold: at least 50% visible
-                    visibleHeight >= itemHeight * 0.5f
-                }
-        val itemsOnScreenCount =
-                significantlyVisibleItems.size.coerceAtLeast(1) // Use count of significantly visible items
+        val lastVisibleItem =
+                lazyListState.layoutInfo.visibleItemsInfo.lastOrNull() ?: return@LaunchedEffect
+        val lastVisibleItemCount = if (isSignificantlyVisible(lastVisibleItem, viewportHeight)) 0 else -1
+        val itemsOnScreenCount = max(1, lazyListState.layoutInfo.visibleItemsInfo.size + lastVisibleItemCount)
 
         // Calculate the desired 'firstVisibleItemIndex' to achieve the 'one before last' layout for the uploading photo.
         val desiredFirstVisibleItemIndex =
-                if (currentLastUploadingPhotoIndex < itemsOnScreenCount - 1) {
-                    // Case: Uploading photo is near the beginning. Scroll to top.
-                    0
-                } else if (currentLastUploadingPhotoIndex >= totalPhotos - itemsOnScreenCount) {
-                    // Case: Uploading photo is near the end. Scroll to show the last `itemsOnScreen` items.
-                    totalPhotos - itemsOnScreenCount
-                } else {
-                    // Case: Uploading photo is in the middle. Place it as the second-to-last visible item.
-                    max(0, currentLastUploadingPhotoIndex - (itemsOnScreenCount - 2))
-                }
+            if (currentLastUploadingPhotoIndex < itemsOnScreenCount - 1) {
+                // Case: Uploading photo is near the beginning. Scroll to top.
+                0
+            } else if (currentLastUploadingPhotoIndex >= totalPhotos - itemsOnScreenCount) {
+                // Case: Uploading photo is near the end. Scroll to show the last `itemsOnScreen` items.
+                totalPhotos - itemsOnScreenCount
+            } else {
+                // Case: Uploading photo is in the middle. Place it as the one-to-last visible item.
+                max(0, currentLastUploadingPhotoIndex - (itemsOnScreenCount - 2))
+            }
 
         // Do not scroll if the user scrolled manually; continue when the desired position is
         // the same as the current position.
@@ -178,4 +169,20 @@ private fun PhotoListContent(
             )
         }
     }
+}
+
+private fun isSignificantlyVisible(
+    itemInfo: LazyListItemInfo,
+    viewportHeight: Int,
+    threshold: Float = 0.5f
+): Boolean {
+    val itemHeight = itemInfo.size
+    val itemOffset = itemInfo.offset
+
+    val visibleStart = max(itemOffset, 0)
+    val visibleEnd = min(itemOffset + itemHeight, viewportHeight)
+    val visibleHeight = max(0, visibleEnd - visibleStart)
+
+    // Threshold: at least 50% visible
+    return visibleHeight >= itemHeight * threshold
 }
