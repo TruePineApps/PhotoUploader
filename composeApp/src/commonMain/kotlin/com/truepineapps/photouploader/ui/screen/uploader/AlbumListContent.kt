@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.UnfoldMore
@@ -26,10 +27,12 @@ import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.screen.uploader.components.AlbumCard
+import com.truepineapps.photouploader.ui.screen.uploader.components.ScrollLoadingInView
 import com.truepineapps.photouploader.ui.screen.uploader.components.UploadStatusIndicator
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
 import com.truepineapps.photouploader.ui.util.Opacity
+import kotlin.collections.indexOfLast
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -44,7 +47,34 @@ fun AlbumListContent(
     onAlbumGroupExpanded: (GroupUiState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier) {
+    val lazyListState = rememberLazyListState()
+
+    // Count items for scroll position calculation
+    var currentLastUploadingIndex = -1
+    var totalItems = 0
+    groupUiStates.forEach { groupUiState ->
+        // Calculate currentLastUploadingIndex first; totalItems is count up to this group
+        if (groupUiState.uploadStatus.isUploading) {
+            if (groupUiState.isExpanded) {
+                val lastUploadingAlbumIndex =
+                        groupUiState.albumsInGroup.indexOfLast { it.uploadStatus.isUploading }
+                currentLastUploadingIndex = totalItems + lastUploadingAlbumIndex + 1
+            } else {
+                currentLastUploadingIndex = totalItems
+            }
+        }
+        totalItems += if (groupUiState.isExpanded) groupUiState.albumsInGroup.size + 1 else 1
+    }
+
+    ScrollLoadingInView(
+        currentLastUploadingIndex = currentLastUploadingIndex,
+        totalItems = totalItems,
+        isUploading = isUploading,
+        key = groupUiStates,
+        lazyListState = lazyListState
+    )
+
+    LazyColumn(state = lazyListState, modifier = modifier) {
         groupUiStates.forEach { groupUiState ->
             val group = groupUiState.group
             val albumsInGroup = groupUiState.albumsInGroup
