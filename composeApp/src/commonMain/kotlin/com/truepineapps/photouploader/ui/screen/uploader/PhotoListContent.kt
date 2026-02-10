@@ -75,7 +75,7 @@ private fun PhotoListContent(
     onPhotoToggle: (Path) -> Unit,
     onCoverPhotoChange: (PhotoUiState) -> Unit,
     onPhotoNameChange: (PhotoUiState, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // When single screen, update the main TopAppBar with the album name and a back action
     if (onUpdateTopAppBar != null) {
@@ -86,79 +86,84 @@ private fun PhotoListContent(
 
     val lazyListState = rememberLazyListState()
 
-    // State to track if the user has manually scrolled, disabling auto-scroll
-    var userHasManuallyScrolled by remember { mutableStateOf(false) }
-
     // State to track the last index we tried to scroll to programmatically.
     // Used to detect if the user has scrolled away from a desired position.
     var lastKnownDesiredScrollIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(albumUiState.photoUiStates, isUploading) {
-        val currentLastUploadingPhotoIndex = albumUiState.photoUiStates.indexOfLast { it.uploadStatus.isUploading }
+        val currentLastUploadingPhotoIndex =
+                albumUiState.photoUiStates.indexOfLast { it.uploadStatus.isUploading }
 
-        if (isUploading && currentLastUploadingPhotoIndex != -1) {
-            // No automatic scrolling if the user scrolled manually.
-            if (userHasManuallyScrolled) {
-                return@LaunchedEffect
-            }
+        if (!isUploading || currentLastUploadingPhotoIndex == -1) {
+            lastKnownDesiredScrollIndex =
+                    lazyListState.firstVisibleItemIndex // Reset to current position
+            return@LaunchedEffect
+        }
 
-            val totalPhotos = albumUiState.photoUiStates.size
-            val itemsOnScreen = lazyListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1) // Ensure at least 1 for calculation
+        val totalPhotos = albumUiState.photoUiStates.size
+        val itemsOnScreen =
+                lazyListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1) // Ensure at least 1 for calculation
 
-            // If the entire list fits on the screen, no auto-scrolling is needed.
-            if (totalPhotos <= itemsOnScreen) {
-                userHasManuallyScrolled = false // Reset in case it was set during a prior manual scroll
-                lastKnownDesiredScrollIndex = 0 // Always at top
-                return@LaunchedEffect
-            }
+        // If the entire list fits on the screen, no auto-scrolling is needed.
+        if (totalPhotos <= itemsOnScreen) {
+            lastKnownDesiredScrollIndex = 0 // Always at top
+            return@LaunchedEffect
+        }
 
-            // Only count items that are significantly visible to determine the row before last.
-            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset
-            val significantlyVisibleItems = lazyListState.layoutInfo.visibleItemsInfo.filter { itemInfo ->
-                val itemHeight = itemInfo.size
-                val itemOffset = itemInfo.offset
+        // Only count items that are significantly visible to determine the row before last.
+        val viewportHeight = lazyListState.layoutInfo.viewportEndOffset
+        val significantlyVisibleItems =
+                lazyListState.layoutInfo.visibleItemsInfo.filter { itemInfo ->
+                    val itemHeight = itemInfo.size
+                    val itemOffset = itemInfo.offset
 
-                val visibleStart = max(itemOffset, 0)
-                val visibleEnd = min(itemOffset + itemHeight, viewportHeight)
-                val visibleHeight = max(0, visibleEnd - visibleStart)
+                    val visibleStart = max(itemOffset, 0)
+                    val visibleEnd = min(itemOffset + itemHeight, viewportHeight)
+                    val visibleHeight = max(0, visibleEnd - visibleStart)
 
-                // Threshold: at least 50% visible
-                visibleHeight >= itemHeight * 0.5f
-            }
-            val itemsOnScreenCount = significantlyVisibleItems.size.coerceAtLeast(1) // Use count of significantly visible items
-
-            val firstVisibleItem = lazyListState.firstVisibleItemIndex
-            val firstVisibleItemOffset = lazyListState.firstVisibleItemScrollOffset
-
-            // Calculate the desired 'firstVisibleItemIndex' to achieve the 'one before last' layout for the uploading photo.
-            val desiredFirstVisibleItemIndex = if (currentLastUploadingPhotoIndex < itemsOnScreenCount - 1) {
-                // Case: Uploading photo is near the beginning. Scroll to top.
-                0
-            } else if (currentLastUploadingPhotoIndex >= totalPhotos - itemsOnScreenCount) {
-                // Case: Uploading photo is near the end. Scroll to show the last `itemsOnScreen` items.
-                totalPhotos - itemsOnScreenCount
-            } else {
-                // Case: Uploading photo is in the middle. Place it as the second-to-last visible item.
-                max(0, currentLastUploadingPhotoIndex - (itemsOnScreenCount - 2))
-            }
-
-            // Determine if the user has manually scrolled away from a previously desired position.
-            // This happens if we had a target, but the current scroll position no longer matches.
-            userHasManuallyScrolled = (firstVisibleItem != lastKnownDesiredScrollIndex || firstVisibleItemOffset != 0)
-            if (!userHasManuallyScrolled ) {
-                // Only perform programmatic scroll if the view is not already in the desired position.
-                if (!(firstVisibleItem == desiredFirstVisibleItemIndex && firstVisibleItemOffset == 0)) {
-                    lazyListState.animateScrollToItem(desiredFirstVisibleItemIndex)
-                    lastKnownDesiredScrollIndex = desiredFirstVisibleItemIndex
-                } else {
-                    lastKnownDesiredScrollIndex = firstVisibleItem
+                    // Threshold: at least 50% visible
+                    visibleHeight >= itemHeight * 0.5f
                 }
-            }
+        val itemsOnScreenCount =
+                significantlyVisibleItems.size.coerceAtLeast(1) // Use count of significantly visible items
+
+        // Calculate the desired 'firstVisibleItemIndex' to achieve the 'one before last' layout for the uploading photo.
+        val desiredFirstVisibleItemIndex =
+                if (currentLastUploadingPhotoIndex < itemsOnScreenCount - 1) {
+                    // Case: Uploading photo is near the beginning. Scroll to top.
+                    0
+                } else if (currentLastUploadingPhotoIndex >= totalPhotos - itemsOnScreenCount) {
+                    // Case: Uploading photo is near the end. Scroll to show the last `itemsOnScreen` items.
+                    totalPhotos - itemsOnScreenCount
+                } else {
+                    // Case: Uploading photo is in the middle. Place it as the second-to-last visible item.
+                    max(0, currentLastUploadingPhotoIndex - (itemsOnScreenCount - 2))
+                }
+
+        // Do not scroll if the user scrolled manually; continue when the desired position is
+        // the same as the current position.
+        val firstVisibleItemIndex = lazyListState.firstVisibleItemIndex
+        val firstVisibleItemOffset = lazyListState.firstVisibleItemScrollOffset
+        val autoScrollEnabled = if (lazyListState.isScrollInProgress) {
+            // If the user is actively scrolling, pause auto-scroll.
+            false
+        } else if (firstVisibleItemIndex == lastKnownDesiredScrollIndex && firstVisibleItemOffset == 0) {
+            // No change since the last auto-scroll, continue since no scrolling in progress
+            true
         } else {
-            // If not uploading or no photos uploading, ensure auto-scroll is re-enabled for next upload
-            // and reset the last known desired scroll index to the current position.
-            userHasManuallyScrolled = false
-            lastKnownDesiredScrollIndex = lazyListState.firstVisibleItemIndex
+            // The user has manually scrolled away from a previous autoscroll position.
+            // Continue if the new desired position matches the actual position.
+            desiredFirstVisibleItemIndex == firstVisibleItemIndex
+        }
+
+        if (autoScrollEnabled) {
+            // Only perform programmatic scroll if the view is not already in the desired position.
+            if (!(firstVisibleItemIndex == desiredFirstVisibleItemIndex && firstVisibleItemOffset == 0)) {
+                lazyListState.animateScrollToItem(desiredFirstVisibleItemIndex)
+                lastKnownDesiredScrollIndex = desiredFirstVisibleItemIndex
+            } else {
+                lastKnownDesiredScrollIndex = firstVisibleItemIndex
+            }
         }
     }
 
