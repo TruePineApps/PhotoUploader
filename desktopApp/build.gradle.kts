@@ -143,27 +143,35 @@ abstract class FixDesktopFileTask @Inject constructor(
             }
 
             // Find and replace the .desktop file
-            val desktopFile = tempDir.walk().find {
+            val desktopFiles = tempDir.walk().filter {
                 it.isFile && it.name.endsWith(".desktop")
             }
 
-            if (desktopFile != null) {
-                logger.lifecycle("Found .desktop file: ${desktopFile.absolutePath}")
-                desktopSource.copyTo(desktopFile, overwrite = true)
-                logger.lifecycle("Replaced .desktop file with custom version")
+            if (desktopFiles.any()) {
+                desktopFiles.forEach { desktopFile ->
+                    logger.lifecycle("Found .desktop file: ${desktopFile.absolutePath}")
+
+                    // Skip files in the 'legal' directory to avoid accidental corruption
+                    if (!desktopFile.absolutePath.contains("/legal/")) {
+                        desktopSource.copyTo(desktopFile, overwrite = true)
+                        logger.lifecycle("Replaced: ${desktopFile.name}")
+                    }
+                }
             } else {
-                logger.warn("Could not find .desktop file in extracted content")
+                logger.warn("Could not find any .desktop files in extracted content")
             }
 
             // Repackage data.tar
             logger.lifecycle("Repackaging data archive...")
+            val dataTarName = dataTar.name
             dataTar.delete()
 
+            // Use --format=gnu to make sure tar does the same as jpackage
             val repackCmd = when {
-                dataTar.name.endsWith(".tar.gz") -> listOf("tar", "-czf", dataTar.name, "opt")
-                dataTar.name.endsWith(".tar.xz") -> listOf("tar", "-cJf", dataTar.name, "opt")
-                dataTar.name.endsWith(".tar.zst") -> listOf("tar", "--zstd", "-cf", dataTar.name, "opt")
-                else -> listOf("tar", "-cf", dataTar.name, "opt")
+                dataTarName.endsWith(".tar.gz") -> listOf("tar", "-czf", dataTarName, "--format=gnu", "opt")
+                dataTarName.endsWith(".tar.xz") -> listOf("tar", "-cJf", dataTarName, "--format=gnu", "opt")
+                dataTarName.endsWith(".tar.zst") -> listOf("tar", "--zstd", "-cf", dataTarName, "--format=gnu", "opt")
+                else -> listOf("tar", "-cf", dataTarName, "--format=gnu", "opt")
             }
 
             execOperations.exec {
@@ -176,9 +184,9 @@ abstract class FixDesktopFileTask @Inject constructor(
             deb.delete()
 
             // Build the ar command with available files
-            val arCmd = mutableListOf("ar", "r", deb.absolutePath, "debian-binary")
+            val arCmd = mutableListOf("ar", "rcD", deb.absolutePath, "debian-binary")
             if (controlTar != null) arCmd.add(controlTar.name)
-            arCmd.add(dataTar.name)
+            arCmd.add(dataTarName)
 
             execOperations.exec {
                 workingDir = tempDir
