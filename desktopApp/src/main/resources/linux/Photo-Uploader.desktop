@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Photo Uploader
+Comment=Upload a photo collection organized in folders to Google Photo
+Exec="/opt/photo-uploader/bin/Photo-Uploader"
+Icon=/opt/photo-uploader/lib/Photo-Uploader.png
+Terminal=false
+Type=Application
+Categories=Utility
+StartupWMClass=com-truepineapps-photouploader-MainKt

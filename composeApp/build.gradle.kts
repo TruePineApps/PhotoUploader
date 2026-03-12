@@ -282,7 +282,7 @@ tasks.matching { task ->
     dependsOn("kspCommonMainKotlinMetadata")
 }
 
-// 1. Define the task to generate the properties file
+// Define the task to generate the properties file
 compose.resources {
     publicResClass = false
     // Use a more friendly import name than photouploader.composeapp.generated.resources

@@ -20,7 +20,7 @@ fun ScrollLoadingInView(
     key: List<UploadUiState>,
     lazyListState: LazyListState,
 ) {
-    // State to track the last index we tried to scroll to programmatically.
+    // State to track the last index that was tried to programmatically scroll to.
     // Used to detect if the user has scrolled away from a desired position.
     var lastKnownDesiredScrollIndex by remember { mutableStateOf(0) }
 
@@ -35,7 +35,7 @@ fun ScrollLoadingInView(
         val itemsOnScreen =
                 lazyListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1) // Ensure at least 1 for calculation
 
-        // If the entire list fits on the screen, no auto-scrolling is needed.
+        // If the entire list fits on the screen, no auto-scrolling is needed.programmatically
         if (totalItems <= itemsOnScreen) {
             lastKnownDesiredScrollIndex = 0 // Always at top
             return@LaunchedEffect
