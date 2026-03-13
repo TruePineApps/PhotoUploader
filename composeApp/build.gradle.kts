@@ -14,7 +14,7 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
-val appId = libs.versions.appId.get()
+val appId: String = libs.versions.appId.get()
 // App version from libs.versions.toml
 val versionCode: Int = libs.versions.appVersionCode.get().toInt()
 val versionName: String = libs.versions.appVersionName.get()

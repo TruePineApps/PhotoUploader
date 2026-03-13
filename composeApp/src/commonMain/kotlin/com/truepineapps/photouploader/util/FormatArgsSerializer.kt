@@ -1,4 +1,4 @@
-package com.github.mheerwaarden.retreat.util
+package com.truepineapps.photouploader.util
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

@@ -1,7 +1,6 @@
 package com.truepineapps.photouploader.util
 
 import androidx.compose.runtime.Composable
-import com.github.mheerwaarden.retreat.util.FormatArgsSerializer
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.allPluralStringResources
 import com.truepineapps.photouploader.resources.allStringResources
