@@ -77,8 +77,8 @@ abstract class FixDesktopFileTask @Inject constructor(
     private val execOperations: ExecOperations
 ) : DefaultTask() {
 
-    @get:InputFile
-    abstract val debFile: RegularFileProperty
+    @get:InputDirectory
+    abstract val debFileDir: DirectoryProperty
 
     @get:InputFile
     abstract val desktopSourceFile: RegularFileProperty
@@ -87,20 +87,27 @@ abstract class FixDesktopFileTask @Inject constructor(
     abstract val outputDebFile: RegularFileProperty
 
     init {
-        // Set default output to be the same as input
-        outputDebFile.convention(debFile)
+        // Use a dummy convention (default value); the actual logic happens in the action
+        outputDebFile.convention(debFileDir.file("fixed.deb"))
     }
 
     @TaskAction
     fun fixDesktopFile() {
-        val deb = debFile.asFile.get()
+        val dir = debFileDir.asFile.get()
         val desktopSource = desktopSourceFile.asFile.get()
 
-        if (!deb.exists()) {
-            logger.warn("Deb file not found at: ${deb.absolutePath}")
+        // Find the .deb file by filtering for .deb and sort by lastModified to handle cases where
+        // old versions might still be in the folder.
+        val deb = dir.listFiles()
+            ?.filter { it.extension == "deb" }
+            ?.maxByOrNull { it.lastModified() }
+
+        if (deb == null || !deb.exists()) {
+            logger.error("No .deb file found in directory: ${dir.absolutePath}")
             return
         }
 
+        logger.lifecycle("Processing Deb: ${deb.name}")
         if (!desktopSource.exists()) {
             logger.warn("Custom .desktop file not found at: ${desktopSource.absolutePath}")
             return
@@ -206,8 +213,8 @@ abstract class FixDesktopFileTask @Inject constructor(
 
 // Register and configure the task
 tasks.register<FixDesktopFileTask>("fixDesktopFile") {
-    debFile.set(
-        layout.buildDirectory.file("compose/binaries/main/deb/photo-uploader_1.0.0_amd64.deb")
+    debFileDir.set(
+        layout.buildDirectory.dir("compose/binaries/main/deb")
     )
     desktopSourceFile.set(
         layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop")
