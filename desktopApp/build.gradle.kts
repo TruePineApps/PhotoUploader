@@ -35,7 +35,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
 
             packageName = "Photo-Uploader"
-            packageVersion = "1.0.0"
+            packageVersion = libs.versions.appVersionName.get()
             description = "Upload a photo collection organized in folders to Google Photo"
             copyright = "© 2026 True Pine Apps. All rights reserved."
             vendor = "True Pine Apps"
@@ -83,12 +83,17 @@ abstract class FixDesktopFileTask @Inject constructor(
     @get:InputFile
     abstract val desktopSourceFile: RegularFileProperty
 
-    @get:OutputFile
-    abstract val outputDebFile: RegularFileProperty
+    // Use OutputDirectory because the .deb filename is dynamic (contains version)
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
 
     init {
-        // Use a dummy convention (default value); the actual logic happens in the action
-        outputDebFile.convention(debFileDir.file("fixed.deb"))
+        // Mark the directory as the output so Gradle knows it has changed
+        outputDir.set(debFileDir)
+
+        // Force the task to always run when called, because it modifies the .deb produced by the
+        // previous task in-place.
+        outputs.upToDateWhen { false }
     }
 
     @TaskAction
@@ -107,7 +112,7 @@ abstract class FixDesktopFileTask @Inject constructor(
             return
         }
 
-        logger.lifecycle("Processing Deb: ${deb.name}")
+        logger.lifecycle("Processing Deb: ${deb.absolutePath}")
         if (!desktopSource.exists()) {
             logger.warn("Custom .desktop file not found at: ${desktopSource.absolutePath}")
             return
@@ -175,10 +180,33 @@ abstract class FixDesktopFileTask @Inject constructor(
 
             // Use --format=gnu to make sure tar does the same as jpackage
             val repackCmd = when {
-                dataTarName.endsWith(".tar.gz") -> listOf("tar", "-czf", dataTarName, "--format=gnu", "opt")
-                dataTarName.endsWith(".tar.xz") -> listOf("tar", "-cJf", dataTarName, "--format=gnu", "opt")
-                dataTarName.endsWith(".tar.zst") -> listOf("tar", "--zstd", "-cf", dataTarName, "--format=gnu", "opt")
-                else -> listOf("tar", "-cf", dataTarName, "--format=gnu", "opt")
+                dataTarName.endsWith(".tar.gz") -> listOf(
+                    "tar",
+                    "-czf", dataTarName,
+                    "--format=gnu",
+                    "opt"
+                )
+
+                dataTarName.endsWith(".tar.xz") -> listOf(
+                    "tar",
+                    "-cJf", dataTarName,
+                    "--format=gnu",
+                    "opt"
+                )
+
+                dataTarName.endsWith(".tar.zst") -> listOf(
+                    "tar",
+                    "--zstd",
+                    "-cf", dataTarName,
+                    "--format=gnu",
+                    "opt"
+                )
+
+                else -> listOf(
+                    "tar",
+                    "-cf", dataTarName,
+                    "--format=gnu",
+                    "opt")
             }
 
             execOperations.exec {
@@ -211,20 +239,23 @@ abstract class FixDesktopFileTask @Inject constructor(
     }
 }
 
-// Register and configure the task
-tasks.register<FixDesktopFileTask>("fixDesktopFile") {
-    debFileDir.set(
-        layout.buildDirectory.dir("compose/binaries/main/deb")
-    )
-    desktopSourceFile.set(
-        layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop")
-    )
-}
-
 afterEvaluate {
-    tasks.matching { task ->
-        task.name.matches(Regex("package.*Deb"))
-    }.configureEach {
-        finalizedBy("fixDesktopFile")
+    // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)
+    tasks.names.filter { it.matches(Regex("package.*Deb")) }.forEach { packageName ->
+        // Determine the folder name based on the package type
+        val folderName = if (packageName.contains("Release")) "main-release" else "main"
+        // Create a dedicated task name (e.g., fixPackageReleaseDeb)
+        val fixTaskName = "fix${packageName.replaceFirstChar { it.uppercase() }}"
+
+        // Register a unique fix task for this package task
+        val fixTask = tasks.register<FixDesktopFileTask>(fixTaskName) {
+            debFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
+            desktopSourceFile.set(layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop"))
+        }
+
+        // Link the original task to the fix task
+        tasks.named(packageName) {
+            finalizedBy(fixTask)
+        }
     }
 }
