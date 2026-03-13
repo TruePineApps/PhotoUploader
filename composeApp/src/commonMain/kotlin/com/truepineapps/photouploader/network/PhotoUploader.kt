@@ -7,9 +7,11 @@ import com.truepineapps.photouploader.io.PlatformFileSystem
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
+import com.truepineapps.photouploader.resources.error_network_auth_required
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.error_upload_failed_with_message
 import com.truepineapps.photouploader.util.FileUtils
+import com.truepineapps.photouploader.util.ServiceUtil
 import com.truepineapps.photouploader.util.UiTextResource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -53,15 +55,29 @@ class PhotoUploader(
      * @return `true` if the album exists, `false` if it was not found (404).
      * @throws UploadException.GlobalException for other HTTP errors.
      */
-    suspend fun verifyAlbumExists(albumId: String): Boolean {
-        val response: HttpResponse = client.get("https://photoslibrary.googleapis.com/v1/albums/$albumId") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
-        }
+    suspend fun verifyAlbumExists(
+        albumId: String,
+        serviceUtil: ServiceUtil = ServiceUtil("verifyAlbumExists")
+    ): Boolean {
+        val response: HttpResponse =
+            client.get("https://photoslibrary.googleapis.com/v1/albums/$albumId") {
+                header(HttpHeaders.Authorization, "Bearer $accessToken")
+            }
 
         return when {
             response.status.isSuccess() -> true
             response.status == HttpStatusCode.NotFound -> false
-            else -> handleError(response, isAlbumCreation = true)
+            else -> {
+                var result = false
+                handleError(
+                    response = response,
+                    serviceUtil = serviceUtil,
+                    isAlbumCreation = true
+                ) {
+                    result = verifyAlbumExists(albumId, serviceUtil)
+                }
+                result
+            }
         }
     }
 
@@ -71,18 +87,25 @@ class PhotoUploader(
      * @throws UploadException.GlobalException for auth errors
      * @throws UploadException.AlbumException for other API errors
      */
-    suspend fun createAlbum(albumTitle: String): String {
+    suspend fun createAlbum(
+        albumTitle: String,
+        serviceUtil: ServiceUtil = ServiceUtil("createAlbum")
+    ): String {
         val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/albums") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(CreateAlbumRequest(album = AlbumData(title = albumTitle))))
         }
 
-        if (response.status.isSuccess()) {
+        return if (response.status.isSuccess()) {
             val albumResponse = json.decodeFromString<AlbumResponse>(response.bodyAsText())
-            return albumResponse.id
+            albumResponse.id
         } else {
-            handleError(response, isAlbumCreation = true)
+            var result = ""
+            handleError(response = response, serviceUtil = serviceUtil, isAlbumCreation = true) {
+                result = createAlbum(albumTitle, serviceUtil)
+            }
+            result
         }
     }
 
@@ -92,24 +115,32 @@ class PhotoUploader(
      * @throws UploadException.GlobalException for auth errors
      * @throws UploadException.PhotoException for other API errors
      */
-    suspend fun uploadPhoto(photoName: String, kmpFile: KmpFile): String {
+    suspend fun uploadPhoto(
+        photoName: String,
+        kmpFile: KmpFile,
+        serviceUtil: ServiceUtil = ServiceUtil("uploadPhoto")
+    ): String {
         // Upload the bytes to Google Photos
         val response: HttpResponse =
-                client.post("https://photoslibrary.googleapis.com/v1/uploads") {
-                    headers {
-                        append(HttpHeaders.Authorization, "Bearer $accessToken")
-                        append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photoName))
-                        append("X-Goog-Upload-Protocol", "raw")
-                        append("X-Goog-Upload-File-Name", photoName)
-                    }
-                    contentType(ContentType.Application.OctetStream)
-                    setBody(photoChannelContent(kmpFile))
+            client.post("https://photoslibrary.googleapis.com/v1/uploads") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $accessToken")
+                    append("X-Goog-Upload-Content-Type", FileUtils.getMimeType(photoName))
+                    append("X-Goog-Upload-Protocol", "raw")
+                    append("X-Goog-Upload-File-Name", photoName)
                 }
+                contentType(ContentType.Application.OctetStream)
+                setBody(photoChannelContent(kmpFile))
+            }
 
-        if (response.status.isSuccess()) {
-            return response.bodyAsText()
+        return if (response.status.isSuccess()) {
+            response.bodyAsText()
         } else {
-            handleError(response)
+            var result = ""
+            handleError(response, serviceUtil) {
+                result = uploadPhoto(photoName, kmpFile, serviceUtil)
+            }
+            result
         }
     }
 
@@ -124,69 +155,118 @@ class PhotoUploader(
         val allResults = mutableListOf<MediaItemResult>()
 
         newMediaItems.chunked(batchSize).forEachIndexed { batchIndex, batch ->
-            val requestBody = BatchCreateMediaItemsRequest(albumId = albumId, newMediaItems = batch)
-
-            val response: HttpResponse =
-                    client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
-                        header(HttpHeaders.Authorization, "Bearer $accessToken")
-                        contentType(ContentType.Application.Json)
-                        setBody(json.encodeToString(requestBody))
-                    }
-
-            if (response.status.isSuccess()) {
-                val result =
-                        json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
-                allResults.addAll(result.newMediaItemResults)
-                val successCount = result.newMediaItemResults.count { it.isSuccess() }
-                val failCount = result.newMediaItemResults.count { !it.isSuccess() }
-
-                log.d { "addPhotosToAlbum:       Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed" }
-                result.newMediaItemResults.filter { !it.isSuccess() }.forEach {
-                    log.e { "addPhotosToAlbum:       Failed item: ${it.status}" }
-                }
-            } else {
-                handleError(response, isBatchAdd = true)
-            }
+            addOneBatchOfPhotosToAlbum(albumId, batchIndex, batch, allResults)
         }
         return allResults
     }
 
-    suspend fun updateAlbumCover(albumId: String, coverMediaItemId: String) {
+    private suspend fun addOneBatchOfPhotosToAlbum(
+        albumId: String,
+        batchIndex: Int,
+        batch: List<NewMediaItem>,
+        allResults: MutableList<MediaItemResult>,
+        serviceUtil: ServiceUtil = ServiceUtil("addOneBatchOfPhotosToAlbum (batch=$batchIndex)")
+    ) {
+        val requestBody = BatchCreateMediaItemsRequest(albumId = albumId, newMediaItems = batch)
+
         val response: HttpResponse =
-                client.patch("https://photoslibrary.googleapis.com/v1/albums/$albumId?updateMask=coverPhotoMediaItemId") {
-                    header(HttpHeaders.Authorization, "Bearer $accessToken")
-                    contentType(ContentType.Application.Json)
-                    setBody(json.encodeToString(UpdateAlbumCoverRequest(coverMediaItemId)))
-                }
+            client.post("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate") {
+                header(HttpHeaders.Authorization, "Bearer $accessToken")
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(requestBody))
+            }
+
+        if (response.status.isSuccess()) {
+            val result =
+                json.decodeFromString<BatchCreateMediaItemsResponse>(response.bodyAsText())
+            allResults.addAll(result.newMediaItemResults)
+            val successCount = result.newMediaItemResults.count { it.isSuccess() }
+            val failCount = result.newMediaItemResults.count { !it.isSuccess() }
+
+            log.d { "addPhotosToAlbum:       Batch ${batchIndex + 1}: $successCount succeeded, $failCount failed" }
+            result.newMediaItemResults.filter { !it.isSuccess() }.forEach {
+                log.e { "addPhotosToAlbum:       Failed item: ${it.status}" }
+            }
+        } else {
+            handleError(response = response, serviceUtil = serviceUtil, isBatchAdd = true) {
+                addOneBatchOfPhotosToAlbum(albumId, batchIndex, batch, allResults, serviceUtil)
+            }
+        }
+    }
+
+    suspend fun updateAlbumCover(
+        albumId: String, coverMediaItemId: String,
+        serviceUtil: ServiceUtil = ServiceUtil("updateAlbumCover")
+    ) {
+        val response: HttpResponse =
+            client.patch("https://photoslibrary.googleapis.com/v1/albums/$albumId?updateMask=coverPhotoMediaItemId") {
+                header(HttpHeaders.Authorization, "Bearer $accessToken")
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(UpdateAlbumCoverRequest(coverMediaItemId)))
+            }
 
         if (!response.status.isSuccess()) {
-            handleError(response)
+            handleError(response = response, serviceUtil = serviceUtil) {
+                updateAlbumCover(albumId, coverMediaItemId, serviceUtil)
+            }
         }
     }
 
     private fun photoChannelContent(kmpFile: KmpFile): OutgoingContent.WriteChannelContent =
-            object : OutgoingContent.WriteChannelContent() {
-                override val contentType = ContentType.Application.OctetStream
-                override suspend fun writeTo(channel: ByteWriteChannel) {
-                    platformFileSystem.source(kmpFile, context).use { source ->
-                        val buffer = Buffer()
-                        while (true) {
-                            val bytesRead = source.read(buffer, BUFFER_SIZE)
-                            if (bytesRead == -1L) break
-                            channel.writeFully(buffer.readByteArray())
-                        }
+        object : OutgoingContent.WriteChannelContent() {
+            override val contentType = ContentType.Application.OctetStream
+            override suspend fun writeTo(channel: ByteWriteChannel) {
+                platformFileSystem.source(kmpFile, context).use { source ->
+                    val buffer = Buffer()
+                    while (true) {
+                        val bytesRead = source.read(buffer, BUFFER_SIZE)
+                        if (bytesRead == -1L) break
+                        channel.writeFully(buffer.readByteArray())
                     }
                 }
             }
+        }
 
+    /**
+     * Handles error responses from the Google Photos API by logging the error details. In case the
+     * request should be retried, an exponential backoff is applied before calling the [retryAction].
+     *
+     * @param response The [HttpResponse] representing the error response.
+     * @param serviceUtil An instance of [ServiceUtil] for handling exponential backoff.
+     * @param isAlbumCreation A flag indicating whether the error is related to album creation.
+     * @param isBatchAdd A flag indicating whether the error is related to batch adding photos.
+     * @param retryAction An optional lambda to be executed if the request should be retried.
+     */
     private suspend fun handleError(
         response: HttpResponse,
+        serviceUtil: ServiceUtil,
         isAlbumCreation: Boolean = false,
         isBatchAdd: Boolean = false,
-    ): Nothing {
+        retryAction: suspend () -> Unit = {}
+    ) {
         val errorBody = response.bodyAsText()
         log.e { "handleError: Request failed: ${response.status}" }
         log.e { "handleError: Response: $errorBody" }
+
+        /* First test for status codes that allow a retry.
+           Status codes marked for exponential backoff in Google Photos API docs https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes:
+           408 (Timeout), 429 (Rate Limit)  HttpStatusCode.RequestTimeout and HttpStatusCode.TooManyRequests,
+           and in the 5xx range HttpStatusCode.InternalServerError, HttpStatusCode.BadGateway,
+           HttpStatusCode.ServiceUnavailable and HttpStatusCode.GatewayTimeout.
+           However, Google occasionally uses non-standard 5xx codes for internal load balancing.
+           Therefore, test on 408 (Timeout), 429 (Rate Limit), and all 5xx (except 511, see below).
+        */
+        if (response.status == HttpStatusCode.RequestTimeout
+            || response.status == HttpStatusCode.TooManyRequests
+            || (response.status.value in 500..599 && response.status.value != 511)
+        ) {
+            // Retry the request with exponential backoff
+            if (serviceUtil.exponentialBackoffDelay()) {
+                retryAction()
+                return
+            }
+            // Max attempts were reached. Fall through to throw exception.
+        }
 
         val message = parseErrorMessage(errorBody).let {
             if (it.isNullOrBlank()) "${response.status}" else "$it (${response.status})"
@@ -200,6 +280,16 @@ class PhotoUploader(
                 ),
                 response.status
             )
+
+            // HTTP 511 "Network Auth Required" is a special case: it's a network issue, not a Google issue.
+            // Retrying won't help until the user acts.
+            response.status.value == 511 -> {
+                throw UploadException.PhotoException(
+                    UiTextResource(Res.string.error_network_auth_required),
+                    response.status
+                )
+            }
+
             isAlbumCreation -> throw UploadException.AlbumException(
                 UiTextResource(
                     Res.string.error_album_creation_failed_with_message,
@@ -235,4 +325,5 @@ class PhotoUploader(
             null
         }
     }
+
 }

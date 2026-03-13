@@ -48,6 +48,7 @@
     <string name="error_unknown">An unknown error occurred.</string>
     <string name="error_platform_context_not_set">Platform context not set</string>
     <string name="error_sign_in_failed">Failed to sign in: %1$s</string>
+    <string name="error_network_auth_required">Network authentication required. Please check your Wi-Fi connection."</string>
     <string name="session_expired">Session expired. Please click Upload to sign in again.</string>
     <string name="error_album_creation_failed_with_message">Failed to create album: %1$s</string>
     <string name="error_album_creation_failed">Failed to create album.</string>
