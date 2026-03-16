@@ -34,6 +34,10 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
 
+            // Module httpServer is used by Google API. Explicitly include it to prevent being
+            // stripped in the release version
+            modules("jdk.httpserver")
+
             packageName = "Photo-Uploader"
             packageVersion = libs.versions.appVersionName.get()
             description = "Upload a photo collection organized in folders to Google Photo"

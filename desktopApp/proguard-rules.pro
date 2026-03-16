@@ -73,23 +73,56 @@
 ################################################################################
 # Compose Desktop & UI (AWT/Swing/Skiko)
 ################################################################################
+# Ensure the Main entry point and Compose Window internals are not renamed
+-keep class com.truepineapps.photouploader.MainKt { *; }
+-keep class androidx.compose.ui.window.** { *; }
+
 # Prevent stripping of native UI bridge methods
 -keep class java.awt.** { *; }
 -keep class javax.swing.** { *; }
 -keep class sun.awt.** { *; }
+
+# Prevent stripping of native AWT event listeners
+# Protects the native event listeners that receive the shutdown signal
+-keepclassmembers class * extends java.awt.event.EventListener {
+    *** on*(...);
+}
 
 # Skiko (Graphics engine) - Keep JNI bridge methods
 -keep,includedescriptorclasses class org.jetbrains.skiko.** {
     native <methods>;
 }
 
+# Protect the Quit/Close handlers in Skiko
+-keep class org.jetbrains.skiko.SkiaLayer { *; }
+
 # Ignore Compose Preview warnings in release builds
 -dontwarn **$Preview*
 -dontwarn **$DefaultImpls
 
 ################################################################################
-# Networking (Ktor CIO & Okio)
+# Image Loading & Networking (Ktor CIO & Okio)
 ################################################################################
+# Coil (Image Loading)
+-keep class coil3.** { *; }
+-dontwarn coil3.**
+
+# Keep OkHttp (Coil's default network layer)
+-keep class okhttp3.** { *; }
+-dontwarn okhttp3.**
+
+# Preserve ServiceLoader configurations for Ktor
+-keepdirectories META-INF/services/**
+
+# Keep Ktor Serialization Providers and make sure that they are not renamed
+-keep class io.ktor.serialization.** { *; }
+-keep class io.ktor.serialization.kotlinx.** { *; }
+-keep class io.ktor.serialization.kotlinx.json.** { *; }
+
+# Prevent R8 from stripping the ServiceLoader lookups
+-keepnames class io.ktor.serialization.kotlinx.KotlinxSerializationExtensionProvider
+-keepnames class io.ktor.serialization.kotlinx.json.KotlinxSerializationJsonExtensionProvider
+
 # Keep the CIO engine factory and its internal structure
 -keep class io.ktor.client.engine.cio.** { *; }
 # Keep the coroutine utilities used for the pipeline
@@ -108,6 +141,28 @@
 -keep @org.koin.core.annotation.* class * {
     public <init>(...); 
 }
+
+################################################################################
+# Google API (Google Photos)
+################################################################################
+
+# Google API Client
+-keep class com.google.api.client.** { *; }
+-dontwarn com.google.api.client.**
+
+# Specifically preserve enums used by Google API reflection
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Specific utility classes with heavy reflection must not be renamed
+-keep class com.google.api.client.util.GenericData { *; }
+-keep class com.google.api.client.util.GenericData$Flags { *; }
+
+# Google OAuth uses the built-in JDK HTTP Server
+-keep class com.sun.net.httpserver.** { *; }
+-dontwarn com.sun.net.httpserver.**
 
 ################################################################################
 # Core Kotlin & Coroutines
