@@ -395,7 +395,7 @@ object DarkHighContrastPalette {
 }
 
 object StatusPalette {
-    val Success = Color(0xFF5BB359)
+    val Success = Color(0xFF81DB7B)
     val Warning = Color(0xFFEA983D)
     val Error = Color(0xFFF76442)
     val Disabled = Color(0xFF787878)
