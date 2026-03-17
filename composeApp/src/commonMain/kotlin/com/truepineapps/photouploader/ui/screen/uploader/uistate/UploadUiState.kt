@@ -24,9 +24,11 @@ open class UploadUiState(
         var isStateUploadingError = false
         var isStateCancelled = false
         var isAllSuccess = true
+        var isAllDisabled = true
         var errorText: UiTextResource? = null
         uploadUiStates.forEach { uploadState ->
             if (uploadState.isEnabled) {
+                isAllDisabled = false
                 when (uploadState.uploadStatus) {
                     UploadStatus.None -> isAllSuccess = false
                     UploadStatus.Waiting -> { isStateWaiting = true; isAllSuccess = false }
@@ -76,7 +78,7 @@ open class UploadUiState(
         if (isStateCancelled) return UploadStatus.Cancelled
 
         // All enabled uploads completed successfully.
-        if (isAllSuccess) return UploadStatus.Success
+        if (isAllSuccess && !isAllDisabled) return UploadStatus.Success
 
         return newStatus
     }
