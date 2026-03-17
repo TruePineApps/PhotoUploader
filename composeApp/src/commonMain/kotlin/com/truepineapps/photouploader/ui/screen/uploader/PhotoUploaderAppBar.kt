@@ -230,7 +230,7 @@ private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
             onDismissRequest = { progressMenuExpanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text(stringResource(Res.string.waiting_for_browser_sign_in)) },
+                text = { Text(progressText) },
                 onClick = { progressMenuExpanded = false },
                 enabled = false
             )
