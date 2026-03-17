@@ -42,7 +42,7 @@
     <string name="uploading">Uploading...</string>
     <string name="cancel">Cancel</string>
     <string name="collapse_album">Collapse album</string>
-    <string name="expand_album">Collapse album</string>
+    <string name="expand_album">Expand album</string>
     
     <!-- Error messages -->
     <string name="error_unknown">An unknown error occurred.</string>

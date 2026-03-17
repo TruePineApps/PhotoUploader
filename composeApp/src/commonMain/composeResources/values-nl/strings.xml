@@ -1,0 +1,72 @@
+<resources>
+    <string name="app_name">Photo Uploader</string>
+    <string name="photo_uploader">Photo Uploader</string>
+    <string name="busy">Bezig</string>
+    <string name="loading">%1$s laden</string>
+    <string name="error">Fout</string>
+    <string name="retry_button">Opnieuw proberen</string>
+    <string name="show_selection_dialog">Selectievenster weergeven</string>
+    <string name="more_menu">Meer...</string>
+    <string name="preferences">Instellingen</string>
+    <string name="language">Taal</string>
+    <string name="en">Engels</string>
+    <string name="nl">Nederlands</string>
+    <string name="system">Systeem</string>
+    <string name="about">Over</string>
+    <string name="about_photo_uploader">Over Photo Uploader</string>
+    <string name="version">Versie</string>
+    <string name="platform">Platform</string>
+    <string name="app_id">Applicatie-ID</string>
+    <string name="licenses">Licenties</string>
+    <string name="license_text">Licentietekst</string>
+    <string name="sign_in">Inloggen</string>
+    <string name="sign_out">Uitloggen</string>
+    <string name="close_button">Sluiten</string>
+    <string name="back_button">Terug</string>
+    <string name="choose_folder">Map kiezen</string>
+    <string name="upload_photos">Foto\'s uploaden</string>
+    <string name="select_photo_folder">Selecteer fotomap</string>
+    <string name="preview">Voorbeeld</string>
+    <string name="album_cover">Albumomslag: %1$s</string>
+    <string name="cover_photo">Omslagfoto</string>
+    <string name="album_name">Albumnaam</string>
+    <plurals name="photos_count">
+        <item quantity="one">%1$d foto</item>
+        <item quantity="other">%1$d foto\'s</item>
+    </plurals>
+
+    <string name="connected_as">Verbonden met Google Photos als %1$s</string>
+    <string name="sign_in_menu">Inlogmenu</string>
+    <string name="sign_out_menu">Uitlogmenu</string>
+    <string name="waiting_for_browser_sign_in">Wachten op inloggen in browser...</string>
+    <string name="uploading">Uploaden...</string>
+    <string name="cancel">Annuleren</string>
+    <string name="collapse_album">Album inklappen</string>
+    <string name="expand_album">Album uitklappen</string>
+    
+    <!-- Error messages -->
+    <string name="error_unknown">Er is een onbekende fout opgetreden.</string>
+    <string name="error_platform_context_not_set">Platformcontext niet ingesteld</string>
+    <string name="error_sign_in_failed">Inloggen mislukt: %1$s</string>
+    <string name="error_network_auth_required">Netwerkauthenticatie vereist. Controleer je wifi-verbinding.</string>
+    <string name="session_expired">Sessie verlopen. Klik op Uploaden om opnieuw in te loggen.</string>
+    <string name="error_album_creation_failed_with_message">Album maken mislukt: %1$s</string>
+    <string name="error_album_creation_failed">Album maken mislukt.</string>
+    <string name="error_upload_failed">Upload mislukt</string>
+    <string name="error_upload_failed_with_message">Upload mislukt: %1$s</string>
+    <string name="error_add_to_album_failed">Toevoegen aan album mislukt: %1$s</string>
+    <string name="error_add_media_items_failed">Mediagegevens toevoegen aan album mislukt</string>
+    <string name="error_add_media_items_failed_with_message">Mediagegevens toevoegen aan album mislukt: %1$s</string>
+    <string name="error_one_or_more_photos_failed">Upload van eén of meer foto\'s mislukt: %1$s</string>
+    <string name="network_error">Netwerkfout</string>
+    <string name="unknown_error">Onbekende fout</string>
+    
+    <!-- Upload statuses -->
+    <string name="status_none"> </string>
+    <string name="status_waiting">Wachten</string>
+    <string name="status_uploading">Uploaden</string>
+    <string name="status_uploading_error">Uploadfout</string>
+    <string name="status_success">Succes</string>
+    <string name="status_cancelled">Geannuleerd</string>
+    <string name="status_error">Fout</string>
+</resources>
