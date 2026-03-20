@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -72,6 +73,18 @@ compose.desktop {
         }
     }
 }
+
+// Target the JPackage task specifically
+tasks.withType<AbstractJPackageTask>().configureEach {
+    if (name.contains("Msi", ignoreCase = true)) {
+        // Instruct the JVM to request that Windows not trim the application's memory when it is
+        // minimized. Uploading in the background should not fight with Windows trying to swap the
+        // photo to upload to disk. As a bonus, if the user restores the app to check progress, it
+        // will pop up instantly rather than waiting for the disk to swap memory back in.
+        launcherJvmArgs.add("-Dsun.awt.keepWorkingSetOnMinimize=true")
+    }
+}
+
 
 /**
 To make the app icon appear in the launch bar and on top of the screenshot in the change task bar,
