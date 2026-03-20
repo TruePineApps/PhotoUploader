@@ -19,9 +19,16 @@ compose.desktop {
         mainClass = "com.truepineapps.photouploader.MainKt"
 
         // javaHome must be set here at the application level to be recognized.
-        // We use an OS check so this path only applies when building on Linux.
-        if (System.getProperty("os.name").contains("Linux")) {
-            javaHome = "/usr/lib/jvm/java-21-openjdk-amd64"
+        // We use an OS check so the correct path is taken depending on the platform
+        val osName = System.getProperty("os.name").lowercase()
+        when {
+            osName.contains("linux") -> {
+                javaHome = "/usr/lib/jvm/java-21-openjdk-amd64"
+            }
+            osName.contains("windows") -> {
+                javaHome = System.getenv("JAVA_HOME")
+                    ?: "C:\\Program Files\\Microsoft\\jdk-21.0.10.7-hotspot"
+            }
         }
 
         description = "Upload a photo collection organized in folders to Google Photo"
