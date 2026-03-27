@@ -1,10 +1,50 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import com.github.jk1.license.render.*
+import com.github.jk1.license.filter.*
 
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    id("com.github.jk1.dependency-license-report")
+}
+
+// Run a report for 3rd party dependencies with `./gradlew :desktopApp:generateLicenseReport --no-parallel`.
+// Output in desktopApp/build/reports/dependency-license/: THIRD-PARTY-NOTICES.txt and index.html.
+// Add the output in NOTICES file.
+licenseReport {
+    renderers = arrayOf(
+        InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
+        // Pass the output directory explicitly to help with Gradle's configuration cache
+        NoticesRenderer(
+            "THIRD-PARTY-NOTICES.txt",
+            layout.buildDirectory.dir("reports/dependency-license").get().asFile
+        )
+    )
+    // LicenseBundleNormalizer normalizes different namings of the same license,
+    // SpdxLicenseBundleNormalizer also replaces it with the standardized name.
+    filters = arrayOf(SpdxLicenseBundleNormalizer())
+    excludeGroups = arrayOf("com.truepineapps")
+}
+
+// Task to copy the generated report to composeResources/files in composeApp so shared code can see it
+val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
+    dependsOn("generateLicenseReport")
+    // Source: desktopApp build folder
+    from(layout.buildDirectory.dir("reports/dependency-license/THIRD-PARTY-NOTICES.txt"))
+
+    // Target: composeApp resources (relative to project root)
+    into(project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files"))
+}
+
+// Ensure the file is there during normal development runs
+tasks.named("processResources") {
+    dependsOn(copyNoticesToResources)
+}
+// Ensure packaging tasks wait for the report to be generated and copied
+tasks.withType<AbstractJPackageTask>().configureEach {
+    dependsOn(copyNoticesToResources)
 }
 
 kotlin {
@@ -26,6 +66,7 @@ compose.desktop {
             osName.contains("linux") -> {
                 javaHome = "/usr/lib/jvm/java-21-openjdk-amd64"
             }
+
             osName.contains("windows") -> {
                 javaHome = System.getenv("JAVA_HOME")
                     ?: "C:\\Program Files\\Microsoft\\jdk-21.0.10.7-hotspot"
@@ -230,7 +271,8 @@ abstract class FixDesktopFileTask @Inject constructor(
                     "tar",
                     "-cf", dataTarName,
                     "--format=gnu",
-                    "opt")
+                    "opt"
+                )
             }
 
             execOperations.exec {
