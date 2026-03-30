@@ -19,6 +19,9 @@
     <string name="app_id">Applicatie-ID</string>
     <string name="licenses">Licenties</string>
     <string name="license_text">Licentietekst</string>
+    <string name="font_licenses">Fontlicenties</string>
+    <string name="noto_sans">Noto Sans</string>
+    <string name="third_party_notices">Licenties van derden</string>
     <string name="sign_in">Inloggen</string>
     <string name="sign_out">Uitloggen</string>
     <string name="close_button">Sluiten</string>
@@ -60,6 +63,7 @@
     <string name="error_one_or_more_photos_failed">Upload van eén of meer foto\'s mislukt: %1$s</string>
     <string name="network_error">Netwerkfout</string>
     <string name="unknown_error">Onbekende fout</string>
+    <string name="error_loading_license">Laden licenses mislukt: %1$s</string>
     
     <!-- Upload statuses -->
     <string name="status_none"> </string>

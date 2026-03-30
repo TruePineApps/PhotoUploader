@@ -1,32 +1,50 @@
 package com.truepineapps.photouploader.ui.screen.about
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.collapse_album
+import com.truepineapps.photouploader.resources.error_loading_license
+import com.truepineapps.photouploader.resources.expand_album
+import com.truepineapps.photouploader.resources.font_licenses
 import com.truepineapps.photouploader.resources.license_text
 import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.loading
+import com.truepineapps.photouploader.resources.noto_sans
+import com.truepineapps.photouploader.resources.third_party_notices
+import com.truepineapps.photouploader.resources.unknown_error
 import com.truepineapps.photouploader.ui.Dimensions
+import com.truepineapps.photouploader.ui.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 object LicenseDestination : NavigationDestination {
     override val route = "license"
@@ -36,19 +54,14 @@ object LicenseDestination : NavigationDestination {
 @Composable
 fun LicenseScreen(
     modifier: Modifier = Modifier,
+    viewModel: LicenseViewModel = koinViewModel(),
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit = { _, _, _ -> },
 ) {
-    val loadingMessage = stringResource(
-        Res.string.loading,
-        stringResource(Res.string.license_text)
-    )
-    var licenseText by remember { mutableStateOf(loadingMessage) }
+    // Collect states from ViewModel
+    val fontResult by viewModel.fontResult.collectAsState()
+    val noticesResult by viewModel.noticesResult.collectAsState()
 
     onUpdateTopAppBar(stringResource(LicenseDestination.titleRes), null) {}
-
-    LaunchedEffect(Unit) {
-        licenseText = loadFontLicense()
-    }
 
     Column(
         modifier = modifier
@@ -56,29 +69,105 @@ fun LicenseScreen(
             .padding(Dimensions.padding_medium)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Font Licenses",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = Dimensions.padding_small)
+        // Font Section
+        ExpandableLicenseSection(
+            sectionHeaderText = stringResource(Res.string.font_licenses),
+            loadingResult = fontResult,
+            loadingMessage = stringResource(
+                Res.string.loading,
+                stringResource(Res.string.license_text)
+            ),
+            licenseHeaderText = stringResource(Res.string.noto_sans)
         )
-        Text(
-            text = "Noto Sans",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(Dimensions.padding_very_small))
-        // Format license text in monospace font
-        Text(
-            text = licenseText,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace
+
+        // Third Party Section
+        ExpandableLicenseSection(
+            sectionHeaderText = stringResource(Res.string.third_party_notices),
+            loadingResult = noticesResult,
+            loadingMessage = stringResource(
+                Res.string.loading,
+                stringResource(Res.string.licenses)
+            )
         )
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
-suspend fun loadFontLicense(): String {
+@Composable
+private fun ExpandableLicenseSection(
+    sectionHeaderText: String,
+    loadingResult: LoadLicenseResult,
+    loadingMessage: String,
+    modifier: Modifier = Modifier,
+    licenseHeaderText: String? = null
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .clickable { expanded = !expanded }
+                .padding(Dimensions.padding_small),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = sectionHeaderText,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.weight(1f)
+            )
+            ThemedIconButton(
+                onClick = { expanded = !expanded },
+                imageVector = if (expanded) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,
+                contentDescriptionResource = if (expanded) Res.string.collapse_album else Res.string.expand_album,
+                enabled = true
+            )
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column(Modifier.padding(horizontal = Dimensions.padding_small)) {
+                licenseHeaderText?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = Dimensions.padding_small)
+                    )
+                }
+                LicenseText(loadingResult, loadingMessage)
+            }
+        }
+    }
+}
 
-    val bytes = Res.readBytes("files/OFL.txt")
-    return bytes.decodeToString()
+// Format license text in monospace font
+@Composable
+private fun LicenseText(
+    loadingResult: LoadLicenseResult,
+    loadingMessage: String,
+    modifier: Modifier = Modifier
+) {
+    // Use derivedStateOf to compute the text only when the Result changes
+    val unknownErrorMsg = stringResource(Res.string.unknown_error)
+    val errorFormatMsg = stringResource(Res.string.error_loading_license, "")
+
+    val displayText by remember(loadingResult) {
+        derivedStateOf {
+            when (loadingResult) {
+                is LoadLicenseResult.Loading -> loadingMessage
+                is LoadLicenseResult.Success -> loadingResult.licenseText
+                is LoadLicenseResult.Error -> {
+                    val message = loadingResult.exception.message ?: unknownErrorMsg
+                    "$errorFormatMsg $message"
+                }
+            }
+        }
+    }
+
+    Text(
+        text = displayText,
+        style = MaterialTheme.typography.bodySmall.copy(
+            fontFamily = FontFamily.Monospace,
+            lineHeight = TextUnit(14f, TextUnitType.Sp)
+        ),
+        modifier = modifier.padding(vertical = Dimensions.padding_medium)
+    )
 }

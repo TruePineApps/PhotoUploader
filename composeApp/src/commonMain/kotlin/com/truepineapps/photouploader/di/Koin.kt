@@ -12,6 +12,7 @@ import com.truepineapps.photouploader.localization.PlatformLocaleProvider
 import com.truepineapps.photouploader.ui.components.platformpicker.CalfPlatformPicker
 import com.truepineapps.photouploader.ui.components.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.ui.localization.LocaleViewModel
+import com.truepineapps.photouploader.ui.screen.about.LicenseViewModel
 import com.truepineapps.photouploader.ui.screen.settings.SettingsViewModel
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -86,5 +87,6 @@ private fun coreModule(isPickerDefined: Boolean) = module {
     single<UserPreferencesRepository> { UserPreferencesSettingsRepository(get()) }
     single { LocaleViewModel(userPreferencesRepository = get()) }
     single { SettingsViewModel(userPreferencesRepository = get()) }
+    single { LicenseViewModel() }
     single<Clock> { Clock.System }
 }
