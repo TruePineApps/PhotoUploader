@@ -16,6 +16,8 @@
     <string name="about_photo_uploader">Over Photo Uploader</string>
     <string name="version">Versie</string>
     <string name="platform">Platform</string>
+    <string name="website">Website</string>
+    <string name="sources">Bronbestanden</string>
     <string name="app_id">Applicatie-ID</string>
     <string name="licenses">Licenties</string>
     <string name="license_text">Licentietekst</string>
@@ -46,7 +48,10 @@
     <string name="cancel">Annuleren</string>
     <string name="collapse_album">Album inklappen</string>
     <string name="expand_album">Album uitklappen</string>
-    
+    <string name="photo_uploader_description">
+        Photo Uploader stuurt foto's georganiseerd in folders naar albums op Google Photos. De naam van het album wordt afgeleid van de naam van de folder.
+    </string>
+
     <!-- Error messages -->
     <string name="error_unknown">Er is een onbekende fout opgetreden.</string>
     <string name="error_platform_context_not_set">Platformcontext niet ingesteld</string>

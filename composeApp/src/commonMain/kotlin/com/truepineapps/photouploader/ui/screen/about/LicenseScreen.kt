@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.ui.screen.about
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.UnfoldLess
@@ -25,8 +27,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.truepineapps.photouploader.resources.Res
@@ -64,12 +72,16 @@ fun LicenseScreen(
     onUpdateTopAppBar(stringResource(LicenseDestination.titleRes), null) {}
 
     Column(
+        verticalArrangement = Arrangement.spacedBy(Dimensions.padding_medium),
         modifier = modifier
             .fillMaxSize()
             .padding(Dimensions.padding_medium)
             .verticalScroll(rememberScrollState())
     ) {
-        // Font Section
+        // Copyright
+        PhotoUploaderCopyright()
+
+        // Font license Section
         ExpandableLicenseSection(
             sectionHeaderText = stringResource(Res.string.font_licenses),
             loadingResult = fontResult,
@@ -91,6 +103,36 @@ fun LicenseScreen(
         )
     }
 }
+
+@Composable
+fun PhotoUploaderCopyright(modifier: Modifier = Modifier) {
+    val apacheUrl = "https://www.apache.org/licenses/LICENSE-2.0"
+    val annotatedString = buildAnnotatedString {
+        append("PhotoUploader – © Copyright 2026 True Pine Apps\n")
+        append("Licensed under the Apache License, Version 2.0\n")
+
+        // Make only the URL clickable and styled
+        withLink(
+            LinkAnnotation.Url(
+                url = apacheUrl,
+                styles = TextLinkStyles(
+                    style = SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            )
+        ) {
+            append(apacheUrl)
+        }
+    }
+
+    // Allows users to copy the text if they want
+    SelectionContainer(modifier = modifier) {
+        Text(text = annotatedString)
+    }
+}
+
 
 @Composable
 private fun ExpandableLicenseSection(

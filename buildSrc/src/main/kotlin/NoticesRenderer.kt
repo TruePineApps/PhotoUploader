@@ -45,8 +45,12 @@ class NoticesRenderer(private val filename: String = "THIRD-PARTY-NOTICES.txt",
         }
 
         output.bufferedWriter().use { writer ->
+            writer.write("PhotoUploader\n")
+            writer.write("Copyright 2026 True Pine Apps\n\n")
+            writer.write("This product includes software developed at\n")
+            writer.write("True Pine Apps (https://www.truepineapps.com/).\n\n")
+
             writer.write("THIRD-PARTY SOFTWARE NOTICES\n")
-            writer.write("PhotoUploader – Third Party Licenses\n")
             writer.write("=".repeat(60) + "\n\n")
 
             writer.write("Total Unique Packages: ${uniqueModules.size}\n")

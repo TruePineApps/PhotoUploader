@@ -11,16 +11,23 @@ plugins {
 }
 
 // Run a report for 3rd party dependencies with `./gradlew :desktopApp:generateLicenseReport --no-parallel`.
-// Output in desktopApp/build/reports/dependency-license/: THIRD-PARTY-NOTICES.txt and index.html.
-// Add the output in NOTICES file.
+// Output in desktopApp/build/reports/dependency-license/: NOTICES and index.html.
+// Note: As of version 3.1.1, the 'com.github.jk1.dependency-license-report' plugin
+// is not fully compatible with the Gradle Configuration Cache.
+// Running the task creates a message:
+// "1 problem was found storing the configuration cache."
+// "Task :desktopApp:generateLicenseReport ... cannot serialize object of type 'DefaultProject'".
+// This is a known issue with the plugin's internal task design and does not affect
+// the correctness of the generated NOTICES.
+val sharedResourceFiles: FileSystemLocation =
+    project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files")
+val dependencyDir: Provider<Directory> = layout.buildDirectory.dir("reports/dependency-license")
+val noticesName = "NOTICES"
 licenseReport {
     renderers = arrayOf(
         InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
         // Pass the output directory explicitly to help with Gradle's configuration cache
-        NoticesRenderer(
-            "THIRD-PARTY-NOTICES.txt",
-            layout.buildDirectory.dir("reports/dependency-license").get().asFile
-        )
+        NoticesRenderer(noticesName, dependencyDir.get()?.asFile)
     )
     // LicenseBundleNormalizer normalizes different namings of the same license,
     // SpdxLicenseBundleNormalizer also replaces it with the standardized name.
@@ -32,10 +39,9 @@ licenseReport {
 val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
     dependsOn("generateLicenseReport")
     // Source: desktopApp build folder
-    from(layout.buildDirectory.dir("reports/dependency-license/THIRD-PARTY-NOTICES.txt"))
-
+    from(dependencyDir.map { it?.file(noticesName) })
     // Target: composeApp resources (relative to project root)
-    into(project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files"))
+    into(sharedResourceFiles)
 }
 
 // Ensure the file is there during normal development runs
@@ -76,7 +82,7 @@ compose.desktop {
         description = "Upload a photo collection organized in folders to Google Photo"
 
         buildTypes.release.proguard {
-            version.set("7.5.0")
+            version.set("7.9.0")
             configurationFiles.from("proguard-rules.pro")
         }
 
@@ -89,7 +95,6 @@ compose.desktop {
 
             packageName = "Photo-Uploader"
             packageVersion = libs.versions.appVersionName.get()
-            description = "Upload a photo collection organized in folders to Google Photo"
             copyright = "© 2026 True Pine Apps. All rights reserved."
             vendor = "True Pine Apps"
             licenseFile.set(project.file("../LICENSE"))
@@ -101,6 +106,7 @@ compose.desktop {
                 appCategory = "Utility"
                 rpmLicenseType = "Apache 2.0"
                 shortcut = true
+                debMaintainer = "True Pine Apps <photouploader@truepineapps.com>"
             }
             macOS {
                 iconFile.set(project.file("src/main/resources/desktopicon.icns"))
@@ -109,6 +115,7 @@ compose.desktop {
             windows {
                 iconFile.set(project.file("src/main/resources/desktopicon.ico"))
                 menuGroup = "Photo_Uploader"
+                shortcut = true
                 upgradeUuid = "0D40844D-0D36-4889-A1D4-5BF995A9B471"
             }
         }
@@ -126,8 +133,8 @@ tasks.withType<AbstractJPackageTask>().configureEach {
     }
 }
 
-
 /**
+ * 1. Fix .desktop file.
 To make the app icon appear in the launch bar and on top of the screenshot in the change task bar,
 the .desktop file must contain the property StartupWMClass. Run 'lg' by pressing [Alt-F2] and
 entering lg and click the 'Windows' button to find the value. Alternatively, start the app, run
@@ -137,8 +144,15 @@ a custom .desktop file is created in the resources folder and replaces the defau
 in the assembled .deb file.
 This custom .desktop file src/main/resources/linux/Photo-Uploader.desktop now contains the
 necessary StartupWMClass.
+2. Add license files
+- copyright: Use COPYRIGHT instead of the generated copyright file
+- LICENSE: The Apache 2.0 license for non-Debian users
+- OFL.txt: For the Noto Sans font license
+- NOTICES: For the third party license notices
+
+ This class must not reference `project` or global variables in this file.
  */
-abstract class FixDesktopFileTask @Inject constructor(
+abstract class PatchDebPackage @Inject constructor(
     private val execOperations: ExecOperations
 ) : DefaultTask() {
 
@@ -147,6 +161,19 @@ abstract class FixDesktopFileTask @Inject constructor(
 
     @get:InputFile
     abstract val desktopSourceFile: RegularFileProperty
+
+    @get:InputFile
+    abstract val copyrightSourceFile: RegularFileProperty
+
+    @get:InputFile
+    abstract val licenseSourceFile: RegularFileProperty
+
+    @get:InputDirectory
+    abstract val sharedResourceDir: DirectoryProperty
+
+    // Pass in the name of the notices file, since this is a generated file
+    @get:Input
+    abstract val noticesFileName: Property<String>
 
     // Use OutputDirectory because the .deb filename is dynamic (contains version)
     @get:OutputDirectory
@@ -162,9 +189,13 @@ abstract class FixDesktopFileTask @Inject constructor(
     }
 
     @TaskAction
-    fun fixDesktopFile() {
+    fun patchDebPackage() {
         val dir = debFileDir.asFile.get()
         val desktopSource = desktopSourceFile.asFile.get()
+        val copyrightSource = copyrightSourceFile.asFile.get()
+        val licenseSource = licenseSourceFile.asFile.get()
+        val resourceDir = sharedResourceDir.asFile.get()
+        val noticesName = noticesFileName.get()
 
         // Find the .deb file by filtering for .deb and sort by lastModified to handle cases where
         // old versions might still be in the folder.
@@ -183,115 +214,58 @@ abstract class FixDesktopFileTask @Inject constructor(
             return
         }
 
-        val tempDir = deb.parentFile.resolve("temp_deb_fix_${System.currentTimeMillis()}")
-        tempDir.mkdirs()
+        val extractDir = deb.parentFile.resolve("temp_deb_fix_${System.currentTimeMillis()}")
+        extractDir.mkdirs()
 
         try {
+            /* Extract the .deb file */
             logger.lifecycle("Extracting .deb file...")
-
-            // Extract .deb using ar
+            // -R (raw-extract) extracts both the filesystem (data)
+            // and the control files (DEBIAN/ folder)
             execOperations.exec {
-                workingDir = tempDir
-                commandLine("ar", "x", deb.absolutePath)
+                commandLine("dpkg-deb", "-R", deb.absolutePath, extractDir.absolutePath)
             }
 
-            // Find data.tar.* and control.tar.*
-            val dataTar = tempDir.listFiles()?.find { it.name.startsWith("data.tar") }
-            val controlTar = tempDir.listFiles()?.find { it.name.startsWith("control.tar") }
-
-            if (dataTar == null) {
-                logger.warn("No data.tar file found in .deb")
-                return
-            }
-
-            logger.lifecycle("Extracting data archive...")
-
-            // Extract data.tar.*
-            val extractCmd = when {
-                dataTar.name.endsWith(".tar.gz") -> listOf("tar", "-xzf", dataTar.name)
-                dataTar.name.endsWith(".tar.xz") -> listOf("tar", "-xJf", dataTar.name)
-                dataTar.name.endsWith(".tar.zst") -> listOf("tar", "--zstd", "-xf", dataTar.name)
-                else -> listOf("tar", "-xf", dataTar.name)
-            }
-
-            execOperations.exec {
-                workingDir = tempDir
-                commandLine(extractCmd)
-            }
-
-            // Find and replace the .desktop file
-            val desktopFiles = tempDir.walk().filter {
-                it.isFile && it.name.endsWith(".desktop")
+            /* Find and replace the .desktop file in the extracted tree */
+            val desktopFiles = extractDir.walk().filter {
+                it.isFile && it.name.endsWith(".desktop") && !it.absolutePath.contains("/legal/")
             }
 
             if (desktopFiles.any()) {
                 desktopFiles.forEach { desktopFile ->
-                    logger.lifecycle("Found .desktop file: ${desktopFile.absolutePath}")
-
-                    // Skip files in the 'legal' directory to avoid accidental corruption
-                    if (!desktopFile.absolutePath.contains("/legal/")) {
-                        desktopSource.copyTo(desktopFile, overwrite = true)
-                        logger.lifecycle("Replaced: ${desktopFile.name}")
-                    }
+                    desktopSource.copyTo(desktopFile, overwrite = true)
+                    logger.lifecycle("Replaced .desktop file at: ${desktopFile.absolutePath}")
                 }
             } else {
                 logger.warn("Could not find any .desktop files in extracted content")
             }
 
-            // Repackage data.tar
-            logger.lifecycle("Repackaging data archive...")
-            val dataTarName = dataTar.name
-            dataTar.delete()
+            /*  Copy the license files to /opt/photo-uploader/shared/doc/ using Kotlin's copy function */
+            val docTarget = File(extractDir, "/opt/photo-uploader/share/doc")
+            docTarget.mkdirs()
 
-            // Use --format=gnu to make sure tar does the same as jpackage
-            val repackCmd = when {
-                dataTarName.endsWith(".tar.gz") -> listOf(
-                    "tar",
-                    "-czf", dataTarName,
-                    "--format=gnu",
-                    "opt"
-                )
+            // copyright: replace with COPYRIGHT
+            copyrightSource.copyTo(File(docTarget, "copyright"), overwrite = true)
 
-                dataTarName.endsWith(".tar.xz") -> listOf(
-                    "tar",
-                    "-cJf", dataTarName,
-                    "--format=gnu",
-                    "opt"
-                )
+            // LICENSE: Add Apache 2.0 license for non-Debian users
+            licenseSource.copyTo(File(docTarget, "LICENSE"), overwrite = true)
 
-                dataTarName.endsWith(".tar.zst") -> listOf(
-                    "tar",
-                    "--zstd",
-                    "-cf", dataTarName,
-                    "--format=gnu",
-                    "opt"
-                )
-
-                else -> listOf(
-                    "tar",
-                    "-cf", dataTarName,
-                    "--format=gnu",
-                    "opt"
-                )
+            // OFL.txt – font license
+            File(resourceDir, "OFL.txt").let {
+                if (it.exists()) it.copyTo(File(docTarget, "OFL.txt"), overwrite = true)
             }
 
-            execOperations.exec {
-                workingDir = tempDir
-                commandLine(repackCmd)
+            // NOTICES – Apache 2.0 obligation for 3rd party libraries
+            File(resourceDir, noticesName).let {
+                if (it.exists()) it.copyTo(File(docTarget, noticesName), overwrite = true)
             }
 
-            // Rebuild the .deb file
+            /* Rebuild the .deb file */
             logger.lifecycle("Rebuilding .deb file...")
-            deb.delete()
-
-            // Build the ar command with available files
-            val arCmd = mutableListOf("ar", "rcD", deb.absolutePath, "debian-binary")
-            if (controlTar != null) arCmd.add(controlTar.name)
-            arCmd.add(dataTarName)
-
+            // -b (build) repacks the directory back into a valid .deb
+            // This preserves permissions and handles compression automatically
             execOperations.exec {
-                workingDir = tempDir
-                commandLine(arCmd)
+                commandLine("dpkg-deb", "-b", extractDir.absolutePath, deb.absolutePath)
             }
 
             logger.lifecycle("✓ Successfully updated .deb with custom .desktop file")
@@ -300,27 +274,32 @@ abstract class FixDesktopFileTask @Inject constructor(
             logger.error("Error modifying .deb file: ${e.message}")
             throw e
         } finally {
-            tempDir.deleteRecursively()
+            extractDir.deleteRecursively()
         }
     }
 }
 
 afterEvaluate {
     // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)
-    tasks.names.filter { it.matches(Regex("package.*Deb")) }.forEach { packageName ->
+    tasks.names.filter { it.matches(Regex("package.*Deb")) }.forEach { packageTaskName ->
         // Determine the folder name based on the package type
-        val folderName = if (packageName.contains("Release")) "main-release" else "main"
+        val folderName = if (packageTaskName.contains("Release")) "main-release" else "main"
         // Create a dedicated task name (e.g., fixPackageReleaseDeb)
-        val fixTaskName = "fix${packageName.replaceFirstChar { it.uppercase() }}"
+        val fixTaskName = "fix${packageTaskName.replaceFirstChar { it.uppercase() }}"
 
         // Register a unique fix task for this package task
-        val fixTask = tasks.register<FixDesktopFileTask>(fixTaskName) {
+        val fixTask = tasks.register<PatchDebPackage>(fixTaskName) {
+            description = "Patch .desktop file and add license files in generated .deb pacakge"
             debFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
             desktopSourceFile.set(layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop"))
+            copyrightSourceFile.set(layout.projectDirectory.file("../COPYRIGHT"))
+            licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
+            sharedResourceDir.set(project.file(sharedResourceFiles))
+            noticesFileName.set(noticesName)
         }
 
         // Link the original task to the fix task
-        tasks.named(packageName) {
+        tasks.named(packageTaskName) {
             finalizedBy(fixTask)
         }
     }

@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: PhotoUploader
+Upstream-Contact: photouploader@truepineapps.com
+Source: https://github.com/truepineapps/photouploader
+
+Files: *
+Copyright: 2026 True Pine Apps
+License: Apache-2.0
+ On Debian systems, the complete text of the Apache License
+ Version 2.0 can be found in /usr/share/common-licenses/Apache-2.0.
+ The complete text of the Apache License Version 2.0 is also available at
+ https://www.apache.org/licenses/LICENSE-2.0.
+
+Files: */NotoSans*.ttf
+Copyright: 2022 The Noto Project Authors
+License: OFL-1.1
+ See /opt/photo-uploader/share/doc/OFL.txt for the full license text.

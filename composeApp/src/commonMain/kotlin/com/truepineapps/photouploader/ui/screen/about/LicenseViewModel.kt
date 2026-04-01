@@ -25,7 +25,7 @@ class LicenseViewModel : ViewModel() {
         viewModelScope.launch {
             // Read files concurrently
             val fontJob = async { loadLicenseFile("OFL.txt") }
-            val noticesJob = async { loadLicenseFile("THIRD-PARTY-NOTICES.txt") }
+            val noticesJob = async { loadLicenseFile("NOTICES") }
 
             _fontResult.value = fontJob.await()
             _noticesResult.value = noticesJob.await()
