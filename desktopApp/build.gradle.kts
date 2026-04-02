@@ -2,6 +2,8 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import com.github.jk1.license.render.*
 import com.github.jk1.license.filter.*
+import packaging.PatchDebPackage
+import packaging.PatchDmgPackage
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -152,132 +154,6 @@ necessary StartupWMClass.
 
  This class must not reference `project` or global variables in this file.
  */
-abstract class PatchDebPackage @Inject constructor(
-    private val execOperations: ExecOperations
-) : DefaultTask() {
-
-    @get:InputDirectory
-    abstract val debFileDir: DirectoryProperty
-
-    @get:InputFile
-    abstract val desktopSourceFile: RegularFileProperty
-
-    @get:InputFile
-    abstract val copyrightSourceFile: RegularFileProperty
-
-    @get:InputFile
-    abstract val licenseSourceFile: RegularFileProperty
-
-    @get:InputDirectory
-    abstract val sharedResourceDir: DirectoryProperty
-
-    // Pass in the name of the notices file, since this is a generated file
-    @get:Input
-    abstract val noticesFileName: Property<String>
-
-    // Use OutputDirectory because the .deb filename is dynamic (contains version)
-    @get:OutputDirectory
-    abstract val outputDir: DirectoryProperty
-
-    init {
-        // Mark the directory as the output so Gradle knows it has changed
-        outputDir.set(debFileDir)
-
-        // Force the task to always run when called, because it modifies the .deb produced by the
-        // previous task in-place.
-        outputs.upToDateWhen { false }
-    }
-
-    @TaskAction
-    fun patchDebPackage() {
-        val dir = debFileDir.asFile.get()
-        val desktopSource = desktopSourceFile.asFile.get()
-        val copyrightSource = copyrightSourceFile.asFile.get()
-        val licenseSource = licenseSourceFile.asFile.get()
-        val resourceDir = sharedResourceDir.asFile.get()
-        val noticesName = noticesFileName.get()
-
-        // Find the .deb file by filtering for .deb and sort by lastModified to handle cases where
-        // old versions might still be in the folder.
-        val deb = dir.listFiles()
-            ?.filter { it.extension == "deb" }
-            ?.maxByOrNull { it.lastModified() }
-
-        if (deb == null || !deb.exists()) {
-            logger.error("No .deb file found in directory: ${dir.absolutePath}")
-            return
-        }
-
-        logger.lifecycle("Processing Deb: ${deb.absolutePath}")
-        if (!desktopSource.exists()) {
-            logger.warn("Custom .desktop file not found at: ${desktopSource.absolutePath}")
-            return
-        }
-
-        val extractDir = deb.parentFile.resolve("temp_deb_fix_${System.currentTimeMillis()}")
-        extractDir.mkdirs()
-
-        try {
-            /* Extract the .deb file */
-            logger.lifecycle("Extracting .deb file...")
-            // -R (raw-extract) extracts both the filesystem (data)
-            // and the control files (DEBIAN/ folder)
-            execOperations.exec {
-                commandLine("dpkg-deb", "-R", deb.absolutePath, extractDir.absolutePath)
-            }
-
-            /* Find and replace the .desktop file in the extracted tree */
-            val desktopFiles = extractDir.walk().filter {
-                it.isFile && it.name.endsWith(".desktop") && !it.absolutePath.contains("/legal/")
-            }
-
-            if (desktopFiles.any()) {
-                desktopFiles.forEach { desktopFile ->
-                    desktopSource.copyTo(desktopFile, overwrite = true)
-                    logger.lifecycle("Replaced .desktop file at: ${desktopFile.absolutePath}")
-                }
-            } else {
-                logger.warn("Could not find any .desktop files in extracted content")
-            }
-
-            /*  Copy the license files to /opt/photo-uploader/shared/doc/ using Kotlin's copy function */
-            val docTarget = File(extractDir, "/opt/photo-uploader/share/doc")
-            docTarget.mkdirs()
-
-            // copyright: replace with COPYRIGHT
-            copyrightSource.copyTo(File(docTarget, "copyright"), overwrite = true)
-
-            // LICENSE: Add Apache 2.0 license for non-Debian users
-            licenseSource.copyTo(File(docTarget, "LICENSE"), overwrite = true)
-
-            // OFL.txt – font license
-            File(resourceDir, "OFL.txt").let {
-                if (it.exists()) it.copyTo(File(docTarget, "OFL.txt"), overwrite = true)
-            }
-
-            // NOTICES – Apache 2.0 obligation for 3rd party libraries
-            File(resourceDir, noticesName).let {
-                if (it.exists()) it.copyTo(File(docTarget, noticesName), overwrite = true)
-            }
-
-            /* Rebuild the .deb file */
-            logger.lifecycle("Rebuilding .deb file...")
-            // -b (build) repacks the directory back into a valid .deb
-            // This preserves permissions and handles compression automatically
-            execOperations.exec {
-                commandLine("dpkg-deb", "-b", extractDir.absolutePath, deb.absolutePath)
-            }
-
-            logger.lifecycle("✓ Successfully updated .deb with custom .desktop file")
-
-        } catch (e: Exception) {
-            logger.error("Error modifying .deb file: ${e.message}")
-            throw e
-        } finally {
-            extractDir.deleteRecursively()
-        }
-    }
-}
 
 afterEvaluate {
     // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)
@@ -290,17 +166,27 @@ afterEvaluate {
         // Register a unique fix task for this package task
         val fixTask = tasks.register<PatchDebPackage>(fixTaskName) {
             description = "Patch .desktop file and add license files in generated .deb pacakge"
-            debFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
+            packageFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
             desktopSourceFile.set(layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop"))
             copyrightSourceFile.set(layout.projectDirectory.file("../COPYRIGHT"))
             licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
             sharedResourceDir.set(project.file(sharedResourceFiles))
             noticesFileName.set(noticesName)
         }
+        tasks.named(packageTaskName) { finalizedBy(fixTask) }
+    }
 
-        // Link the original task to the fix task
-        tasks.named(packageTaskName) {
-            finalizedBy(fixTask)
+    tasks.names.filter { it.matches(Regex("package.*Dmg")) }.forEach { packageTaskName ->
+        val folderName = if (packageTaskName.contains("Release")) "main-release" else "main"
+        val fixTask = tasks.register<PatchDmgPackage>(
+            "fix${packageTaskName.replaceFirstChar { it.uppercase() }}"
+        ) {
+            description = "Add license files to generated .dmg package"
+            packageFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/dmg"))
+            licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
+            sharedResourceDir.set(project.file(sharedResourceFiles))
+            noticesFileName.set(noticesName)
         }
+        tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
 }

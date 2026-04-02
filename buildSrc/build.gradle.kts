@@ -2,6 +2,10 @@ plugins {
     `kotlin-dsl`
 }
 
+gradlePlugin {
+    // Suppress the search for plugin descriptors in META-INF
+    isAutomatedPublishing = false
+}
 repositories {
     gradlePluginPortal()
     mavenCentral()
