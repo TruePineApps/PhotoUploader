@@ -29,7 +29,7 @@ licenseReport {
     renderers = arrayOf(
         InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
         // Pass the output directory explicitly to help with Gradle's configuration cache
-        NoticesRenderer(noticesName, dependencyDir.get()?.asFile)
+        NoticesRenderer(noticesName, dependencyDir.get().asFile)
     )
     // LicenseBundleNormalizer normalizes different namings of the same license,
     // SpdxLicenseBundleNormalizer also replaces it with the standardized name.
@@ -41,7 +41,7 @@ licenseReport {
 val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
     dependsOn("generateLicenseReport")
     // Source: desktopApp build folder
-    from(dependencyDir.map { it?.file(noticesName) })
+    from(dependencyDir.map { it.file(noticesName) })
     // Target: composeApp resources (relative to project root)
     into(sharedResourceFiles)
 }
@@ -136,23 +136,23 @@ tasks.withType<AbstractJPackageTask>().configureEach {
 }
 
 /**
- * 1. Fix .desktop file.
-To make the app icon appear in the launch bar and on top of the screenshot in the change task bar,
-the .desktop file must contain the property StartupWMClass. Run 'lg' by pressing [Alt-F2] and
-entering lg and click the 'Windows' button to find the value. Alternatively, start the app, run
-'xprop WM_CLASS' in a terminal and click the app window.
-Since updating the generated .desktop file doesn't work, see bug https://youtrack.jetbrains.com/issue/CMP-9837/packageDeb-task-fails-to-include-custom-.desktop-files,
-a custom .desktop file is created in the resources folder and replaces the default .desktop file
-in the assembled .deb file.
-This custom .desktop file src/main/resources/linux/Photo-Uploader.desktop now contains the
-necessary StartupWMClass.
-2. Add license files
-- copyright: Use COPYRIGHT instead of the generated copyright file
-- LICENSE: The Apache 2.0 license for non-Debian users
-- OFL.txt: For the Noto Sans font license
-- NOTICES: For the third party license notices
-
- This class must not reference `project` or global variables in this file.
+ * 1. Add license files
+ * - copyright: Use COPYRIGHT instead of the generated copyright file
+ * - LICENSE: The Apache 2.0 license for non-Debian users
+ * - OFL.txt: For the Noto Sans font license
+ * - NOTICES: For the third party license notices
+ * 2. Fix Linux .desktop file.
+ * To make the app icon appear in the launch bar and on top of the screenshot in the change task bar,
+ * the .desktop file must contain the property StartupWMClass. Run 'lg' by pressing [Alt-F2] and
+ * entering lg and click the 'Windows' button to find the value. Alternatively, start the app, run
+ * 'xprop WM_CLASS' in a terminal and click the app window.
+ * Since updating the generated .desktop file doesn't work, see bug https://youtrack.jetbrains.com/issue/CMP-9837/packageDeb-task-fails-to-include-custom-.desktop-files,
+ * a custom .desktop file is created in the resources folder and replaces the default .desktop file
+ * in the assembled .deb file.
+ * This custom .desktop file src/main/resources/linux/Photo-Uploader.desktop now contains the
+ * necessary StartupWMClass.
+ * 
+ * This class must not reference `project` or global variables in this file.
  */
 
 afterEvaluate {
@@ -188,5 +188,25 @@ afterEvaluate {
             noticesFileName.set(noticesName)
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
+    }
+}
+
+/**
+ * Copies license files to the Windows app resources directory before MSI packaging.
+ * jpackage will include everything under appResourcesRootDir in the installed app\resources\ folder.
+ * This avoids MSI post-processing, which requires platform-specific tooling.
+ *
+ * Installed location: C:\Program Files\Photo-Uploader\app\resources\legal\
+ */
+val prepareWindowsLicenseFiles = tasks.register<Copy>("prepareWindowsLicenseFiles") {
+    from(rootProject.file("LICENSE"))
+    from(sharedResourceFiles.asFile.resolve("NOTICES"))
+    from(sharedResourceFiles.asFile.resolve("OFL.txt"))
+    into(layout.projectDirectory.dir("src/main/resources/windows/legal"))
+}
+
+tasks.withType<AbstractJPackageTask>().configureEach {
+    if (name.contains("Msi", ignoreCase = true)) {
+        dependsOn(prepareWindowsLicenseFiles)
     }
 }
