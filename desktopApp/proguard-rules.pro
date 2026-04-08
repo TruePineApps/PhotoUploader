@@ -5,6 +5,9 @@
 # Suppress all "Note" messages (duplicates, dynamic access, entry points, etc.)
 -dontnote **
 
+# Keep attributes required for reflection, annotations, and generic signatures
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*, AnnotationDefault
+
 # Suppress warnings for optional/platform-specific dependencies that are missing
 -dontwarn org.apache.commons.logging.**
 -dontwarn com.google.common.**
@@ -15,10 +18,6 @@
 -dontwarn android.**
 -dontwarn com.google.appengine.**
 -dontwarn javax.servlet.**
-
-# Specific fix for Guava's usage of Java 9+ MethodHandles/VarHandles
--dontwarn com.google.common.hash.**
--dontwarn com.google.common.util.concurrent.**
 
 # If you still encounter "unresolved references" that don't cause runtime crashes,
 # you can use this as a last resort, but -dontwarn is preferred for specific packages.
@@ -53,10 +52,6 @@
     # noinspection ShrinkerUnresolvedReference
     kotlinx.serialization.KSerializer serializer(...);
 }
-
-# @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
--keepattributes RuntimeVisibleAnnotations,AnnotationDefault
--dontnote kotlinx.serialization.**
 
 # Serialization core uses `java.lang.ClassValue` for caching inside these specified classes.
 # If there is no `java.lang.ClassValue` (for example, in Android), then R8/ProGuard will print a warning.
@@ -116,8 +111,6 @@
 
 # Keep Ktor Serialization Providers and make sure that they are not renamed
 -keep class io.ktor.serialization.** { *; }
--keep class io.ktor.serialization.kotlinx.** { *; }
--keep class io.ktor.serialization.kotlinx.json.** { *; }
 
 # Prevent R8 from stripping the ServiceLoader lookups
 -keepnames class io.ktor.serialization.kotlinx.KotlinxSerializationExtensionProvider
@@ -156,10 +149,6 @@
     public static ** valueOf(java.lang.String);
 }
 
-# Specific utility classes with heavy reflection must not be renamed
--keep class com.google.api.client.util.GenericData { *; }
--keep class com.google.api.client.util.GenericData$Flags { *; }
-
 # Google OAuth uses the built-in JDK HTTP Server
 -keep class com.sun.net.httpserver.** { *; }
 -dontwarn com.sun.net.httpserver.**
@@ -174,8 +163,26 @@
 }
 
 # ProGuard/R8 handles Coroutines well, we just ensure descriptors are preserved
--keepattributes Signature, InnerClasses, EnclosingMethod
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 -keepnames class kotlinx.coroutines.android.AndroidExceptionPreHandler {}
 -keepnames class kotlinx.coroutines.android.AndroidDispatcherFactory {}
+
+
+################################################################################
+# JNA Rules
+################################################################################
+# JNA Core: Prevent stripping and renaming of the JNA infrastructure
+-keep class com.sun.jna.** { *; }
+-dontwarn com.sun.jna.**
+
+# Native Method Mapping
+-keepclassmembers class * extends com.sun.jna.Library {
+    public <methods>;
+}
+-keepclassmembers class * extends com.sun.jna.Callback {
+    public <methods>;
+}
+
+# Calf Library is built on JNA
+-keep class com.mohamedrejeb.calf.** { *; }
