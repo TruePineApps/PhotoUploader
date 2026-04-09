@@ -183,6 +183,7 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.compose.components:components-resources-desktop:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.desktop:desktop:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.desktop:desktop-jvm:1.10.3  (https://github.com/JetBrains/compose-jb)
+  org.jetbrains.compose.desktop:desktop-jvm-macos-x64:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.desktop:desktop-jvm-linux-x64:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.foundation:foundation:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.foundation:foundation-desktop:1.10.3  (https://github.com/JetBrains/compose-jb)
@@ -247,7 +248,7 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.runtime:jbr-api:1.5.0  (https://github.com/JetBrains/JetBrainsRuntimeApi)
   org.jetbrains.skiko:skiko:0.9.37.4  (https://www.github.com/JetBrains/skiko)
   org.jetbrains.skiko:skiko-awt:0.9.37.4  (https://www.github.com/JetBrains/skiko)
-  org.jetbrains.skiko:skiko-awt-runtime-linux-x64:0.9.37.4  (https://www.github.com/JetBrains/skiko)
+  org.jetbrains.skiko:skiko-awt-runtime-macos-x64:0.9.37.4  (https://www.github.com/JetBrains/skiko)
   org.jetbrains:annotations:23.0.0  (https://github.com/JetBrains/java-annotations)
   org.jspecify:jspecify:1.0.0  (http://jspecify.org/)
 
