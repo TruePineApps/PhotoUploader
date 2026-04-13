@@ -110,23 +110,12 @@ compose.desktop {
                 appCategory = "public.app-category.utilities"
             }
             windows {
-                iconFile.set(project.file("src/main/resources/"))
+                iconFile.set(project.file("src/main/resources/desktopicon.ico"))
                 menuGroup = "Photo_Uploader"
                 shortcut = true
                 upgradeUuid = "0D40844D-0D36-4889-A1D4-5BF995A9B471"
             }
         }
-    }
-}
-
-// Target the JPackage task specifically
-tasks.withType<AbstractJPackageTask>().configureEach {
-    if (name.contains("Msi", ignoreCase = true)) {
-        // Instruct the JVM to request that Windows not trim the application's memory when it is
-        // minimized. Uploading in the background should not fight with Windows trying to swap the
-        // photo to upload to disk. As a bonus, if the user restores the app to check progress, it
-        // will pop up instantly rather than waiting for the disk to swap memory back in.
-        launcherJvmArgs.add("-Dsun.awt.keepWorkingSetOnMinimize=true")
     }
 }
 
@@ -194,8 +183,8 @@ val prepareWindowsLicenseFiles = prepareLicenseFiles("windows/legal")
 // This maps to: PhotoUploader.app/Contents/app/resources/
 val prepareMacLicenseFiles = prepareLicenseFiles("macOS")
 
-// Explicitly define the "prepareAppResources" and "processResources" dependencies
-// This ensures that when you run the app normally, the files are ready
+// Explicitly define the "prepareAppResources" and "processResources" dependencies.
+// This ensures that when you run the package build task normally, the files are ready.
 tasks.matching { it.name == "prepareAppResources" || it.name == "processResources" }.all {
     dependsOn(prepareMacLicenseFiles)
     dependsOn(prepareWindowsLicenseFiles)
@@ -209,6 +198,10 @@ tasks.withType<AbstractJPackageTask>().configureEach {
     val taskName = name.lowercase()
     if (taskName.contains("msi")) {
         dependsOn(prepareWindowsLicenseFiles)
+        // Instruct the JVM to request that Windows not trim the application's memory when it is
+        // minimized. Uploading in the background should not fight with Windows trying to swap the
+        // photo to upload to disk. As a bonus, if the user restores the app to check progress, it
+        // will pop up instantly rather than waiting for the disk to swap memory back in.
         launcherJvmArgs.add("-Dsun.awt.keepWorkingSetOnMinimize=true")
     }
     if (taskName.contains("dmg")) {
