@@ -34,12 +34,12 @@ Your email address is collected for the following purposes:
   notifications on changes in data usage).
 
 **Legal basis:** Processing your email address is necessary to provide you access to the App
-and manage the testing service. The legal basis is
-[Article 6(1)(b) GDPR](https://gdpr-info.eu/art-6-gdpr/) — processing necessary for the
+and manage the testing service. The legal basis
+is [Article 6(1)(b) GDPR](https://gdpr-info.eu/art-6-gdpr/) — processing necessary for the
 performance of a service at your request.
 
-The Developer does **not** collect passwords, payment data, location data, or any other
-personal information.
+The Developer does **not** collect passwords, payment data, location data, or any other personal
+information.
 
 ---
 
@@ -50,7 +50,9 @@ photo files from your local storage, processes them in memory, and uploads them 
 your own Google Photos account via the Google Photos API. At no point are your photos stored
 on, or transmitted to, any server controlled by the Developer.
 
-You remain the sole owner of your photos. The Developer never has access to your photo content.
+You remain the sole owner of your photos. You maintain full control over your photos and data within
+Google Photos. You can manage, view, and delete your photos directly through Google Photos according
+to Google's policies. The Developer never has access to your photo content.
 
 ---
 
@@ -78,16 +80,17 @@ including the Limited Use requirements.
 
 ### 5. Google Cloud Platform and Logging
 
-The App is registered on Google Cloud Platform (GCP), which automatically generates
-technical logs when you authenticate and when the App calls the Google Photos API. These logs
-may contain metadata such as timestamps, API endpoints called, your IP address, and your
-Google account identifier. This logging is a standard and mandatory feature of GCP.
+The App is registered on Google Cloud Platform (GCP), which hosts the App's Google API
+credentials. Google Cloud Platform may retain standard
+administrative logs related to the operation of the project itself, such as configuration changes.
+These logs do not contain any record of your photo uploads or your use of the App.
 
-The Developer does not actively use these logs for any purpose other than security oversight
-and debugging. Log retention in GCP is configured to **30 days**, after which logs are
-automatically deleted by Google.
+The Developer has deliberately chosen not to enable access logging in GCP. This means that
+no record is kept of when you log in, which photos you upload, or how often you use the App.
+Combined with Section 3, this means the Developer holds neither your photos nor any record
+of your activity within the App.
 
-Google LLC acts as a **data processor** on behalf of the Developer for this logging activity,
+Google LLC acts as a **data processor** on behalf of the Developer for the logging activity,
 under Google's Data Processing Agreement and Terms of Service.
 
 ---
@@ -111,7 +114,6 @@ and [Google's Data Transfer Framework](https://business.safety.google/gdpr/).
 |----------------------------------------------|-----------------------------------------------------------------|
 | Email address (active whitelist)             | Retained for the duration of your active testing access         |
 | Email address (after removal from whitelist) | Deleted within **6 months** of removal                          |
-| GCP technical logs                           | **30 days**, then automatically deleted by Google               |
 | OAuth tokens                                 | Stored locally on your device only; the Developer has no access |
 
 When your email address is deleted, no further record is kept by the Developer.
@@ -125,11 +127,8 @@ conditions apply:
 
 - **User Limit:** Google restricts the testing phase to a maximum of 100 concurrent users.
 - **Access Rotation:** To allow as many people as possible to use the App, the authorized
-  list is managed manually. If the 100-user limit is reached, access may be withdrawn for
-  inactive users to accommodate new requests.
-- **Selection Criteria:** Activity status is used to prioritize access. Technical logs held
-  by Google Cloud Platform may be consulted to identify accounts that have not been active
-  for an extended period.
+  list is managed manually. If the 100-user limit is reached, access may be withdrawn to accommodate
+  new requests.
 - **Notification:** If your access is withdrawn, you will receive a short notification to
   your Google email address.
 - **Re-application:** You are welcome to re-apply for access at any time by contacting the
@@ -156,9 +155,8 @@ Under the GDPR, you have the following rights regarding your personal data. To e
 of these rights, contact the Developer at **marcel@truepineapps.com**.
 
 - **Right to Access ([Article 15](https://gdpr-info.eu/art-15-gdpr/)):** You may request a copy of
-  the personal data held about you. The Developer will provide your email address, the date your
-  access was registered, and the date of your most recent recorded activity as retrieved from
-  available logs.
+  the personal data held about you. The Developer will provide your email address and the date it
+  was registered.
 
 - **Right to Erasure ([Article 17](https://gdpr-info.eu/art-17-gdpr/)):** You may request that your
   email address be removed from the testing whitelist. Note that removal also means you will no
@@ -188,7 +186,12 @@ by [Article 12(3) GDPR](https://gdpr-info.eu/art-12-gdpr/).
 ### 11. Changes to This Policy
 
 If this Privacy Policy is updated in a material way, the Developer will notify active testers
-by email at least **14 days before** the changes take effect. The updated policy will also be
+in the app and by email at least **14 days before** the changes take effect. To enable in-app
+notifications, the App contacts truepineapps.com on launch solely to check whether the Privacy
+Policy has been updated. If the check cannot be completed due to a network issue, the App will
+proceed normally and retry on the next launch. No personal data is transmitted in this request.
+
+The updated policy will also be
 published at [truepineapps.com/photouploader](https://truepineapps.com/photouploader) with a
 revised effective date. Continued use of the App after the effective date constitutes
 acceptance of the updated policy.
