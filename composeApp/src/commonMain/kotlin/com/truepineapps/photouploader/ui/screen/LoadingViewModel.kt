@@ -9,6 +9,7 @@
 
 package com.truepineapps.photouploader.ui.screen
 
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truepineapps.photouploader.data.DataLoadingRepository
@@ -51,6 +52,10 @@ open class LoadingViewModel(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
             initialValue = DataLoadingState.Loading
         )
+
+    /** Display value of what is being loaded */
+    @Composable
+    open fun getDisplayValue() = this::class.simpleName ?: ""
 
     /**
      * Try reloading in case of an error

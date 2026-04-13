@@ -20,6 +20,7 @@ import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.data.DataLoadingState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.loading
+import com.truepineapps.photouploader.resources.one_or_more_items
 import com.truepineapps.photouploader.resources.unknown_error
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -31,14 +32,15 @@ fun LoadingScreen(
     log: Logger = koinInject(),
     successContent: @Composable () -> Unit,
 ) {
-    val name = loadingViewModel::class.simpleName ?: ""
+    val name = loadingViewModel.getDisplayValue()
     log.d { "LoadingScreen started with $name" }
     val currentLoadingState by loadingViewModel.loadingState.collectAsState()
     when (currentLoadingState) {
         is DataLoadingState.Loading -> {
             /* Show progress indicator */
             log.d { "LoadingScreen: Loading..." }
-            ProgressScreen(action = Res.string.loading, name = name, modifier = modifier)
+            val action = stringResource(Res.string.loading, name)
+            ProgressScreen(action = action, modifier = modifier)
         }
 
         is DataLoadingState.Success -> {
@@ -71,11 +73,9 @@ fun LoadingScreen(
 ) {
     val loadingStatesMap = loadingViewModels.map { vm -> vm to vm.loadingState.collectAsState() }
     if (loadingStatesMap.any { entry -> entry.second.value is DataLoadingState.Loading }) {
-        ProgressScreen(
-            action = Res.string.loading,
-            name = "one or more items",
-            modifier = modifier
-        )
+        val oneOrMoreItems = stringResource(Res.string.one_or_more_items)
+        val action = stringResource(Res.string.loading, oneOrMoreItems)
+        ProgressScreen(action = action, modifier = modifier)
     } else if (loadingStatesMap.any { entry -> entry.second.value is DataLoadingState.Error }) {
         val failures = mutableListOf<LoadingViewModel>()
         val messageBuilder = StringBuilder()

@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.ui.screen.uploader
 
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
@@ -20,6 +21,7 @@ import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.error_unknown
+import com.truepineapps.photouploader.resources.photo_folders
 import com.truepineapps.photouploader.resources.session_expired
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AppStatus
@@ -42,6 +44,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.Path
+import org.jetbrains.compose.resources.stringResource
 
 class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
@@ -101,6 +104,9 @@ class PhotoUploaderViewModel(
             }
             .launchIn(viewModelScope)
     }
+
+    @Composable
+    override fun getDisplayValue() = stringResource(Res.string.photo_folders)
 
     private fun checkInitialAuth() {
         viewModelScope.launch {

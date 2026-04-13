@@ -23,12 +23,11 @@ import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.busy
 import com.truepineapps.photouploader.resources.favicon
 import com.truepineapps.photouploader.ui.Dimensions
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ProgressIndicator(modifier: Modifier = Modifier, action: StringResource?, vararg formatArgs: Any) {
+fun ProgressIndicator(modifier: Modifier = Modifier, action: String? = null) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -45,7 +44,7 @@ fun ProgressIndicator(modifier: Modifier = Modifier, action: StringResource?, va
             )
         }
         if (action != null) {
-            Text(text = stringResource(action, formatArgs))
+            Text(text = action)
         }
     }
 }

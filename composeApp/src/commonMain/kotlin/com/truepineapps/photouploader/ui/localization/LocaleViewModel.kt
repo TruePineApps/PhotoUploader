@@ -1,11 +1,14 @@
 package com.truepineapps.photouploader.ui.localization
 
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewModelScope
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE_FROM_PLATFORM
 import com.truepineapps.photouploader.data.preferences.UserPreferences
 import com.truepineapps.photouploader.data.preferences.UserPreferencesRepository
 import com.truepineapps.photouploader.localization.PlatformLocaleManager
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.locale
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -26,6 +30,10 @@ class LocaleViewModel(
 ) : LoadingViewModel(userPreferencesRepository), KoinComponent {
 
     private val platformLocaleManager: PlatformLocaleManager by inject()
+
+    @Composable
+    override fun getDisplayValue() = stringResource(Res.string.locale)
+
 
     /**
      * A StateFlow representing the currently effective application locale tag.

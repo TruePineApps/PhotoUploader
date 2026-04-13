@@ -3,11 +3,13 @@
     <string name="photo_uploader">Photo Uploader</string>
     <string name="busy">Bezig</string>
     <string name="loading">%1$s laden</string>
+    <string name="one_or_more_items">een of meer items</string>
     <string name="error">Fout</string>
     <string name="retry_button">Opnieuw proberen</string>
     <string name="show_selection_dialog">Selectievenster weergeven</string>
     <string name="more_menu">Meer...</string>
     <string name="preferences">Instellingen</string>
+    <string name="locale">Locale</string>
     <string name="language">Taal</string>
     <string name="en">Engels</string>
     <string name="nl">Nederlands</string>
@@ -28,6 +30,7 @@
     <string name="sign_out">Uitloggen</string>
     <string name="close_button">Sluiten</string>
     <string name="back_button">Terug</string>
+    <string name="photo_folders">Foto folders</string>
     <string name="choose_folder">Map kiezen</string>
     <string name="upload_photos">Foto\'s uploaden</string>
     <string name="select_photo_folder">Selecteer fotomap</string>
