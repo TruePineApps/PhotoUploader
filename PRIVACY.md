@@ -30,12 +30,13 @@ Your email address is collected for the following purposes:
 
 - To add you to the authorized testing whitelist in Google Cloud Console, which is required
   for you to authenticate and use the App.
-- To contact you about the status of your access (for example, if your access is withdrawn
-  or if you re-apply).
+- To contact you about the status of your access (for example, if your access is withdrawn or for
+  notifications on changes in data usage).
 
 **Legal basis:** Processing your email address is necessary to provide you access to the App
-and manage the testing service. The legal basis is **Article 6(1)(b) GDPR** — processing
-necessary for the performance of a service at your request.
+and manage the testing service. The legal basis is
+[Article 6(1)(b) GDPR](https://gdpr-info.eu/art-6-gdpr/) — processing necessary for the
+performance of a service at your request.
 
 The Developer does **not** collect passwords, payment data, location data, or any other
 personal information.
@@ -66,7 +67,8 @@ functionality. The following access scopes are used:
   by the App.
 - **`userinfo.profile`** — To display your name and avatar in the App interface, so you can
   confirm which account is active.
-- **`userinfo.email`** — To identify your account, verify your authorization during the testing phase and distinguish between users with identical display names.
+- **`userinfo.email`** — To identify your account, verify your authorization during the testing
+  phase and distinguish between users with identical display names.
 
 The App's use and transfer of information received from Google APIs complies with the
 [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy),
@@ -144,7 +146,7 @@ conditions apply:
 - **Communication:** Your email address is used exclusively for managing your testing access
   and for sending you access status updates. It will not be used for marketing.
 - **Automated Decision-Making:** The App does not use automated decision-making or
-  profiling as defined under Article 22 GDPR.
+  profiling as defined under [Article 22 GDPR](https://gdpr-info.eu/art-22-gdpr/).
 
 ---
 
@@ -153,22 +155,23 @@ conditions apply:
 Under the GDPR, you have the following rights regarding your personal data. To exercise any
 of these rights, contact the Developer at **marcel@truepineapps.com**.
 
-- **Right to Access (Article 15):** You may request a copy of the personal data held about
-  you. The Developer will provide your email address, the date your access was registered,
-  and the date of your most recent recorded activity as retrieved from available logs.
+- **Right to Access ([Article 15](https://gdpr-info.eu/art-15-gdpr/)):** You may request a copy of
+  the personal data held about you. The Developer will provide your email address, the date your
+  access was registered, and the date of your most recent recorded activity as retrieved from
+  available logs.
 
-- **Right to Erasure (Article 17):** You may request that your email address be removed from
-  the testing whitelist. Note that removal also means you will no longer be able to use the
-  App, as your email address is required for authentication.
+- **Right to Erasure ([Article 17](https://gdpr-info.eu/art-17-gdpr/)):** You may request that your
+  email address be removed from the testing whitelist. Note that removal also means you will no
+  longer be able to use the App, as your email address is required for authentication.
 
-- **Right to Restriction of Processing (Article 18):** You may request that the Developer
-  restrict processing of your data. Because your email address is the only data held and is
-  necessary to provide access to the App, restriction of processing means your access to the
-  App will be suspended for the duration of the restriction.
+- **Right to Restriction of Processing ([Article 18](https://gdpr-info.eu/art-18-gdpr/)):** You may
+  request that the Developer restrict processing of your data. Because your email address is the
+  only data held and is necessary to provide access to the App, restriction of processing means your
+  access to the App will be suspended for the duration of the restriction.
 
-- **Right to Object (Article 21):** You may object to the processing of your personal data.
-  As your email address is necessary for the provision of the service you requested, an
-  objection will result in the termination of your access to the App.
+- **Right to Object ([Article 21](https://gdpr-info.eu/art-21-gdpr/)):** You may object to the
+  processing of your personal data. As your email address is necessary for the provision of the
+  service you requested, an objection will result in the termination of your access to the App.
 
 - **Right to Revoke Google Access:** You can revoke the App's access to your Google account
   at any time via your [Google Security Settings](https://myaccount.google.com/permissions).
@@ -178,7 +181,7 @@ of these rights, contact the Developer at **marcel@truepineapps.com**.
   [autoriteitpersoonsgegevens.nl](https://www.autoriteitpersoonsgegevens.nl).
 
 The Developer will respond to any rights request within **one month** of receipt, as required
-by Article 12(3) GDPR.
+by [Article 12(3) GDPR](https://gdpr-info.eu/art-12-gdpr/).
 
 ---
 
