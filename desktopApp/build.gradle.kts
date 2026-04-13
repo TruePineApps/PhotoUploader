@@ -1,9 +1,9 @@
+import com.android.build.api.variant.impl.capitalizeFirstChar
+import com.github.jk1.license.filter.SpdxLicenseBundleNormalizer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
-import com.github.jk1.license.render.*
-import com.github.jk1.license.filter.*
 import packaging.PatchDebPackage
-import packaging.PatchDmgPackage
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -46,15 +46,6 @@ val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
     into(sharedResourceFiles)
 }
 
-// Ensure the file is there during normal development runs
-tasks.named("processResources") {
-    dependsOn(copyNoticesToResources)
-}
-// Ensure packaging tasks wait for the report to be generated and copied
-tasks.withType<AbstractJPackageTask>().configureEach {
-    dependsOn(copyNoticesToResources)
-}
-
 kotlin {
     dependencies {
         implementation(projects.composeApp)
@@ -78,6 +69,10 @@ compose.desktop {
             osName.contains("windows") -> {
                 javaHome = System.getenv("JAVA_HOME")
                     ?: "C:\\Program Files\\Microsoft\\jdk-21.0.10.7-hotspot"
+            }
+
+            osName.contains("mac") -> {
+                javaHome = "/Library/Java/JavaVirtualMachines/jdk-23.0.1.jdk/Contents/Home"
             }
         }
 
@@ -115,7 +110,7 @@ compose.desktop {
                 appCategory = "public.app-category.utilities"
             }
             windows {
-                iconFile.set(project.file("src/main/resources/desktopicon.ico"))
+                iconFile.set(project.file("src/main/resources/"))
                 menuGroup = "Photo_Uploader"
                 shortcut = true
                 upgradeUuid = "0D40844D-0D36-4889-A1D4-5BF995A9B471"
@@ -154,7 +149,6 @@ tasks.withType<AbstractJPackageTask>().configureEach {
  * 
  * This class must not reference `project` or global variables in this file.
  */
-
 afterEvaluate {
     // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)
     tasks.names.filter { it.matches(Regex("package.*Deb")) }.forEach { packageTaskName ->
@@ -176,37 +170,48 @@ afterEvaluate {
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
 
-    tasks.names.filter { it.matches(Regex("package.*Dmg")) }.forEach { packageTaskName ->
-        val folderName = if (packageTaskName.contains("Release")) "main-release" else "main"
-        val fixTask = tasks.register<PatchDmgPackage>(
-            "fix${packageTaskName.replaceFirstChar { it.uppercase() }}"
-        ) {
-            description = "Add license files to generated .dmg package"
-            packageFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/dmg"))
-            licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
-            sharedResourceDir.set(project.file(sharedResourceFiles))
-            noticesFileName.set(noticesName)
-        }
-        tasks.named(packageTaskName) { finalizedBy(fixTask) }
-    }
 }
 
 /**
- * Copies license files to the Windows app resources directory before MSI packaging.
+ * Copy license files to the Windows/MacOS app resources directory before MSI/DMG packaging.
  * jpackage will include everything under appResourcesRootDir in the installed app\resources\ folder.
- * This avoids MSI post-processing, which requires platform-specific tooling.
- *
- * Installed location: C:\Program Files\Photo-Uploader\app\resources\legal\
+ * This avoids MSI post-processing, which requires platform-specific tooling, and changing an
+ * already signed DMG file.
  */
-val prepareWindowsLicenseFiles = tasks.register<Copy>("prepareWindowsLicenseFiles") {
+fun prepareLicenseFiles(resourceDir: String) = tasks.register<Copy>(
+    "prepare${resourceDir.substringBefore('/').capitalizeFirstChar()}LicenseFiles"
+) {
+    // Explicitly depend on the task that generates NOTICES
+    dependsOn(copyNoticesToResources)
+
     from(rootProject.file("LICENSE"))
     from(sharedResourceFiles.asFile.resolve("NOTICES"))
     from(sharedResourceFiles.asFile.resolve("OFL.txt"))
-    into(layout.projectDirectory.dir("src/main/resources/windows/legal"))
+    into(layout.projectDirectory.dir("src/main/resources/$resourceDir"))
+}
+// Installed location: C:\Program Files\Photo-Uploader\app\resources\legal\
+val prepareWindowsLicenseFiles = prepareLicenseFiles("windows/legal")
+// This maps to: PhotoUploader.app/Contents/app/resources/
+val prepareMacLicenseFiles = prepareLicenseFiles("macOS")
+
+// Explicitly define the "prepareAppResources" and "processResources" dependencies
+// This ensures that when you run the app normally, the files are ready
+tasks.matching { it.name == "prepareAppResources" || it.name == "processResources" }.all {
+    dependsOn(prepareMacLicenseFiles)
+    dependsOn(prepareWindowsLicenseFiles)
 }
 
+// JPackage (Packaging) Task Dependencies
 tasks.withType<AbstractJPackageTask>().configureEach {
-    if (name.contains("Msi", ignoreCase = true)) {
+    // This task needs the resources to be processed and ready
+    dependsOn("processResources")
+
+    val taskName = name.lowercase()
+    if (taskName.contains("msi")) {
         dependsOn(prepareWindowsLicenseFiles)
+        launcherJvmArgs.add("-Dsun.awt.keepWorkingSetOnMinimize=true")
+    }
+    if (taskName.contains("dmg")) {
+        dependsOn(prepareMacLicenseFiles)
     }
 }
