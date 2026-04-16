@@ -7,11 +7,12 @@ True Pine Apps (https://www.truepineapps.com/).
 THIRD-PARTY SOFTWARE NOTICES
 ============================================================
 
-Total Unique Packages: 240
-Note: Some packages may be listed under combined license headers (e.g., Apache OR LGPL).
+Total Unique Packages: 242
+Note: Where packages are listed under combined license headers (e.g., Apache-2.0 OR LGPL),
+True Pine Apps distributes them under the Apache-2.0 license.
 
 ------------------------------------------------------------
-Apache-2.0 (236 packages)
+Apache-2.0 (238 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 ------------------------------------------------------------
   androidx.annotation:annotation:1.9.1  (https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1)
@@ -72,14 +73,14 @@ https://www.apache.org/licenses/LICENSE-2.0
   com.google.oauth-client:google-oauth-client:1.39.0
   com.google.oauth-client:google-oauth-client-java6:1.39.0
   com.google.oauth-client:google-oauth-client-jetty:1.39.0
-  com.mohamedrejeb.calf:calf-core:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-core-desktop:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-coil:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-coil-desktop:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-desktop:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-io:0.9.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-io-desktop:0.9.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-core:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-core-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-coil:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-coil-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-io:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-io-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
   com.russhwolf:multiplatform-settings:1.3.0  (https://github.com/russhwolf/multiplatform-settings)
   com.russhwolf:multiplatform-settings-jvm:1.3.0  (https://github.com/russhwolf/multiplatform-settings)
   com.squareup.okio:okio:3.17.0  (https://github.com/square/okio/)
@@ -114,44 +115,44 @@ https://www.apache.org/licenses/LICENSE-2.0
   io.insert-koin:koin-core-jvm:4.1.1  (https://insert-koin.io/)
   io.insert-koin:koin-core-viewmodel:4.1.1  (https://insert-koin.io/)
   io.insert-koin:koin-core-viewmodel-jvm:4.1.1  (https://insert-koin.io/)
-  io.ktor:ktor-client-auth:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-auth-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-cio:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-cio-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-content-negotiation:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-content-negotiation-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-core:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-core-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-logging:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-logging-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-websockets:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-client-websockets-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-events:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-events-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-http:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-http-cio:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-http-cio-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-http-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-io:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-io-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-network:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-network-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-network-tls:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-network-tls-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization-kotlinx:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization-kotlinx-json:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization-kotlinx-json-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-serialization-kotlinx-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-sse:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-sse-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-utils:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-utils-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-websocket-serialization:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-websocket-serialization-jvm:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-websockets:3.4.1  (https://github.com/ktorio/ktor)
-  io.ktor:ktor-websockets-jvm:3.4.1  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-auth:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-auth-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-cio:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-cio-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-content-negotiation:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-content-negotiation-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-core:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-core-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-logging:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-logging-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-websockets:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-client-websockets-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-events:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-events-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-http:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-http-cio:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-http-cio-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-http-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-io:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-io-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-network:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-network-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-network-tls:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-network-tls-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization-kotlinx:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization-kotlinx-json:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization-kotlinx-json-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-serialization-kotlinx-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-sse:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-sse-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-utils:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-utils-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-websocket-serialization:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-websocket-serialization-jvm:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-websockets:3.4.2  (https://github.com/ktorio/ktor)
+  io.ktor:ktor-websockets-jvm:3.4.2  (https://github.com/ktorio/ktor)
   io.opencensus:opencensus-api:0.31.1  (https://github.com/census-instrumentation/opencensus-java)
   io.opencensus:opencensus-contrib-http-util:0.31.1  (https://github.com/census-instrumentation/opencensus-java)
   org.apache.httpcomponents:httpclient:4.5.14  (http://hc.apache.org/httpcomponents-client-ga)
@@ -221,8 +222,8 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.compose.ui:ui-unit-desktop:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.ui:ui-util:1.10.3  (https://github.com/JetBrains/compose-jb)
   org.jetbrains.compose.ui:ui-util-desktop:1.10.3  (https://github.com/JetBrains/compose-jb)
-  org.jetbrains.kotlin:kotlin-stdlib:2.3.10  (https://kotlinlang.org/)
-  org.jetbrains.kotlin:kotlin-stdlib-common:2.3.10  (https://kotlinlang.org/)
+  org.jetbrains.kotlin:kotlin-stdlib:2.3.20  (https://kotlinlang.org/)
+  org.jetbrains.kotlin:kotlin-stdlib-common:2.3.20  (https://kotlinlang.org/)
   org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.20  (https://kotlinlang.org/)
   org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20  (https://kotlinlang.org/)
   org.jetbrains.kotlinx:atomicfu:0.23.2  (https://github.com/Kotlin/kotlinx.atomicfu)
@@ -248,6 +249,7 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.runtime:jbr-api:1.5.0  (https://github.com/JetBrains/JetBrainsRuntimeApi)
   org.jetbrains.skiko:skiko:0.9.37.4  (https://www.github.com/JetBrains/skiko)
   org.jetbrains.skiko:skiko-awt:0.9.37.4  (https://www.github.com/JetBrains/skiko)
+  org.jetbrains.skiko:skiko-awt-runtime-linux-x64:0.9.37.4  (https://www.github.com/JetBrains/skiko)
   org.jetbrains.skiko:skiko-awt-runtime-macos-x64:0.9.37.4  (https://www.github.com/JetBrains/skiko)
   org.jetbrains:annotations:23.0.0  (https://github.com/JetBrains/java-annotations)
   org.jspecify:jspecify:1.0.0  (http://jspecify.org/)
@@ -272,4 +274,70 @@ MIT (1 package)
 https://opensource.org/licenses/MIT
 ------------------------------------------------------------
   org.slf4j:slf4j-api:2.0.17  (http://www.slf4j.org)
+
+  License text:
+
+  Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+============================================================
+PACKAGE NOTICES
+Individual packages that include a NOTICE file with additional
+attribution requirements are listed below.
+============================================================
+
+------------------------------------------------------------
+commons-codec:commons-codec:1.17.1  (https://commons.apache.org/proper/commons-codec/)
+------------------------------------------------------------
+Apache Commons Codec
+Copyright 2002-2024 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
+------------------------------------------------------------
+commons-logging:commons-logging:1.2  (http://commons.apache.org/proper/commons-logging/)
+------------------------------------------------------------
+Apache Commons Logging
+Copyright 2003-2014 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+------------------------------------------------------------
+org.apache.httpcomponents:httpclient:4.5.14  (http://hc.apache.org/httpcomponents-client-ga)
+------------------------------------------------------------
+Apache HttpClient
+Copyright 1999-2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+------------------------------------------------------------
+org.apache.httpcomponents:httpcore:4.4.16  (http://hc.apache.org/httpcomponents-core-ga)
+------------------------------------------------------------
+Apache HttpCore
+Copyright 2005-2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
 

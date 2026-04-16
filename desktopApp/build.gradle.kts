@@ -158,7 +158,6 @@ afterEvaluate {
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
-
 }
 
 /**
