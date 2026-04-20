@@ -15,9 +15,10 @@ As a developer based in the Netherlands, I am committed to protecting your priva
 with the General Data Protection Regulation (GDPR). The Developer is the data controller for the
 personal data described in this policy.
 
-**Contact:**
-Marcel van Heerwaarden, Houten, Netherlands
-Email: marcel@truepineapps.com
+**Contact:**  
+Marcel van Heerwaarden  
+Houten, Netherlands  
+Email: marcel@truepineapps.com  
 Project: https://github.com/truepineapps/photouploader
 
 ---
@@ -149,7 +150,25 @@ conditions apply:
 
 ---
 
-### 10. Your Rights Under the GDPR
+### 10. Data Protection Impact Assessment
+
+The Developer has assessed whether a Data Protection Impact Assessment (DPIA) is
+required under [Article 35 GDPR](https://gdpr-info.eu/art-35-gdpr/).
+
+Given that:
+
+- the App processes photos exclusively on your local device,
+- the Developer does not have access to your photo content, and
+- the only personal data directly collected is your email address, used solely
+  to manage your testing access,
+
+the processing is not considered likely to result in a high risk to your rights
+and freedoms. A formal DPIA has therefore not been conducted. This assessment
+will be revisited if the functionality of the App changes materially.
+
+---
+
+### 11. Your Rights Under the GDPR
 
 Under the GDPR, you have the following rights regarding your personal data. To exercise any
 of these rights, contact the Developer at **marcel@truepineapps.com**.
@@ -183,7 +202,7 @@ by [Article 12(3) GDPR](https://gdpr-info.eu/art-12-gdpr/).
 
 ---
 
-### 11. Changes to This Policy
+### 12. Changes to This Policy
 
 If this Privacy Policy is updated in a material way, the Developer will notify active testers
 in the app and by email at least **14 days before** the changes take effect. To enable in-app
@@ -198,11 +217,11 @@ acceptance of the updated policy.
 
 ---
 
-### 12. Contact Information
+### 13. Contact Information
 
 For questions about this policy, or to exercise your rights, contact:
 
-**Marcel van Heerwaarden**
-Houten, Netherlands
-Email: marcel@truepineapps.com
+**Marcel van Heerwaarden**  
+Houten, Netherlands  
+Email: marcel@truepineapps.com  
 Project: https://github.com/truepineapps/photouploader
