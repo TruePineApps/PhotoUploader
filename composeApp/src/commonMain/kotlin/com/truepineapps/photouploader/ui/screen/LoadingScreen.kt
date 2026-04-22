@@ -29,10 +29,10 @@ import org.koin.compose.koinInject
 fun LoadingScreen(
     loadingViewModel: LoadingViewModel,
     modifier: Modifier = Modifier,
-    log: Logger = koinInject(),
+    log: Logger,
     successContent: @Composable () -> Unit,
 ) {
-    val name = loadingViewModel.getDisplayValue()
+    val name = loadingViewModel.getDisplayNameText().asString()
     log.d { "LoadingScreen started with $name" }
     val currentLoadingState by loadingViewModel.loadingState.collectAsState()
     when (currentLoadingState) {

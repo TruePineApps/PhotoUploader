@@ -29,7 +29,7 @@ fun AppEnvironment(
     content: @Composable () -> Unit
 ) {
     log.d { "Starting AppEnvironment" }
-    LoadingScreen(loadingViewModel = localeViewModel, modifier = modifier) {
+    LoadingScreen(loadingViewModel = localeViewModel, log = log, modifier = modifier) {
 
         // Collect the effective locale tag (e.g., "en-US") from the ViewModel's StateFlow.
         // This triggers recomposition whenever effectiveAppLocale emits a new value.

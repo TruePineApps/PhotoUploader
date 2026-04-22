@@ -1,6 +1,5 @@
 package com.truepineapps.photouploader.ui.screen.uploader
 
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
@@ -9,9 +8,6 @@ import com.truepineapps.photouploader.auth.AuthException
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import com.truepineapps.photouploader.data.PhotoDirectoryRepository
 import com.truepineapps.photouploader.io.getAbsolutePath
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.network.MediaItemResult
 import com.truepineapps.photouploader.network.NewMediaItem
 import com.truepineapps.photouploader.network.PhotoUploader
@@ -24,11 +20,15 @@ import com.truepineapps.photouploader.resources.error_unknown
 import com.truepineapps.photouploader.resources.photo_folders
 import com.truepineapps.photouploader.resources.session_expired
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AppStatus
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.GroupUiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.ViewState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.toAlbumUiState
+import com.truepineapps.photouploader.util.UiText
 import com.truepineapps.photouploader.util.UiTextResource
 import com.truepineapps.photouploader.util.UiTextString
 import io.ktor.http.HttpStatusCode
@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.Path
-import org.jetbrains.compose.resources.stringResource
 
 class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
@@ -105,8 +104,7 @@ class PhotoUploaderViewModel(
             .launchIn(viewModelScope)
     }
 
-    @Composable
-    override fun getDisplayValue() = stringResource(Res.string.photo_folders)
+    override fun getDisplayNameText(): UiText = UiTextResource(Res.string.photo_folders)
 
     private fun checkInitialAuth() {
         viewModelScope.launch {

@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.language
 import com.truepineapps.photouploader.resources.preferences
@@ -44,11 +45,12 @@ object SettingsDestination : NavigationDestination {
 fun SettingsScreen(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
     modifier: Modifier = Modifier,
+    log: Logger = koinInject(),
     settingsViewModel: SettingsViewModel = koinInject()
 ) {
     onUpdateTopAppBar(stringResource(SettingsDestination.titleRes), null) {}
 
-    LoadingScreen(loadingViewModel = settingsViewModel) {
+    LoadingScreen(loadingViewModel = settingsViewModel, log = log) {
         val settingsUiState by settingsViewModel.settingsUiState.collectAsState()
 
         SettingsBody(

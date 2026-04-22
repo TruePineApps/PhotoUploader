@@ -5,13 +5,13 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ArraySerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 @OptIn(ExperimentalSerializationApi::class)
 object FormatArgsSerializer : KSerializer<Array<out Any>> {
-    override val descriptor: SerialDescriptor = listSerialDescriptor(PrimitiveFormatValue.serializer().descriptor)
+    override val descriptor: SerialDescriptor =
+        ArraySerializer(PrimitiveFormatValue.serializer()).descriptor
 
     override fun serialize(encoder: Encoder, value: Array<out Any>) {
         encoder.encodeSerializableValue(
@@ -34,6 +34,9 @@ sealed class PrimitiveFormatValue {
     companion object {
         fun toFormatValue(value: Any): PrimitiveFormatValue {
             return when (value) {
+                // Allow UiText arguments to be serialized
+                is UiText   -> UiTextFormatValue(value)
+                is String -> StringFormatValue(value)
                 is Boolean -> BooleanFormatValue(value)
                 is Byte -> ByteFormatValue(value)
                 is Short -> ShortFormatValue(value)
@@ -42,7 +45,6 @@ sealed class PrimitiveFormatValue {
                 is Float -> FloatFormatValue(value)
                 is Double -> DoubleFormatValue(value)
                 is Char -> CharFormatValue(value)
-                is String -> StringFormatValue(value)
                 else -> StringFormatValue(value.toString())
             }
         }
@@ -75,3 +77,6 @@ data class CharFormatValue(override val argValue: Char) : PrimitiveFormatValue()
 
 @Serializable
 data class StringFormatValue(override val argValue: String) : PrimitiveFormatValue()
+
+@Serializable
+data class UiTextFormatValue(override val argValue: UiText) : PrimitiveFormatValue()

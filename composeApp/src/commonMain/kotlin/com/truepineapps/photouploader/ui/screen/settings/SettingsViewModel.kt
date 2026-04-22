@@ -9,7 +9,6 @@
 
 package com.truepineapps.photouploader.ui.screen.settings
 
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewModelScope
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE_FROM_PLATFORM
@@ -18,14 +17,14 @@ import com.truepineapps.photouploader.data.preferences.UserPreferencesRepository
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.ui.screen.LoadingViewModel
+import com.truepineapps.photouploader.util.UiText
+import com.truepineapps.photouploader.util.UiTextResource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
-import org.koin.core.component.KoinComponent
 
 /**
  * ViewModel for managing the settings screen in the app.
@@ -33,7 +32,7 @@ import org.koin.core.component.KoinComponent
  */
 class SettingsViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
-) : LoadingViewModel(userPreferencesRepository), KoinComponent {
+) : LoadingViewModel(userPreferencesRepository) {
 
     var settingsUiState: StateFlow<SettingsUiState> =
         userPreferencesRepository.preferences
@@ -47,8 +46,7 @@ class SettingsViewModel(
     // Prevent interference with an already running preference update
     private var updatePreferenceJob: Job? = null
 
-    @Composable
-    override fun getDisplayValue() = stringResource(Res.string.preferences)
+    override fun getDisplayNameText(): UiText = UiTextResource(Res.string.preferences)
 
     fun setLocale(localeTag: String?) {
         updatePreferenceJob?.cancel()

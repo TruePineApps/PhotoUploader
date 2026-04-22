@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
@@ -28,7 +28,7 @@ class UserPreferencesSettingsRepository(
 
     //region Flow
     private val _preferences = MutableStateFlow(UserPreferences.DEFAULTS)
-    override val preferences = _preferences as StateFlow<UserPreferences>
+    override val preferences = _preferences.asStateFlow()
 
     override val loadingState: Flow<DataLoadingState> = flow {
         try {

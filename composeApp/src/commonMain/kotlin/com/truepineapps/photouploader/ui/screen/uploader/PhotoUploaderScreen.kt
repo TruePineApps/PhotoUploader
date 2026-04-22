@@ -30,6 +30,7 @@ import com.truepineapps.photouploader.ui.screen.LoadingScreen
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
 import com.truepineapps.photouploader.ui.util.isExpandedWidth
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 object PhotoUploaderDestination : NavigationDestination {
     override val route = "photo_uploader"
@@ -43,6 +44,7 @@ fun PhotoUploaderScreen(
     navigateToPhotos: (String) -> Unit,
     viewModel: PhotoUploaderViewModel,
     modifier: Modifier = Modifier,
+    log: Logger = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val appName = stringResource(Res.string.app_name)
@@ -53,7 +55,7 @@ fun PhotoUploaderScreen(
         onUpdateTopAppBar(title, null) {}
     }
 
-    LoadingScreen(loadingViewModel = viewModel, modifier = modifier) {
+    LoadingScreen(loadingViewModel = viewModel, log = log, modifier = modifier) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (uiState.albumUiStates.isEmpty() && uiState.path.isEmpty()) {
                 StartScreen(

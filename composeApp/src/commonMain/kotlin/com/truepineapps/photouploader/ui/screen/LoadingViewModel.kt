@@ -9,11 +9,12 @@
 
 package com.truepineapps.photouploader.ui.screen
 
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truepineapps.photouploader.data.DataLoadingRepository
 import com.truepineapps.photouploader.data.DataLoadingState
+import com.truepineapps.photouploader.util.UiText
+import com.truepineapps.photouploader.util.UiTextString
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -53,9 +54,12 @@ open class LoadingViewModel(
             initialValue = DataLoadingState.Loading
         )
 
-    /** Display value of what is being loaded */
-    @Composable
-    open fun getDisplayValue() = this::class.simpleName ?: ""
+    /**
+     * Display value of what is being loaded.
+     * Base implementation returns the class name as a plain string. This does not work in a release.
+     * Override with [com.truepineapps.photouploader.util.UiTextResource] to provide a translated name.
+     */
+    open fun getDisplayNameText(): UiText = UiTextString(this::class.simpleName ?: "")
 
     /**
      * Try reloading in case of an error
