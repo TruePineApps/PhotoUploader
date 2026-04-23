@@ -5,12 +5,12 @@ import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE_FROM_PLATFORM
 import com.truepineapps.photouploader.data.preferences.UserPreferences
 import com.truepineapps.photouploader.data.preferences.UserPreferencesRepository
-import com.truepineapps.photouploader.localization.PlatformLocaleManager
+import com.truepineapps.photouploader.core.localization.PlatformLocaleManager
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.locale
-import com.truepineapps.photouploader.ui.screen.LoadingViewModel
-import com.truepineapps.photouploader.util.UiText
-import com.truepineapps.photouploader.util.UiTextResource
+import com.truepineapps.photouploader.core.presentation.base.LoadingViewModel
+import com.truepineapps.photouploader.core.util.UiText
+import com.truepineapps.photouploader.core.util.UiTextResource
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged

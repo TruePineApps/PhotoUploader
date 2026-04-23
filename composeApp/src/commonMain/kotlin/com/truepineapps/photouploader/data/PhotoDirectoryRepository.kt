@@ -3,8 +3,8 @@ package com.truepineapps.photouploader.data
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.io.PlatformFileSystem
-import com.truepineapps.photouploader.util.FileUtils
+import com.truepineapps.photouploader.core.io.PlatformFileSystem
+import com.truepineapps.photouploader.core.util.FileUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

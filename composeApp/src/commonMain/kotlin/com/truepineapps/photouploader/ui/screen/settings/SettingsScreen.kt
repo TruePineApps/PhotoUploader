@@ -27,11 +27,11 @@ import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.language
 import com.truepineapps.photouploader.resources.preferences
-import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.components.SelectionField
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.components.SelectionField
 import com.truepineapps.photouploader.ui.localization.AppLanguage
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
-import com.truepineapps.photouploader.ui.screen.LoadingScreen
+import com.truepineapps.photouploader.core.presentation.components.LoadingScreen
 import com.truepineapps.photouploader.ui.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject

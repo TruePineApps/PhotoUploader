@@ -1,5 +1,7 @@
 package com.truepineapps.photouploader
 
+import com.truepineapps.photouploader.core.util.AppInfo
+
 // Implementation of the shared AppInfo interface for iOS
 // Note: com.truepineapps.photouploader.BuildConfig is a generated class
 object AndroidAppInfo : AppInfo {

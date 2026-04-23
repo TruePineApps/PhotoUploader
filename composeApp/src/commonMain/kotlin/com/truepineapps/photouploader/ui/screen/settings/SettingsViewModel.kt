@@ -16,9 +16,9 @@ import com.truepineapps.photouploader.data.preferences.UserPreferences
 import com.truepineapps.photouploader.data.preferences.UserPreferencesRepository
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.preferences
-import com.truepineapps.photouploader.ui.screen.LoadingViewModel
-import com.truepineapps.photouploader.util.UiText
-import com.truepineapps.photouploader.util.UiTextResource
+import com.truepineapps.photouploader.core.presentation.base.LoadingViewModel
+import com.truepineapps.photouploader.core.util.UiText
+import com.truepineapps.photouploader.core.util.UiTextResource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow

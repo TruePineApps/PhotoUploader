@@ -1,6 +1,8 @@
 package com.truepineapps.photouploader
 
 import android.app.Application
+import com.truepineapps.photouploader.core.util.AppInfo
+import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.di.initKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module

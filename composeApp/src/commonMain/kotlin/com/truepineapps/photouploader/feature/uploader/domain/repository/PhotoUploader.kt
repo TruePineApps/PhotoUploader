@@ -1,0 +1,62 @@
+package com.truepineapps.photouploader.feature.uploader.domain.repository
+
+import com.mohamedrejeb.calf.io.KmpFile
+import com.truepineapps.photouploader.core.util.ServiceUtil
+import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItemResult
+import com.truepineapps.photouploader.feature.uploader.data.dto.NewMediaItem
+
+interface PhotoUploader {
+    /**
+     * Verifies if an album with the given ID exists on Google Photos.
+     * @return `true` if the album exists, `false` if it was not found (404).
+     * @throws UploadException.GlobalException for other HTTP errors.
+     */
+    suspend fun verifyAlbumExists(
+        albumId: String,
+        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
+            "verifyAlbumExists"
+        )
+    ): Boolean
+
+    /**
+     * Creates an album in Google Photos
+     * @return Album ID if successful
+     * @throws UploadException.GlobalException for auth errors
+     * @throws UploadException.AlbumException for other API errors
+     */
+    suspend fun createAlbum(
+        albumTitle: String,
+        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
+            "createAlbum"
+        )
+    ): String
+
+    /**
+     * Uploads a photo file and returns the upload token
+     * @return Upload token if successful
+     * @throws UploadException.GlobalException for auth errors
+     * @throws UploadException.PhotoException for other API errors
+     */
+    suspend fun uploadPhoto(
+        photoName: String,
+        kmpFile: KmpFile,
+        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
+            "uploadPhoto"
+        )
+    ): String
+
+    /**
+     * Adds uploaded photos to an album in batches of 50 (API limit)
+     */
+    suspend fun addPhotosToAlbum(
+        albumId: String,
+        newMediaItems: List<NewMediaItem>,
+    ): List<MediaItemResult>
+
+    suspend fun updateAlbumCover(
+        albumId: String, coverMediaItemId: String,
+        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
+            "updateAlbumCover"
+        )
+    )
+}

@@ -8,7 +8,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.data.preferences.DEFAULT_LOCALE
-import com.truepineapps.photouploader.ui.screen.LoadingScreen
+import com.truepineapps.photouploader.core.presentation.components.LoadingScreen
 import org.koin.compose.koinInject
 
 /**

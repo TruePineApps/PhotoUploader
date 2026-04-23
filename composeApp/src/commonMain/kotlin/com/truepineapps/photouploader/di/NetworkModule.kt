@@ -1,6 +1,6 @@
 package com.truepineapps.photouploader.di
 
-import com.truepineapps.photouploader.network.createPlatformHttpClient
+import com.truepineapps.photouploader.core.network.createPlatformHttpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

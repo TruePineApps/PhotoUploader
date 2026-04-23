@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader
 
+import com.truepineapps.photouploader.core.util.AppInfo
 import platform.Foundation.NSBundle
 
 // Implementation of the shared AppInfo interface for iOS

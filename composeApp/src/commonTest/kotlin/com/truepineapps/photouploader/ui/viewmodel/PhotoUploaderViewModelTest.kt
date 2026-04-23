@@ -14,8 +14,8 @@ import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
 import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.util.createTestPlatformContext
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.toPhotoUiState
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.toPhotoUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect

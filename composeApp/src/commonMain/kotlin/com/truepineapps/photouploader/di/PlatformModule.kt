@@ -1,7 +1,7 @@
 package com.truepineapps.photouploader.di
 
-import com.truepineapps.photouploader.AppInfo
-import com.truepineapps.photouploader.PlatformInfo
+import com.truepineapps.photouploader.core.util.AppInfo
+import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.auth.GoogleAuthService
 import org.koin.core.module.Module
 

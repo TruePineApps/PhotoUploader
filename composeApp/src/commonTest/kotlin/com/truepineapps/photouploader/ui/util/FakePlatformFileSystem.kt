@@ -2,7 +2,7 @@ package com.truepineapps.photouploader.ui.util
 
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.io.PlatformFileSystem
+import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.Source

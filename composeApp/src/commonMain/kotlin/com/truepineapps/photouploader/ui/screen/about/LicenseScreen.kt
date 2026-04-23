@@ -48,8 +48,8 @@ import com.truepineapps.photouploader.resources.loading
 import com.truepineapps.photouploader.resources.noto_sans
 import com.truepineapps.photouploader.resources.third_party_notices
 import com.truepineapps.photouploader.resources.unknown_error
-import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.components.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.components.ThemedIconButton
 import com.truepineapps.photouploader.ui.navigation.NavigationDestination
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel

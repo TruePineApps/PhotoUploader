@@ -33,7 +33,7 @@ interface GoogleAuthService {
      * Triggers the sign-in flow.
      * If the user is already signed in and valid, then the valid token will be returned.
      * @Return the User Profile containing the OAuth 2.0 Access Token, or null if sign-in
-     * was cancelled by the user.
+     * was canceled by the user.
      * @Throws AuthException if the sign-in process fails due to network or other errors.
      */
     suspend fun signIn(): UserProfile?

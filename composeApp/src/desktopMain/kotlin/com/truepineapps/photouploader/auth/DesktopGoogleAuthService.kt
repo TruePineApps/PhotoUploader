@@ -14,13 +14,13 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonObjectParser
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
+import com.truepineapps.photouploader.core.util.UiTextResource
+import com.truepineapps.photouploader.core.util.UiTextString
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.network_error
 import com.truepineapps.photouploader.resources.session_expired
 import com.truepineapps.photouploader.resources.unknown_error
-import com.truepineapps.photouploader.util.UiTextResource
-import com.truepineapps.photouploader.util.UiTextString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
@@ -113,14 +113,14 @@ class DesktopGoogleAuthService(
                 val receiver = LocalServerReceiver.Builder().build()
 
                 // Launch a separate child coroutine to monitor cancellation.
-                // If this 'withContext' block is cancelled, this child is cancelled immediately.
+                // If this 'withContext' block is canceled, this child is canceled immediately.
                 // Its 'finally' block will run instantly, allowing us to kill the receiver.
                 val cancellationMonitor = launch {
                     try {
-                        // Suspend indefinitely until cancelled
+                        // Suspend indefinitely until canceled
                         awaitCancellation()
                     } finally {
-                        // This runs immediately when the job is cancelled
+                        // This runs immediately when the job is canceled
                         try {
                             receiver.stop()
                         } catch (e: Exception) {
@@ -131,7 +131,7 @@ class DesktopGoogleAuthService(
 
                 try {
                     // AuthorizationCodeInstalledApp...authorize() blocks the thread.
-                    // Because we are in withContext(Dispatchers.IO), if the parent job is cancelled
+                    // Because we are in withContext(Dispatchers.IO), if the parent job is canceled
                     // (e.g. user clicks cancel in UI), this block gets a CancellationException.
                     // To make it responsive, we wrap the blocking call.
                     // To support cancellation, we should run it interruptingly.
@@ -172,7 +172,7 @@ class DesktopGoogleAuthService(
                 }
             }
         } catch (e: CancellationException) {
-            log.d { "Sign-in cancelled via UI: ${e.message}" }
+            log.d { "Sign-in canceled via UI: ${e.message}" }
             throw e
         } catch (e: Exception) {
             handleException(e)

@@ -79,6 +79,6 @@
     <string name="status_uploading">Uploaden</string>
     <string name="status_uploading_error">Uploadfout</string>
     <string name="status_success">Succes</string>
-    <string name="status_cancelled">Geannuleerd</string>
+    <string name="status_canceled">Geannuleerd</string>
     <string name="status_error">Fout</string>
 </resources>

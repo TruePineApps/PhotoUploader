@@ -7,9 +7,9 @@ import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerLauncher
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
-import com.truepineapps.photouploader.DesktopType
-import com.truepineapps.photouploader.DesktopTypeUtil
-import com.truepineapps.photouploader.ui.components.platformpicker.CalfPlatformPicker
+import com.truepineapps.photouploader.core.util.DesktopType
+import com.truepineapps.photouploader.core.util.DesktopTypeUtil
+import com.truepineapps.photouploader.core.presentation.components.platformpicker.CalfPlatformPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

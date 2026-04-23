@@ -25,11 +25,11 @@ import com.truepineapps.photouploader.ui.screen.about.LicenseDestination
 import com.truepineapps.photouploader.ui.screen.about.LicenseScreen
 import com.truepineapps.photouploader.ui.screen.settings.SettingsDestination
 import com.truepineapps.photouploader.ui.screen.settings.SettingsScreen
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoListDestination
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoListScreen
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderDestination
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderScreen
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
+import com.truepineapps.photouploader.feature.uploader.ui.PhotoListDestination
+import com.truepineapps.photouploader.feature.uploader.ui.PhotoListScreen
+import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
+import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderScreen
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 
 /**
  * Provides Navigation graph for the application.

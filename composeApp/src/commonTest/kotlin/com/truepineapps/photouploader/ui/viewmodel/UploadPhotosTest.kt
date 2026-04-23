@@ -29,9 +29,9 @@ import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
 import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.util.createTestPlatformContext
-import com.truepineapps.photouploader.ui.screen.uploader.PhotoUploaderViewModel
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UiState
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
 import com.truepineapps.photouploader.util.UiTextResource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine

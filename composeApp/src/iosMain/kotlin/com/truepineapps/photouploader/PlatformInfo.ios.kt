@@ -1,5 +1,7 @@
 package com.truepineapps.photouploader
 
+import com.truepineapps.photouploader.core.util.PlatformInfo
+import com.truepineapps.photouploader.core.util.PlatformType
 import platform.UIKit.UIDevice
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.Platform
