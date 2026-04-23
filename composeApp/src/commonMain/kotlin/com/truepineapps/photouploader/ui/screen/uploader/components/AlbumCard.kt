@@ -38,7 +38,7 @@ import com.truepineapps.photouploader.ui.Dimensions
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.AlbumUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.PhotoUiState
 import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
-import com.truepineapps.photouploader.ui.theme.LightPalette
+import com.truepineapps.photouploader.ui.theme.LocalExtendedColors
 import com.truepineapps.photouploader.ui.util.Opacity
 import com.truepineapps.photouploader.util.UiTextString
 import okio.Path.Companion.toPath
@@ -61,7 +61,7 @@ fun AlbumCard(
 
     val cardColors = if (isSelected) {
         CardDefaults.cardColors(
-            containerColor = LightPalette.Primary70,
+            containerColor = LocalExtendedColors.current.selectedItemHighlight,
             contentColor = MaterialTheme.colorScheme.scrim
         )
     } else {

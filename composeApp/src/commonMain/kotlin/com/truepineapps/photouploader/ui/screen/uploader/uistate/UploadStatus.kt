@@ -11,7 +11,7 @@ import com.truepineapps.photouploader.resources.status_success
 import com.truepineapps.photouploader.resources.status_uploading
 import com.truepineapps.photouploader.resources.status_uploading_error
 import com.truepineapps.photouploader.resources.status_waiting
-import com.truepineapps.photouploader.ui.theme.StatusPalette
+import com.truepineapps.photouploader.ui.theme.LocalExtendedColors
 import com.truepineapps.photouploader.util.UiText
 import org.jetbrains.compose.resources.stringResource
 
@@ -61,10 +61,10 @@ sealed class UploadStatus(val isFinal: Boolean = false) {
     @Composable
     fun getColor(): Color =
             when (this) {
-                is Error -> StatusPalette.Error
-                is UploadingError -> StatusPalette.Warning
-                is Cancelled -> StatusPalette.Warning
-                is Success -> StatusPalette.Success
+                is Error -> LocalExtendedColors.current.statusError
+                is UploadingError -> LocalExtendedColors.current.statusWarning
+                is Cancelled -> LocalExtendedColors.current.statusWarning
+                is Success -> LocalExtendedColors.current.statusSuccess
                 else -> MaterialTheme.colorScheme.primary
             }
 

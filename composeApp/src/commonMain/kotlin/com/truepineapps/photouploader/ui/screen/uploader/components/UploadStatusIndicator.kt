@@ -25,13 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.arrow_upload_progress
 import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
 import com.truepineapps.photouploader.ui.Dimensions
-import com.truepineapps.photouploader.ui.theme.StatusPalette
+import com.truepineapps.photouploader.ui.screen.uploader.uistate.UploadStatus
+import com.truepineapps.photouploader.ui.theme.LocalExtendedColors
 import kotlinx.datetime.DateTimeUnit.Companion.SECOND
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -48,7 +48,7 @@ fun UploadStatusIndicator(
     val userDisabled = !isEnabled && uploadStatus != UploadStatus.Success
 
     val iconColor = if (userDisabled) {
-        StatusPalette.Disabled
+        LocalExtendedColors.current.statusDisabled
     } else {
         uploadStatus.getColor()
     }
@@ -112,7 +112,7 @@ fun UploadErrorText(
     if (errorMessage != null) {
         Text(
             text = errorMessage.asString(),
-            color = StatusPalette.Error,
+            color = LocalExtendedColors.current.statusError,
             style = MaterialTheme.typography.bodySmall,
             modifier = modifier
         )
