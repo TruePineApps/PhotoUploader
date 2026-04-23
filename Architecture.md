@@ -53,7 +53,7 @@ decoupled layers:
 │   ├── repository/                 # Repository Interfaces
 │   └── usecase/                    # Business Actions
 └── data/                           # The Implementation - Infrastructure
-    ├── api/                        # Data Sources (Ktor/Database)
+    ├── source/                     # Data Sources (Ktor/Database)
     ├── repository/                 # Repository Implementations
     └── dto/                        # Data Transfer Objects (JSON Models)
 ```
@@ -64,8 +64,13 @@ decoupled layers:
 * **viewmodel:** Orchestrates UI-specific logic (e.g. toggling loading state). Depends on `domain`
   to execute actions.
 * **domain:** The "Pure" part of the feature. Contains business rules and defining interfaces.
-* **data:** The "Dirty" work. Handles specifics of where data comes from and maps DTOs to Domain
-  models.
+  * **model:** Business data models used by the UI and ViewModel. (Technical DTOs from the data layer are mapped into these classes).
+  * **repository:** Interfaces (Contracts) that define what data is needed, not how to get it.
+  * **usecase:** Logic that orchestrates complex business actions (optional).
+* **data:** The "Dirty" work. Handles technical implementation and mapping.
+  * **source:** Concrete implementations of external communication (e.g., Ktor, SQLite).
+  * **repository:** Implementations of `domain/repository`. These coordinate one or more sources and map DTOs to Domain models.
+  * **dto:** Data Transfer Objects. Models that exactly match external data formats (e.g., JSON).
 
 ### Internal Feature Dependencies
 
