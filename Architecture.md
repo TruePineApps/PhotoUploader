@@ -42,7 +42,7 @@ com.package.name/
 ## 2. Feature Internal Layering
 
 Each feature in any feature tier or `core/feature/` package is divided into four strictly
-decoupled layers:
+decoupled layers, plus two infrastructure packages that keep the feature self-contained:
 
 ```text
 <feature>/
@@ -52,10 +52,12 @@ decoupled layers:
 │   ├── model/                      # Business Data Models
 │   ├── repository/                 # Repository Interfaces
 │   └── usecase/                    # Business Actions
-└── data/                           # The Implementation - Infrastructure
-    ├── source/                     # Data Sources (Ktor/Database)
-    ├── repository/                 # Repository Implementations
-    └── dto/                        # Data Transfer Objects (JSON Models)
+├── data/                           # The Implementation - Infrastructure
+│   ├── source/                     # Data Sources (Ktor/Database)
+│   ├── repository/                 # Repository Implementations
+│   └── dto/                        # Data Transfer Objects (JSON Models)
+├── di/                             # Dependency Injection - Koin module(s) for this feature
+└── navigation/                     # Navigation - Destinations and NavGraphBuilder extensions
 ```
 
 ### Layer Responsibilities
@@ -64,13 +66,24 @@ decoupled layers:
 * **viewmodel:** Orchestrates UI-specific logic (e.g. toggling loading state). Depends on `domain`
   to execute actions.
 * **domain:** The "Pure" part of the feature. Contains business rules and defining interfaces.
-  * **model:** Business data models used by the UI and ViewModel. (Technical DTOs from the data layer are mapped into these classes).
+  * **model:** Business data models used by the UI and ViewModel. Technical DTOs from the data
+    layer are mapped into these classes.
   * **repository:** Interfaces (Contracts) that define what data is needed, not how to get it.
   * **usecase:** Logic that orchestrates complex business actions (optional).
 * **data:** The "Dirty" work. Handles technical implementation and mapping.
   * **source:** Concrete implementations of external communication (e.g., Ktor, SQLite).
-  * **repository:** Implementations of `domain/repository`. These coordinate one or more sources and map DTOs to Domain models.
+  * **repository:** Implementations of `domain/repository`. These coordinate one or more sources
+    and map DTOs to Domain models.
   * **dto:** Data Transfer Objects. Models that exactly match external data formats (e.g., JSON).
+* **di:** Contains one or more Koin `module { }` declarations that bind the feature's `domain`
+  interfaces to their `data` implementations. This is the only place inside a feature that is
+  allowed to import both `domain` and `data` simultaneously. `app/di/` includes this module but
+  does not know the feature's internal bindings.
+* **navigation:** Contains `NavigationDestination` objects and `NavGraphBuilder` extension
+  functions (e.g. `fun NavGraphBuilder.uploaderGraph(...)`). This is the feature's public
+  navigation API. `app/navigation/` imports only from this package, never from `ui/` directly.
+  Features with a single screen may place their destination object here and keep the
+  `NavGraphBuilder` extension trivial; multi-screen features define their full sub-graph here.
 
 ### Internal Feature Dependencies
 
@@ -78,6 +91,8 @@ Within a single feature, the dependency flow is strictly top-down:
 
 ```text
 ui → viewmodel → domain ← data
+↑                              ↑
+navigation (depends on ui)     di (depends on data + domain)
 ```
 
 * **`ui`** may import `viewmodel` and `domain/model` (for display). It must never import `data`.
@@ -87,6 +102,10 @@ ui → viewmodel → domain ← data
   `core` utilities (e.g. `UiText`, `AppInfo`).
 * **`data`** implements `domain/repository` interfaces and imports `domain/model` for mapping.
   It must never import `viewmodel` or `ui`.
+* **`di`** is the only package that may import across the `domain`/`data` boundary. It must never
+  import `ui` or `viewmodel`.
+* **`navigation`** imports `ui` (to reference screen composables) and `domain/model` (for typed
+  route arguments). It must never import `data` or `di`.
 
 The arrow on `domain` is intentionally bidirectional: both `viewmodel` and `data` depend on
 `domain`, but `domain` depends on neither. This is the **Dependency Inversion Principle** in
