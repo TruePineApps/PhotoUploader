@@ -25,7 +25,7 @@ import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.expand_album
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.components.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.feature.uploader.ui.components.AlbumCard
 import com.truepineapps.photouploader.feature.uploader.ui.components.ScrollLoadingInView
 import com.truepineapps.photouploader.feature.uploader.ui.components.UploadStatusIndicator

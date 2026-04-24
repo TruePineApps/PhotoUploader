@@ -1,7 +1,7 @@
 package com.truepineapps.photouploader.feature.uploader.viewmodel.uistate
 
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.data.Album
+import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import okio.Path
 
 

@@ -2,10 +2,11 @@ package com.truepineapps.photouploader.core.presentation.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.truepineapps.photouploader.data.DataLoadingRepository
-import com.truepineapps.photouploader.data.DataLoadingState
+import com.truepineapps.photouploader.core.domain.repository.DataLoadingRepository
+import com.truepineapps.photouploader.core.domain.state.DataLoadingState
 import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.core.util.UiTextString
+import com.truepineapps.photouploader.core.util.UiTextResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,17 +42,17 @@ open class LoadingViewModel(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(TIMEOUT_MILLIS),
+            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
             initialValue = DataLoadingState.Loading
         )
 
     /**
      * Display value of what is being loaded.
      * Base implementation returns the class name as a plain string. This does not work in a release.
-     * Override with [com.truepineapps.photouploader.core.util.UiTextResource] to provide a translated name.
+     * Override with [UiTextResource] to provide a translated name.
      */
-    open fun getDisplayNameText(): com.truepineapps.photouploader.core.util.UiText =
-        _root_ide_package_.com.truepineapps.photouploader.core.util.UiTextString(
+    open fun getDisplayNameText(): UiText =
+        UiTextString(
             this::class.simpleName ?: ""
         )
 

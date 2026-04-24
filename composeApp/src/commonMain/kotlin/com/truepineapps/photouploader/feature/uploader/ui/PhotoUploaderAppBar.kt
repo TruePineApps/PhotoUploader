@@ -38,7 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
-import com.truepineapps.photouploader.auth.UserProfile
+import com.truepineapps.photouploader.feature.auth.UserProfile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.appicon
@@ -58,8 +58,8 @@ import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.components.ThemedIconButton
-import com.truepineapps.photouploader.ui.navigation.MenuNavigator
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.app.navigation.MenuNavigator
 import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import org.jetbrains.compose.resources.imageResource

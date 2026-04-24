@@ -1,7 +1,7 @@
 package com.truepineapps.photouploader.feature.uploader.viewmodel.uistate
 
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.auth.UserProfile
+import com.truepineapps.photouploader.feature.auth.UserProfile
 import com.truepineapps.photouploader.core.util.UiText
 
 data class ViewState(

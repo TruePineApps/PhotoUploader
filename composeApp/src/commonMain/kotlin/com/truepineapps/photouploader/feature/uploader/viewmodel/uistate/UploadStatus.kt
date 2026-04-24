@@ -11,7 +11,7 @@ import com.truepineapps.photouploader.resources.status_success
 import com.truepineapps.photouploader.resources.status_uploading
 import com.truepineapps.photouploader.resources.status_uploading_error
 import com.truepineapps.photouploader.resources.status_waiting
-import com.truepineapps.photouploader.ui.theme.LocalExtendedColors
+import com.truepineapps.photouploader.app.theme.LocalExtendedColors
 import com.truepineapps.photouploader.core.util.UiText
 import org.jetbrains.compose.resources.stringResource
 

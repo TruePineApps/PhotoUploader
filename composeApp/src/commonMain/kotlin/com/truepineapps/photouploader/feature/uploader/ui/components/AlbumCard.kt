@@ -37,7 +37,7 @@ import com.truepineapps.photouploader.resources.photos_count
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AlbumUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
-import com.truepineapps.photouploader.ui.theme.LocalExtendedColors
+import com.truepineapps.photouploader.app.theme.LocalExtendedColors
 import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.core.util.UiTextString
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.PhotoUiState

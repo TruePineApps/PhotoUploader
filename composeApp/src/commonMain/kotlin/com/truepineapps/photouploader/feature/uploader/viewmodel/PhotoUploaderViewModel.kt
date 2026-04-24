@@ -4,14 +4,14 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.auth.AuthException
-import com.truepineapps.photouploader.auth.GoogleAuthService
+import com.truepineapps.photouploader.feature.auth.AuthException
+import com.truepineapps.photouploader.feature.auth.GoogleAuthService
 import com.truepineapps.photouploader.core.io.getAbsolutePath
 import com.truepineapps.photouploader.core.presentation.base.LoadingViewModel
 import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.core.util.UiTextString
-import com.truepineapps.photouploader.data.PhotoDirectoryRepository
+import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItemResult
 import com.truepineapps.photouploader.feature.uploader.data.dto.NewMediaItem
 import com.truepineapps.photouploader.feature.uploader.data.dto.SimpleMediaItem

@@ -37,7 +37,7 @@ import com.truepineapps.photouploader.resources.cover_photo
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.preview
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.components.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.PhotoUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
 import com.truepineapps.photouploader.core.presentation.design.Opacity

@@ -22,10 +22,13 @@ com.package.name/
 │   # when features depend on other features. See Section 3 for the full explanation.
 │
 └── core/                           # THE ENGINE (Reusable Base - Copy-Pasteable)
+    ├── domain/                     # Cross-cutting Contracts (no implementation, no UI)
+    │   ├── repository/             # Base repository interfaces (e.g. DataLoadingRepository)
+    │   └── state/                  # Shared state models (e.g. DataLoadingState)
     ├── presentation/               # Design System infrastructure
     │   ├── design/                 # Tokens: Dimensions, Opacity, Theme Wrapper
-    │   ├── components/             # Base Widgets: Loading, Error, Dialogs, Buttons
-    │   └── base/                   # Base Classes: LoadingViewModel and other base ViewModels
+    │   ├── component/              # Base Widgets: Loading, Error, Dialogs, Buttons
+    │   └── base/                   # Base ViewModels (e.g. LoadingViewModel); depends on core/domain/
     ├── feature/                    # THE CORE CAPABILITIES (Permanent features)
     │   ├── legal/                  # Generic Legal Logic (Consent, Gate, Repo)
     │   ├── settings/               # Base Settings logic (Language, etc.)

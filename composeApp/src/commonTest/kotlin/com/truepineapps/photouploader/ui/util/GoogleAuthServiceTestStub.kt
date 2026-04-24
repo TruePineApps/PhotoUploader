@@ -1,7 +1,7 @@
 package com.truepineapps.photouploader.ui.util
 
-import com.truepineapps.photouploader.auth.GoogleAuthService
-import com.truepineapps.photouploader.auth.UserProfile
+import com.truepineapps.photouploader.feature.auth.GoogleAuthService
+import com.truepineapps.photouploader.feature.auth.UserProfile
 
 class GoogleAuthServiceTestStub(
     private val signInToken: String? = "fake_access_token_12345",

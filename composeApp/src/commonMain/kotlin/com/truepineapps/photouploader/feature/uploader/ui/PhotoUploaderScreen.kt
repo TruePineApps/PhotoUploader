@@ -24,12 +24,12 @@ import com.truepineapps.photouploader.resources.app_name
 import com.truepineapps.photouploader.resources.photo_uploader
 import com.truepineapps.photouploader.resources.select_photo_folder
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.components.ThemedIconButton
-import com.truepineapps.photouploader.ui.navigation.NavigationDestination
-import com.truepineapps.photouploader.core.presentation.components.LoadingScreen
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.app.navigation.NavigationDestination
+import com.truepineapps.photouploader.core.presentation.component.LoadingScreen
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
-import com.truepineapps.photouploader.ui.util.isExpandedWidth
+import com.truepineapps.photouploader.core.util.isExpandedWidth
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 

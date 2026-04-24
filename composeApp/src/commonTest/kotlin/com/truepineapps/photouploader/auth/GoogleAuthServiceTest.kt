@@ -1,7 +1,8 @@
 package com.truepineapps.photouploader.auth
 
 import co.touchlab.kermit.Logger
-import com.truepineapps.photouploader.di.platformModule
+import com.truepineapps.photouploader.app.di.platformModule
+import com.truepineapps.photouploader.feature.auth.GoogleAuthService
 import kotlinx.coroutines.test.runTest
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin

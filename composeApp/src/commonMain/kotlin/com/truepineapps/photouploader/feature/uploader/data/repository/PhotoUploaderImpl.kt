@@ -183,7 +183,7 @@ class PhotoUploaderImpl(
         batchIndex: Int,
         batch: List<NewMediaItem>,
         allResults: MutableList<MediaItemResult>,
-        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
+        serviceUtil: ServiceUtil = ServiceUtil(
             "addOneBatchOfPhotosToAlbum (batch=$batchIndex)"
         )
     ) {

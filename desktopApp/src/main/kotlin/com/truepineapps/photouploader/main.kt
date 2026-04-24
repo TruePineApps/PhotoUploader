@@ -3,9 +3,10 @@ package com.truepineapps.photouploader
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import co.touchlab.kermit.Logger
-import com.truepineapps.photouploader.di.initKoin
-import com.truepineapps.photouploader.ui.DesktopPlatformPicker
-import com.truepineapps.photouploader.core.presentation.components.platformpicker.PlatformPicker
+import com.truepineapps.photouploader.app.App
+import com.truepineapps.photouploader.app.di.initKoin
+import com.truepineapps.photouploader.core.presentation.component.platformpicker.DesktopPlatformPicker
+import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import io.ktor.client.HttpClient
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module

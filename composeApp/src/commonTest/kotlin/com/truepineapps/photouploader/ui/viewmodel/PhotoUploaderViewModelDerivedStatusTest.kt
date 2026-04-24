@@ -4,11 +4,11 @@ import app.cash.turbine.test
 import co.touchlab.kermit.CommonWriter
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.loggerConfigInit
-import com.truepineapps.photouploader.auth.GoogleAuthService
-import com.truepineapps.photouploader.data.Album
-import com.truepineapps.photouploader.data.Photo
-import com.truepineapps.photouploader.data.PhotoDirectoryRepository
-import com.truepineapps.photouploader.di.viewModelModule
+import com.truepineapps.photouploader.feature.auth.GoogleAuthService
+import com.truepineapps.photouploader.feature.uploader.domain.model.Album
+import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
+import com.truepineapps.photouploader.app.di.viewModelModule
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem

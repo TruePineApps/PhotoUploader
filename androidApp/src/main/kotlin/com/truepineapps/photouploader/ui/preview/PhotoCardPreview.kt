@@ -5,7 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.feature.uploader.ui.components.PreviewPhotoCard
-import com.truepineapps.photouploader.ui.theme.AppTheme
+import com.truepineapps.photouploader.app.theme.AppTheme
 
 @Preview(showBackground = true)
 @Composable

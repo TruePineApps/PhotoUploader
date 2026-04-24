@@ -9,11 +9,11 @@ object JvmPlatformInfo : PlatformInfo {
 
     /**
      * For JVM (Desktop):
-     * - Checks a system property e.g., "eventdemo.debug=true".
+     * - Checks a system property e.g., "debug=true".
      * - Set this property when running your desktop application:
-     *   `java -eventdemo.debug=true -jar event_demo_app.jar`
+     *   `java -debug=true -jar photo_uploader_app.jar`
      * - Defaults to false if the property is not set or not "true".
      */
-    override val isDebugBuild: Boolean = System.getProperty("eventdemo.debug", "false").toBoolean()
+    override val isDebugBuild: Boolean = System.getProperty("debug", "false").toBoolean()
 }
 

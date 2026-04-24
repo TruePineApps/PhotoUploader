@@ -1,0 +1,7 @@
+package com.truepineapps.photouploader.app.di
+
+import org.koin.core.KoinApplication
+
+// Called from Koin.swift
+@Suppress("unused")
+fun initKoinIos(): KoinApplication = initKoin()
