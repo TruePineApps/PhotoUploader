@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui.preview
+package com.truepineapps.photouploader.ui.preview.feature
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
@@ -10,7 +10,6 @@ import com.truepineapps.photouploader.app.theme.AppTheme
 @Preview(showBackground = true)
 @Composable
 fun PreviewAlbumCardDefault() {
-
     AppTheme {
         PreviewAlbumCard(
             KmpFile(uri = "".toUri()),

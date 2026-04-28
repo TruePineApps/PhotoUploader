@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.ui.preview
+package com.truepineapps.photouploader.ui.preview.feature
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
