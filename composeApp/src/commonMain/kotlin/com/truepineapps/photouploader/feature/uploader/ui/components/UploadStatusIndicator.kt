@@ -25,13 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.arrow_upload_progress
 import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
-import com.truepineapps.photouploader.app.theme.LocalExtendedColors
 import kotlinx.datetime.DateTimeUnit.Companion.SECOND
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi

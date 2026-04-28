@@ -7,12 +7,12 @@ import co.touchlab.kermit.loggerConfigInit
 import com.truepineapps.photouploader.app.di.viewModelModule
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
-import com.truepineapps.photouploader.feature.auth.GoogleAuthService
 import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
 import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile

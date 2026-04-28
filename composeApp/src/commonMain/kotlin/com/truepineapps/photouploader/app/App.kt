@@ -34,16 +34,16 @@ import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
-import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.app_name
-import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
-import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
-import com.truepineapps.photouploader.app.navigation.MenuNavigatorImpl
 import com.truepineapps.photouploader.app.navigation.PhotoUploaderAppNavHost
+import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigatorImpl
+import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
+import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
+import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderAppBar
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
-import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.app_name
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -157,7 +157,7 @@ private fun ThemedLocalizedApp(
         },
         topBar = {
             PhotoUploaderAppBar(
-                menuNavigator = MenuNavigatorImpl(navController),
+                moreMenuNavigator = MoreMenuNavigatorImpl(navController),
                 title = title,
                 isEnabled = isEnabled,
                 canNavigateBack = navController.previousBackStackEntry != null,

@@ -3,6 +3,8 @@ package com.truepineapps.photouploader.feature.uploader.viewmodel.uistate
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
+import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.status_canceled
 import com.truepineapps.photouploader.resources.status_error
@@ -11,8 +13,6 @@ import com.truepineapps.photouploader.resources.status_success
 import com.truepineapps.photouploader.resources.status_uploading
 import com.truepineapps.photouploader.resources.status_uploading_error
 import com.truepineapps.photouploader.resources.status_waiting
-import com.truepineapps.photouploader.app.theme.LocalExtendedColors
-import com.truepineapps.photouploader.core.util.UiText
 import org.jetbrains.compose.resources.stringResource
 
 

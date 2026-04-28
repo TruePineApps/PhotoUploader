@@ -4,6 +4,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import com.truepineapps.photouploader.core.presentation.design.ExtendedColorScheme
+import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
 import com.truepineapps.photouploader.core.util.ContrastLevel
 import com.truepineapps.photouploader.core.util.getSystemContrastLevel
 

@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.app.theme
+package com.truepineapps.photouploader.core.presentation.design
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color

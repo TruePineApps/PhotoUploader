@@ -1,8 +1,8 @@
 package com.truepineapps.photouploader.app.di
 
 import co.touchlab.kermit.Logger
-import com.truepineapps.photouploader.feature.auth.GoogleAuthService
-import com.truepineapps.photouploader.feature.auth.StubGoogleAuthService
+import com.truepineapps.photouploader.foundation.auth.data.repository.StubGoogleAuthService
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

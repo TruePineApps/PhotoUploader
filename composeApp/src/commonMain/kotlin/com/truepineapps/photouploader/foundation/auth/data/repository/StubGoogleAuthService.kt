@@ -1,5 +1,7 @@
-package com.truepineapps.photouploader.feature.auth
+package com.truepineapps.photouploader.foundation.auth.data.repository
 
+import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import kotlinx.coroutines.delay
 
 class StubGoogleAuthService : GoogleAuthService {

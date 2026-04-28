@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.feature.auth
+package com.truepineapps.photouploader.foundation.auth.domain.model
 
 data class UserProfile(
     val name: String,

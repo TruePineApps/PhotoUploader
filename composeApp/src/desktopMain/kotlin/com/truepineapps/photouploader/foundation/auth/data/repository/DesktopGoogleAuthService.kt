@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.feature.auth
+package com.truepineapps.photouploader.foundation.auth.data.repository
 
 import co.touchlab.kermit.Logger
 import com.google.api.client.auth.oauth2.Credential
@@ -16,6 +16,9 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.core.util.UiTextString
+import com.truepineapps.photouploader.foundation.auth.domain.model.AuthException
+import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.network_error
@@ -28,8 +31,6 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
-import java.util.HashMap
-import kotlin.collections.get
 import kotlin.coroutines.cancellation.CancellationException
 
 // User ID, the library uses this string to name the file where it saves the Access Token
@@ -52,13 +53,10 @@ private const val CLIENT_SECRETS_JSON = "client_secrets.json"
  *
  * The service requires a `client_secrets.json` file to be present in the application resources that
  * contains the keys and secrets to connect to the corresponding Google Cloud project that allows
- * access to the Google Photos API.It requests scopes strictly for appending to the Google Photos
+ * access to the Google Photos API. It requests scopes strictly for appending to the Google Photos
  * library and reading app-created data.
- *  this application..
  */
-class DesktopGoogleAuthService(
-    private val log: Logger,
-) : GoogleAuthService {
+class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
 
     private val jsonFactory = GsonFactory.getDefaultInstance()
     private val httpTransport = NetHttpTransport()

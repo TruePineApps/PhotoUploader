@@ -8,7 +8,6 @@ import com.truepineapps.photouploader.app.di.viewModelModule
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.core.util.UiTextResource
-import com.truepineapps.photouploader.feature.auth.GoogleAuthService
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumResponse
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsRequest
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsResponse
@@ -23,6 +22,7 @@ import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
 import com.truepineapps.photouploader.resources.error_add_to_album_failed

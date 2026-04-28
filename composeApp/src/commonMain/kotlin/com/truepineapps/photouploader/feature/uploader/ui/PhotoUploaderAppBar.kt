@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
@@ -38,18 +37,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
-import com.truepineapps.photouploader.feature.auth.UserProfile
+import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigator
+import com.truepineapps.photouploader.core.feature.moreMenu.ui.MoreMenu
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.design.Opacity
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.appicon
 import com.truepineapps.photouploader.resources.back_button
 import com.truepineapps.photouploader.resources.cancel
 import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.connected_as
-import com.truepineapps.photouploader.resources.licenses
-import com.truepineapps.photouploader.resources.more_menu
-import com.truepineapps.photouploader.resources.preferences
 import com.truepineapps.photouploader.resources.sign_in
 import com.truepineapps.photouploader.resources.sign_in_menu
 import com.truepineapps.photouploader.resources.sign_out
@@ -57,11 +58,6 @@ import com.truepineapps.photouploader.resources.sign_out_menu
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
-import com.truepineapps.photouploader.app.navigation.MenuNavigator
-import com.truepineapps.photouploader.core.presentation.design.Opacity
-import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -87,7 +83,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoUploaderAppBar(
-    menuNavigator: MenuNavigator,
+    moreMenuNavigator: MoreMenuNavigator,
     scrollBehavior: TopAppBarScrollBehavior?,
     title: String,
     isEnabled: Boolean,
@@ -185,7 +181,7 @@ fun PhotoUploaderAppBar(
             }
             MoreMenu(
                 isEnabled,
-                menuNavigator
+                moreMenuNavigator
             )
         },
         colors = colors
@@ -320,41 +316,3 @@ fun AvatarMenu(
     }
 }
 
-@Composable
-private fun MoreMenu(isEnabled: Boolean, menuNavigator: MenuNavigator) {
-    // The expanded state of the dropdown menu.
-    var expanded by remember { mutableStateOf(false) }
-
-    ThemedIconButton(
-        imageVector = Icons.Filled.MoreVert,
-        contentDescriptionResource = Res.string.more_menu,
-        enabled = isEnabled,
-        onClick = { expanded = true }
-    )
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    ) {
-        DropdownMenuItem(
-            text = { Text(stringResource(Res.string.preferences)) },
-            onClick = {
-                menuNavigator.navigateToSettings()
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(Res.string.about)) },
-            onClick = {
-                menuNavigator.navigateToAbout()
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(Res.string.licenses)) },
-            onClick = {
-                menuNavigator.navigateToLicenseScreen()
-                expanded = false
-            }
-        )
-    }
-}

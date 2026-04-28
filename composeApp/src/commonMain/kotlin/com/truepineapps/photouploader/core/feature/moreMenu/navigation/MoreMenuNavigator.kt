@@ -7,20 +7,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  */
 
-package com.truepineapps.photouploader.app.navigation
+package com.truepineapps.photouploader.core.feature.moreMenu.navigation
 
 import androidx.navigation.NavHostController
+import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
 import com.truepineapps.photouploader.core.feature.about.navigation.LicenseDestination
 import com.truepineapps.photouploader.core.feature.settings.navigation.SettingsDestination
-import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
 
-interface MenuNavigator {
+interface MoreMenuNavigator {
     fun navigateToSettings()
     fun navigateToAbout()
     fun navigateToLicenseScreen()
 }
 
-class MenuNavigatorImpl(private val navController: NavHostController) : MenuNavigator {
+class MoreMenuNavigatorImpl(private val navController: NavHostController) : MoreMenuNavigator {
     override fun navigateToSettings() {
         navController.navigate(SettingsDestination.route)
     }

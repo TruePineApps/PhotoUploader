@@ -5,8 +5,8 @@ import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.IosAppInfo
 import com.truepineapps.photouploader.core.util.IosPlatformInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
-import com.truepineapps.photouploader.feature.auth.GoogleAuthService
-import com.truepineapps.photouploader.feature.auth.StubGoogleAuthService
+import com.truepineapps.photouploader.foundation.auth.data.repository.StubGoogleAuthService
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

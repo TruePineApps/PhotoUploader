@@ -94,9 +94,9 @@ decoupled layers, plus two infrastructure packages that keep the feature self-co
 Within a single feature, the dependency flow is strictly top-down:
 
 ```text
-ui → viewmodel → domain ← data
-↑                              ↑
-navigation (depends on ui)     di (depends on data + domain)
+ui  →  viewmodel  →  domain  ←  data
+↑                               ↑
+navigation (depends on ui)      di (depends on data + domain)
 ```
 
 * **`ui`** may import `viewmodel` and `domain/model` (for display). It must never import `data`.
@@ -152,7 +152,7 @@ app/
 The full dependency chain becomes:
 
 ```text
-app → feature → foundation → core
+app  →  feature  →  foundation  →  core
 ```
 
 **Naming guidance:** Choose a tier name that reflects its role in your domain, not a structural

@@ -4,17 +4,15 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.feature.auth.AuthException
-import com.truepineapps.photouploader.feature.auth.GoogleAuthService
 import com.truepineapps.photouploader.core.io.getAbsolutePath
 import com.truepineapps.photouploader.core.presentation.base.LoadingViewModel
 import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.core.util.UiTextString
-import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItemResult
 import com.truepineapps.photouploader.feature.uploader.data.dto.NewMediaItem
 import com.truepineapps.photouploader.feature.uploader.data.dto.SimpleMediaItem
+import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoUploaderImpl
 import com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AlbumUiState
@@ -25,6 +23,8 @@ import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.ViewState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.toAlbumUiState
+import com.truepineapps.photouploader.foundation.auth.domain.model.AuthException
+import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_sign_in_failed
