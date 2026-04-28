@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
+import com.truepineapps.photouploader.core.feature.about.navigation.LicenseDestination
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.error_loading_license
@@ -50,16 +51,11 @@ import com.truepineapps.photouploader.resources.third_party_notices
 import com.truepineapps.photouploader.resources.unknown_error
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
-import com.truepineapps.photouploader.app.navigation.NavigationDestination
 import com.truepineapps.photouploader.core.feature.about.viewmodel.LicenseViewModel
 import com.truepineapps.photouploader.core.feature.about.viewmodel.LoadLicenseResult
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-object LicenseDestination : NavigationDestination {
-    override val route = "license"
-    override val titleRes = Res.string.licenses
-}
 
 @Composable
 fun LicenseScreen(

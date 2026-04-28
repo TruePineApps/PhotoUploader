@@ -24,30 +24,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import co.touchlab.kermit.Logger
+import com.truepineapps.photouploader.core.feature.settings.domain.model.AppLanguage
+import com.truepineapps.photouploader.core.feature.settings.navigation.SettingsDestination
+import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
+import com.truepineapps.photouploader.core.presentation.component.LoadingScreen
+import com.truepineapps.photouploader.core.presentation.component.SelectionField
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.language
-import com.truepineapps.photouploader.resources.preferences
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.component.SelectionField
-import com.truepineapps.photouploader.core.feature.settings.domain.model.AppLanguage
-import com.truepineapps.photouploader.app.navigation.NavigationDestination
-import com.truepineapps.photouploader.core.presentation.component.LoadingScreen
-import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
-import com.truepineapps.photouploader.app.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
-
-object SettingsDestination : NavigationDestination {
-    override val route = "settings"
-    override val titleRes = Res.string.preferences
-}
 
 @Composable
 fun SettingsScreen(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
+    log: Logger,
+    settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    log: Logger = koinInject(),
-    settingsViewModel: SettingsViewModel = koinInject()
 ) {
     onUpdateTopAppBar(stringResource(SettingsDestination.titleRes), null) {}
 
@@ -90,13 +82,11 @@ fun SettingsBody(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
-    AppTheme {
-        SettingsBody(
-            language = AppLanguage.English,
-            setLanguage = {},
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.LightGray) // showBackground = true
-        )
-    }
+    SettingsBody(
+        language = AppLanguage.English,
+        setLanguage = {},
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray) // showBackground = true
+    )
 }

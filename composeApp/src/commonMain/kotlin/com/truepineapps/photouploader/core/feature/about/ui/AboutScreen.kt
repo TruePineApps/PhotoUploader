@@ -22,11 +22,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.core.util.PlatformType
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.about_photo_uploader
 import com.truepineapps.photouploader.resources.app_id
 import com.truepineapps.photouploader.resources.photo_uploader_description
@@ -34,17 +35,9 @@ import com.truepineapps.photouploader.resources.platform
 import com.truepineapps.photouploader.resources.sources
 import com.truepineapps.photouploader.resources.version
 import com.truepineapps.photouploader.resources.website
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.app.navigation.NavigationDestination
-import com.truepineapps.photouploader.app.theme.AppTheme
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-
-object AboutDestination : NavigationDestination {
-    override val route = "about"
-    override val titleRes = Res.string.about
-}
 
 @Composable
 fun AboutScreen(
@@ -97,18 +90,16 @@ private fun PlatformDetailRow(
 @Composable
 fun AboutScreenPreview(
 ) {
-    AppTheme {
-        AboutScreen(
-            appInfo = object : AppInfo {
-                override val appId = "com.truepineapps.photouploader"
-                override val versionName = "1.0.0"
-                override val versionCode = "1"
-            },
-            platformInfo = object : PlatformInfo {
-                override val name = "JVM"
-                override val platformType = PlatformType.NATIVE
-                override val isDebugBuild = true
-            }
-        )
-    }
+    AboutScreen(
+        appInfo = object : AppInfo {
+            override val appId = "com.truepineapps.photouploader"
+            override val versionName = "1.0.0"
+            override val versionCode = "1"
+        },
+        platformInfo = object : PlatformInfo {
+            override val name = "JVM"
+            override val platformType = PlatformType.NATIVE
+            override val isDebugBuild = true
+        }
+    )
 }

@@ -13,23 +13,22 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.truepineapps.photouploader.core.feature.about.ui.AboutDestination
-import com.truepineapps.photouploader.core.feature.about.ui.AboutScreen
-import com.truepineapps.photouploader.core.feature.about.ui.LicenseDestination
-import com.truepineapps.photouploader.core.feature.about.ui.LicenseScreen
-import com.truepineapps.photouploader.core.feature.settings.ui.SettingsDestination
-import com.truepineapps.photouploader.core.feature.settings.ui.SettingsScreen
+import co.touchlab.kermit.Logger
+import com.truepineapps.photouploader.core.feature.about.navigation.aboutGraph
+import com.truepineapps.photouploader.core.feature.settings.navigation.settingsGraph
+import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
+import com.truepineapps.photouploader.core.presentation.navigation.getStringArg
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoListDestination
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoListScreen
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderScreen
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import org.koin.compose.koinInject
 
 /**
  * Provides Navigation graph for the application.
@@ -43,6 +42,8 @@ fun PhotoUploaderAppNavHost(
     modifier: Modifier = Modifier,
     startDestination: String = PhotoUploaderDestination.route
 ) {
+    val log: Logger = koinInject()
+    val settingsViewModel: SettingsViewModel = koinInject()
     NavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
     ) {
@@ -58,7 +59,7 @@ fun PhotoUploaderAppNavHost(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        
+
         composable(
             route = PhotoListDestination.routeWithArgs,
             arguments = listOf(navArgument("path") { type = NavType.StringType })
@@ -73,25 +74,8 @@ fun PhotoUploaderAppNavHost(
         }
 
         /* Menu screens */
-        composable(route = SettingsDestination.route) {
-            SettingsScreen(
-                onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize(),
-            )
-        }
-        composable(route = AboutDestination.route) {
-            AboutScreen(
-                onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize()
-            )
-        }
-        composable(route = LicenseDestination.route) {
-            LicenseScreen(
-                onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize()
-            )
-        }
-
+        settingsGraph(onUpdateTopAppBar, log, settingsViewModel)
+        aboutGraph(onUpdateTopAppBar)
     }
 }
 
-private fun NavBackStackEntry.getStringArg(key: String): String? {
-    return arguments?.let { NavType.StringType[it, key] }
-}

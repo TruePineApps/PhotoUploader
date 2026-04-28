@@ -28,6 +28,7 @@ com.package.name/
     ├── presentation/               # Design System infrastructure
     │   ├── design/                 # Tokens: Dimensions, Opacity, Theme Wrapper
     │   ├── component/              # Base Widgets: Loading, Error, Dialogs, Buttons
+    │   ├── navigation/             # Navigation contract: NavigationDestination interface
     │   └── base/                   # Base ViewModels (e.g. LoadingViewModel); depends on core/domain/
     ├── feature/                    # THE CORE CAPABILITIES (Permanent features)
     │   ├── legal/                  # Generic Legal Logic (Consent, Gate, Repo)

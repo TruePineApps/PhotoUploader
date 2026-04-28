@@ -9,6 +9,7 @@
     <string name="show_selection_dialog">Show selection dialog</string>
     <string name="more_menu">More menu</string>
     <string name="preferences">Preferences</string>
+    <string name="settings">Settings</string>
     <string name="locale">Locale</string>
     <string name="language">Language</string>
     <string name="en">English</string>

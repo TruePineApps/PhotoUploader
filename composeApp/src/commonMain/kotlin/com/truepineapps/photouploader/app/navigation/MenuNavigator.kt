@@ -10,9 +10,9 @@
 package com.truepineapps.photouploader.app.navigation
 
 import androidx.navigation.NavHostController
-import com.truepineapps.photouploader.core.feature.about.ui.AboutDestination
-import com.truepineapps.photouploader.core.feature.about.ui.LicenseDestination
-import com.truepineapps.photouploader.core.feature.settings.ui.SettingsDestination
+import com.truepineapps.photouploader.core.feature.about.navigation.LicenseDestination
+import com.truepineapps.photouploader.core.feature.settings.navigation.SettingsDestination
+import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
 
 interface MenuNavigator {
     fun navigateToSettings()
