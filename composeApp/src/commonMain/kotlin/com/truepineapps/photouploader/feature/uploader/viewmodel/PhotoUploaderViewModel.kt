@@ -104,11 +104,7 @@ class PhotoUploaderViewModel(
                 val newGroupNames = newAlbumUiStates.map { it.group }.distinct()
                 _groupUiStates.update {
                     newGroupNames
-                        .map { group ->
-                            GroupUiState(
-                                group
-                            )
-                        }
+                        .map { group -> GroupUiState(group) }
                         .sortedBy { it.group }
                 }
             }
