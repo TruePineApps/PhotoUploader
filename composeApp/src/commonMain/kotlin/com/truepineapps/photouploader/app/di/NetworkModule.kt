@@ -16,7 +16,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 val networkModule = module {
-    // A shared Json instance
+    // A shared JSON instance
     single<Json> {
         Json {
             ignoreUnknownKeys = true
@@ -30,7 +30,7 @@ val networkModule = module {
     single<HttpClient> {
         // Start with the platform-specific engine (CIO, Darwin, etc.)
         createPlatformHttpClient().config {
-            // Content Negotiation with the shared Json instance
+            // Content Negotiation with the shared JSON instance
             install(ContentNegotiation) {
                 json(get())
             }

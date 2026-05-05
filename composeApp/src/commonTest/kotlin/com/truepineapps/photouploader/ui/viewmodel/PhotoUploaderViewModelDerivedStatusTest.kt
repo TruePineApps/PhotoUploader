@@ -1,23 +1,15 @@
 package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
-import co.touchlab.kermit.CommonWriter
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.loggerConfigInit
-import com.truepineapps.photouploader.app.di.viewModelModule
-import com.truepineapps.photouploader.core.io.PlatformFileSystem
-import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.core.util.UiTextString
-import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AlbumUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
-import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
-import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
-import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
+import com.truepineapps.photouploader.ui.util.startTestKoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,10 +17,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -44,22 +33,7 @@ class PhotoUploaderViewModelDerivedStatusTest : KoinTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         stopKoin()
-        startKoin {
-            modules(
-                viewModelModule(),
-                module {
-                    single<PlatformFileSystem> { FakePlatformFileSystem(FakeFileSystem()) }
-                    single { PhotoDirectoryRepository(get()) }
-                    single<GoogleAuthService> { GoogleAuthServiceTestStub() }
-                    single {
-                        Logger(
-                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
-                            tag = "Test"
-                        )
-                    }
-                }
-            )
-        }
+        startTestKoin()
     }
 
     @AfterTest

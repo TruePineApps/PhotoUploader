@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import co.touchlab.kermit.Logger
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.memory.MemoryCache
@@ -35,6 +34,7 @@ import coil3.request.crossfade
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import com.truepineapps.photouploader.app.navigation.PhotoUploaderAppNavHost
+import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
@@ -47,7 +47,7 @@ import com.truepineapps.photouploader.resources.app_name
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import org.koin.core.parameter.parametersOf
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App(
@@ -67,7 +67,7 @@ fun App(
             .build()
     }
 
-    _root_ide_package_.com.truepineapps.photouploader.app.theme.AppTheme {
+    AppTheme {
         AppEnvironment(localeViewModel = koinInject()) {
             ThemedLocalizedApp(
                 startDestination = startDestination,
@@ -82,10 +82,9 @@ fun App(
 private fun ThemedLocalizedApp(
     startDestination: String,
     modifier: Modifier = Modifier,
-    filePicker: PlatformPicker = koinInject(),
-    log: Logger = koinInject(),
 ) {
-    val viewModel: PhotoUploaderViewModel = koinInject { parametersOf(log) }
+    val filePicker: PlatformPicker = koinInject()
+    val viewModel: PhotoUploaderViewModel = koinViewModel()
 
     val appName = stringResource(resource = Res.string.app_name)
     var title by rememberSaveable { mutableStateOf(appName) }
@@ -107,14 +106,12 @@ private fun ThemedLocalizedApp(
         null
     }
 
-    // Make sure the platform context is set
-    viewModel.platformContext = LocalPlatformContext.current
-
     // File Picker is a global state in the app
+    val context = LocalPlatformContext.current
     val uiState by viewModel.uiState.collectAsState()
     filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { kmpFile ->
         if (kmpFile != null) {
-            viewModel.updatePath(kmpFile)
+            viewModel.updatePath(kmpFile, context)
         }
         viewModel.updateShowDirPicker(false)
     }

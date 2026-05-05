@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
+import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigator
 import com.truepineapps.photouploader.core.feature.moreMenu.ui.MoreMenu
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
@@ -168,6 +169,7 @@ fun PhotoUploaderAppBar(
                     viewModel.cancelProcess()
                 }
             } else {
+                val platformContext = LocalPlatformContext.current
                 ThemedIconButton(
                     imageVector = Icons.Filled.Upload,
                     contentDescriptionResource = Res.string.upload_photos,
@@ -175,7 +177,7 @@ fun PhotoUploaderAppBar(
                     onClick = {
                         // The ViewModel's uploadPhotos launches a coroutine that just needs to be
                         // triggered here. The returned Job can be ignored here or handled if needed.
-                        viewModel.uploadPhotos()
+                        viewModel.uploadPhotos(platformContext)
                     },
                 )
             }

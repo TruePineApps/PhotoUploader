@@ -1,12 +1,12 @@
 package com.truepineapps.photouploader.ui.uistate
 
-import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
-import com.truepineapps.photouploader.ui.util.createTestKmpFile
+import com.truepineapps.photouploader.core.util.UiTextString
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AlbumUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.PhotoUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
-import com.truepineapps.photouploader.util.UiTextString
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
+import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals

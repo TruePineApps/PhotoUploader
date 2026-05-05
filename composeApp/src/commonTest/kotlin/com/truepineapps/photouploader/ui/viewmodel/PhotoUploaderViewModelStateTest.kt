@@ -1,21 +1,14 @@
 package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
-import co.touchlab.kermit.CommonWriter
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.loggerConfigInit
-import com.truepineapps.photouploader.app.di.viewModelModule
-import com.truepineapps.photouploader.core.io.PlatformFileSystem
-import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
-import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
+import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepositoryImpl
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
-import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
-import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
-import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
+import com.truepineapps.photouploader.ui.util.startTestKoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -23,10 +16,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -45,23 +35,7 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         Dispatchers.setMain(testDispatcher)
         // Ensure clean Koin instance for each test
         stopKoin()
-        startKoin {
-            modules(
-                viewModelModule(),
-                module {
-                    single<PlatformFileSystem> { FakePlatformFileSystem(FakeFileSystem()) }
-                    single { PhotoDirectoryRepository(get()) }
-                    single<GoogleAuthService> { GoogleAuthServiceTestStub() }
-                    single {
-                        Logger(
-                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
-                            tag = "Test"
-                        )
-                    }
-
-                }
-            )
-        }
+        startTestKoin()
     }
 
     @AfterTest
@@ -73,7 +47,7 @@ class PhotoUploaderViewModelStateTest : KoinTest {
     @Test
     fun `toggleAlbum correctly updates isEnabled state of the target album`() = runTest {
         val viewModel: PhotoUploaderViewModel by inject()
-        val repository: PhotoDirectoryRepository by inject()
+        val repository: PhotoDirectoryRepositoryImpl by inject()
         val initialAlbums = listOf(
             createDummyAlbum(id = "album1"),
             createDummyAlbum(id = "album2")
@@ -105,7 +79,7 @@ class PhotoUploaderViewModelStateTest : KoinTest {
     @Test
     fun `toggleAlbums correctly updates isEnabled state for a group`() = runTest {
         val viewModel: PhotoUploaderViewModel by inject()
-        val repository: PhotoDirectoryRepository by inject()
+        val repository: PhotoDirectoryRepositoryImpl by inject()
         val albums = listOf(
             createDummyAlbum(id = "album1"),
             createDummyAlbum(id = "album2"),
@@ -221,7 +195,8 @@ class PhotoUploaderViewModelStateTest : KoinTest {
                 expectedAlbumA1Enabled = true,
                 expectedAlbumA2Enabled = true
             )
-        }    }
+        }
+    }
 
     private fun assertGroupAndAlbumStates(
         state: UiState,
@@ -236,12 +211,24 @@ class PhotoUploaderViewModelStateTest : KoinTest {
         val albumB1 = state.albumUiStates.find { it.id == "albumB1" }
 
         // Assert group states
-        assertEquals(expected2023GroupEnabled, group2023?.isEnabled, "Group 'Year 2023' enabled state mismatch")
+        assertEquals(
+            expected2023GroupEnabled,
+            group2023?.isEnabled,
+            "Group 'Year 2023' enabled state mismatch"
+        )
         assertEquals(true, group2024?.isEnabled, "Group 'Year 2024' enabled state mismatch")
 
         // Assert album states
-        assertEquals(expectedAlbumA1Enabled, albumA1?.isEnabled, "Album 'albumA1' enabled state mismatch")
-        assertEquals(expectedAlbumA2Enabled, albumA2?.isEnabled, "Album 'albumA2' enabled state mismatch")
+        assertEquals(
+            expectedAlbumA1Enabled,
+            albumA1?.isEnabled,
+            "Album 'albumA1' enabled state mismatch"
+        )
+        assertEquals(
+            expectedAlbumA2Enabled,
+            albumA2?.isEnabled,
+            "Album 'albumA2' enabled state mismatch"
+        )
         assertEquals(true, albumB1?.isEnabled, "Album 'albumB1' enabled state mismatch")
     }
 

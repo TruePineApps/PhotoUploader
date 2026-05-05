@@ -1,21 +1,15 @@
 package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
-import co.touchlab.kermit.CommonWriter
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.loggerConfigInit
-import com.truepineapps.photouploader.app.di.viewModelModule
-import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
-import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.toPhotoUiState
-import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
-import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
 import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.util.createTestPlatformContext
+import com.truepineapps.photouploader.ui.util.startTestKoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
@@ -24,12 +18,9 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -60,32 +51,11 @@ class PhotoUploaderViewModelTest : KoinTest {
         stopKoin()
     }
 
-    private fun startTestKoin(
-        serviceStub: GoogleAuthService,
-    ) {
-        startKoin {
-            modules(
-                viewModelModule(),
-                module {
-                    single<FileSystem> { fileSystem }
-                    single { PhotoDirectoryRepository(FakePlatformFileSystem(fileSystem)) }
-                    single<GoogleAuthService> { serviceStub }
-                    single {
-                        Logger(
-                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
-                            tag = "Test"
-                        )
-                    }
-                }
-            )
-        }
-    }
-
     @Test
     fun testRestoreSignInSuccess() = runTest {
         // 1. Prepare the stub
         val successStub = GoogleAuthServiceTestStub(restoreToken = "restored_token")
-        startTestKoin(successStub)
+        startTestKoin(serviceStub = successStub)
 
         // 2. Inject the ViewModel via Koin.
         // Accessing the property triggers creation, which runs the init block.
@@ -111,7 +81,7 @@ class PhotoUploaderViewModelTest : KoinTest {
     @Test
     fun testSignInSuccess() = runTest {
         val successStub = GoogleAuthServiceTestStub(signInToken = "valid_token")
-        startTestKoin(successStub)
+        startTestKoin(serviceStub = successStub)
 
         val viewModel: PhotoUploaderViewModel by inject()
 
@@ -139,7 +109,7 @@ class PhotoUploaderViewModelTest : KoinTest {
     @Test
     fun testSignInFailure() = runTest {
         val failureStub = GoogleAuthServiceTestStub(signInToken = null)
-        startTestKoin(failureStub)
+        startTestKoin(serviceStub = failureStub)
 
         val viewModel: PhotoUploaderViewModel by inject()
 
@@ -167,7 +137,7 @@ class PhotoUploaderViewModelTest : KoinTest {
     fun testUpdateCoverPhoto() = runTest {
         // 1. Start Koin
         val successStub = GoogleAuthServiceTestStub()
-        startTestKoin(successStub)
+        startTestKoin(serviceStub = successStub)
 
         // 2. Prepare Fake Data
         val albumName = "album"
@@ -206,7 +176,6 @@ class PhotoUploaderViewModelTest : KoinTest {
             photoRepo.updateAlbums(listOf(album))
             awaitItem() // consume populated
 
-
             // 3. Trigger the update cover action
             viewModel.updateCoverPhoto(albumName, photo2.toPhotoUiState())
 
@@ -236,7 +205,7 @@ class PhotoUploaderViewModelTest : KoinTest {
     @Test
     fun testUpload_GlobalErrorOnSignInFailure() = runTest {
         val errorStub = GoogleAuthServiceTestStub(signInShouldFail = true)
-        startTestKoin(errorStub)
+        startTestKoin(serviceStub = errorStub)
 
         val photo1 = Photo(
             kmpFile = createTestKmpFile(path = "/p1"),
@@ -253,25 +222,27 @@ class PhotoUploaderViewModelTest : KoinTest {
         )
 
         val photoRepo: PhotoDirectoryRepository by inject()
-        photoRepo.updateAlbums(listOf(album1))
-
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        val platformContext = createTestPlatformContext()
+        viewModel.uiState.test {
+            assertEquals(emptyList(), awaitItem().albumUiStates)
 
-        viewModel.uploadPhotos()?.join()
-        testDispatcher.scheduler.advanceUntilIdle()
+            photoRepo.updateAlbums(listOf(album1))
+            awaitItem()
 
-        val globalErrorMessage = viewModel.uiState.value.globalErrorMessage
-        assertNotNull(
-            globalErrorMessage,
-            "Global error should be set on sign-in failure"
-        )
-        assertTrue(
-            globalErrorMessage.toString().contains("Sign-in failed"),
-            "Error message should indicate sign-in failure, but was: $globalErrorMessage"
-        )
+            viewModel.uploadPhotos(platformContext)
+            awaitEvent()
+
+            val globalErrorMessage = viewModel.uiState.value.globalErrorMessage
+            assertNotNull(
+                globalErrorMessage,
+                "Global error should be set on sign-in failure"
+            )
+            assertTrue(
+                globalErrorMessage.toString().contains("Sign-in failed"),
+                "Error message should indicate sign-in failure, but was: $globalErrorMessage"
+            )
+        }
     }
 
 }

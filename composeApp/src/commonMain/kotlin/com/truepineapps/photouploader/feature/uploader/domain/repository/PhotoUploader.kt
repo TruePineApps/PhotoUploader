@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.feature.uploader.domain.repository
 
+import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.core.util.ServiceUtil
 import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItemResult
@@ -13,9 +14,8 @@ interface PhotoUploader {
      */
     suspend fun verifyAlbumExists(
         albumId: String,
-        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
-            "verifyAlbumExists"
-        )
+        accessToken: String,
+        serviceUtil: ServiceUtil = ServiceUtil("verifyAlbumExists")
     ): Boolean
 
     /**
@@ -26,9 +26,8 @@ interface PhotoUploader {
      */
     suspend fun createAlbum(
         albumTitle: String,
-        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
-            "createAlbum"
-        )
+        accessToken: String,
+        serviceUtil: ServiceUtil = ServiceUtil("createAlbum")
     ): String
 
     /**
@@ -40,9 +39,9 @@ interface PhotoUploader {
     suspend fun uploadPhoto(
         photoName: String,
         kmpFile: KmpFile,
-        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
-            "uploadPhoto"
-        )
+        accessToken: String,
+        platformContext: PlatformContext,
+        serviceUtil: ServiceUtil = ServiceUtil("uploadPhoto")
     ): String
 
     /**
@@ -51,12 +50,12 @@ interface PhotoUploader {
     suspend fun addPhotosToAlbum(
         albumId: String,
         newMediaItems: List<NewMediaItem>,
+        accessToken: String,
     ): List<MediaItemResult>
 
     suspend fun updateAlbumCover(
         albumId: String, coverMediaItemId: String,
-        serviceUtil: ServiceUtil = _root_ide_package_.com.truepineapps.photouploader.core.util.ServiceUtil(
-            "updateAlbumCover"
-        )
+        accessToken: String,
+        serviceUtil: ServiceUtil = ServiceUtil("updateAlbumCover")
     )
 }

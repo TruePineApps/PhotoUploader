@@ -5,13 +5,9 @@ import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.io.getName
 import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.io.isDirectory
-import com.truepineapps.photouploader.core.io.getDisplayName
-import com.truepineapps.photouploader.core.io.isDir
-import com.truepineapps.photouploader.core.io.list
-import com.truepineapps.photouploader.core.io.source
 import okio.Source
 
-class KmpPlatformFileSystem : com.truepineapps.photouploader.core.io.PlatformFileSystem {
+class KmpPlatformFileSystem : PlatformFileSystem {
     override fun list(file: KmpFile, context: PlatformContext): List<KmpFile> =
             file.list(context)
 

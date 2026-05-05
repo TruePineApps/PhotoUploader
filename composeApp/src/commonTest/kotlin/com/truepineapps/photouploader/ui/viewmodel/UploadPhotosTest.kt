@@ -1,12 +1,6 @@
 package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
-import co.touchlab.kermit.CommonWriter
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.loggerConfigInit
-import com.truepineapps.photouploader.app.di.viewModelModule
-import com.truepineapps.photouploader.core.io.PlatformFileSystem
-import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumResponse
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsRequest
@@ -16,27 +10,23 @@ import com.truepineapps.photouploader.feature.uploader.data.dto.GooglePhotosErro
 import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItem
 import com.truepineapps.photouploader.feature.uploader.data.dto.MediaItemResult
 import com.truepineapps.photouploader.feature.uploader.data.dto.StatusInfo
-import com.truepineapps.photouploader.feature.uploader.data.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
-import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
 import com.truepineapps.photouploader.resources.error_one_or_more_photos_failed
 import com.truepineapps.photouploader.resources.error_upload_failed_with_message
-import com.truepineapps.photouploader.ui.util.FakePlatformFileSystem
-import com.truepineapps.photouploader.ui.util.GoogleAuthServiceTestStub
 import com.truepineapps.photouploader.ui.util.createTestKmpFile
 import com.truepineapps.photouploader.ui.util.createTestPlatformContext
-import io.ktor.client.HttpClient
+import com.truepineapps.photouploader.ui.util.startTestKoin
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -44,10 +34,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -58,13 +48,10 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import kotlin.test.AfterTest
@@ -74,6 +61,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UploadPhotosTest : KoinTest {
@@ -98,78 +86,53 @@ class UploadPhotosTest : KoinTest {
         stopKoin()
     }
 
-    private fun setupKoin(mockEngine: MockEngine) {
-        startKoin {
-            modules(
-                viewModelModule(),
-                module {
-                    single<FileSystem> { fileSystem }
-                    single<PlatformFileSystem> { FakePlatformFileSystem(fileSystem) }
-                    single { PhotoDirectoryRepository(platformFileSystem = get()) }
-                    single<Json> { Json { ignoreUnknownKeys = true } }
-                    single {
-                        HttpClient(mockEngine) {
-                            install(ContentNegotiation) { json(get()) }
-                        }
-                    }
-                    single<GoogleAuthService> { GoogleAuthServiceTestStub(signInToken = "valid_token") }
-                    single {
-                        Logger(
-                            config = loggerConfigInit(CommonWriter(TimestampMessageFormatter)),
-                            tag = "Test"
-                        )
-                    }
-                }
-            )
-        }
-    }
 
     // --- Tests ---
 
     @Test
     fun `uploadPhotos does nothing when root does not exist`() = runTest {
         val mockEngine = createMockEngine(mutableListOf())
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
+        val platformContext = createTestPlatformContext()
 
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         // In test KmpFile is just holding the path string
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH)
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle() // Wait for scan
 
         // When the root path doesn't exist, the repository returns an empty album list.
         // Consequently, uploadPhotos returns null and performs no actions.
-        val job = viewModel.uploadPhotos()
+        val job = viewModel.uploadPhotos(platformContext)
         assertEquals(null, job)
     }
 
     @Test
     fun `uploadPhotos does nothing when root is not a directory`() = runTest {
         val mockEngine = createMockEngine(mutableListOf())
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
         // Manually create root as file
         ensureDirectory(rootPath.parent!!)
         fileSystem.write(rootPath) { writeUtf8("not a directory") }
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
+        val platformContext = createTestPlatformContext()
 
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH)
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle() // Wait for scan
 
         // When the root path is not a directory, the repository returns an empty album list.
         // UploadPhotos returns null.
-        val job = viewModel.uploadPhotos()
+        val job = viewModel.uploadPhotos(platformContext)
         assertEquals(null, job)
     }
 
@@ -181,7 +144,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -205,7 +168,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -227,7 +190,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -238,22 +201,35 @@ class UploadPhotosTest : KoinTest {
 
     @Test
     fun `uploadPhotos skips photo if upload fails`() = runTest {
+        testSkipPhotoOnFailure(false)
+    }
+
+    @Test
+    fun `uploadPhotos skips photo if upload fails with retry`() = runTest {
+        testSkipPhotoOnFailure(true)
+    }
+
+    private suspend fun TestScope.testSkipPhotoOnFailure(shouldRetryFailure: Boolean) {
         createTestFiles(
             "2023/Holiday/photo1.jpg", "2023/Holiday/photo2.jpg"
         )
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(
-            requestLog = requests, shouldFailUploadForFile = "photo2.jpg" // Fail upload for photo2
+            requestLog = requests,
+            shouldFailUploadForFile = "photo2.jpg", // Fail upload for photo2
+            shouldRetryFailure = shouldRetryFailure
         )
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
         // Verify requests: 1 album, 2 uploads, 1 batch (only containing 1 photo), 1 patch
-        assertEquals(5, requests.size)
+        // plus 5 retries if requested
+        val expectedRequestCount = if (shouldRetryFailure) 10 else 5
+        assertEquals(expectedRequestCount, requests.size)
 
-        // Check that batch create was called, implying at least one photo succeeded
+        // Check that batch_create was called, implying at least one photo succeeded
         assertTrue(requests.any { it.url.toString().endsWith(ENDPOINT_BATCH_CREATE) })
 
         // Verify photo1 succeeded
@@ -269,7 +245,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -286,7 +262,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -304,7 +280,7 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         uploadPhotos()
 
@@ -330,15 +306,15 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
+        val platformContext = createTestPlatformContext()
 
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH)
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle()
 
@@ -353,7 +329,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         // Verify requests:
@@ -378,15 +354,15 @@ class UploadPhotosTest : KoinTest {
 
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
+        val platformContext = createTestPlatformContext()
 
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH)
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle()
 
@@ -396,7 +372,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         requests.assertAlbumCreated("Renamed Album Title")
@@ -407,7 +383,7 @@ class UploadPhotosTest : KoinTest {
         // Delay network requests to allow the test to observe the status updates
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requestLog = requests)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         val photo1Data = createDummyPhotoData("/p1.jpg")
         val photo2Data = createDummyPhotoData("/p2.jpg")
@@ -422,7 +398,7 @@ class UploadPhotosTest : KoinTest {
         photoRepo.updateAlbums(listOf(albumData)) // Directly emit albums to the repository
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext() // Essential for KmpFile operations
+        val platformContext = createTestPlatformContext() // Essential for KmpFile operations
 
         viewModel.uiState.test {
             // 1. Await initial ViewModel state (empty albumUiStates)
@@ -454,9 +430,9 @@ class UploadPhotosTest : KoinTest {
             )
 
             // Perform upload - this launches the upload coroutine
-            val uploadJob = viewModel.uploadPhotos()
+            val uploadJob = viewModel.uploadPhotos(platformContext)
 
-            // 4. Await state after `uploadPhotosImpl` sets initial 'Waiting' status for enabled,
+            // 4. Await state after `uploadPhotos` sets initial 'Waiting' status for enabled,
             // items, immediately followed by setting the album to 'Uploading'
             var uploadState = awaitItem()
             var albumState = uploadState.albumUiStates.first()
@@ -545,19 +521,13 @@ class UploadPhotosTest : KoinTest {
         val photo2 = album.photoUiStates.first { it.name == "p2.jpg" }
 
         assertEquals(
-            expectedPhoto1Status,
-            photo1.uploadStatus,
-            "$testName - Photo 1 status mismatch"
+            expectedPhoto1Status, photo1.uploadStatus, "$testName - Photo 1 status mismatch"
         )
         assertEquals(
-            expectedPhoto2Status,
-            photo2.uploadStatus,
-            "$testName - Photo 2 status mismatch"
+            expectedPhoto2Status, photo2.uploadStatus, "$testName - Photo 2 status mismatch"
         )
         assertEquals(
-            expectedPhoto2Enabled,
-            photo2.isEnabled,
-            "$testName - Photo 2 enabled state mismatch"
+            expectedPhoto2Enabled, photo2.isEnabled, "$testName - Photo 2 enabled state mismatch"
         )
     }
 
@@ -566,7 +536,7 @@ class UploadPhotosTest : KoinTest {
         val requests = mutableListOf<HttpRequestData>()
         // Fail album creation
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAlbumCreation = true)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
         val album1 = Album(
@@ -581,26 +551,29 @@ class UploadPhotosTest : KoinTest {
         photoRepo.updateAlbums(listOf(album1))
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        val platformContext = createTestPlatformContext()
+        // Activate flow
+        backgroundScope.launch { viewModel.uiState.collect() }
+        // Explicitly await the state synchronization
+        viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val photo = album.photoUiStates.first()
 
         val albumStatus = album.uploadStatus
-        assertTrue(albumStatus is UploadStatus.Error, "Album status")
+        assertTrue(
+            albumStatus is UploadStatus.Error,
+            "Album status: expected = Error, actual is $albumStatus"
+        )
         assertEquals(
             UploadStatus.Error(
                 UiTextResource(
-                    Res.string.error_album_creation_failed_with_message,
-                    "400 Bad Request"
+                    Res.string.error_album_creation_failed_with_message, "400 Bad Request"
                 )
-            ).message.toString(),
-            albumStatus.message.toString()
+            ).message.toString(), albumStatus.message.toString()
         )
         assertEquals(UploadStatus.Waiting, photo.uploadStatus)
     }
@@ -610,8 +583,8 @@ class UploadPhotosTest : KoinTest {
         val failUploadForFile = "photo1.jpg"
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine =
-                createMockEngine(requestLog = requests, shouldFailUploadForFile = failUploadForFile)
-        setupKoin(mockEngine)
+            createMockEngine(requestLog = requests, shouldFailUploadForFile = failUploadForFile)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), failUploadForFile)
         val album1 = Album(
@@ -626,21 +599,23 @@ class UploadPhotosTest : KoinTest {
         photoRepo.updateAlbums(listOf(album1))
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        val platformContext = createTestPlatformContext()
+        // Activate flow
+        backgroundScope.launch { viewModel.uiState.collect() }
+        // Explicitly await the state synchronization
+        viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val photo = album.photoUiStates.first()
         val photoStatus = photo.uploadStatus
-        assertTrue(photoStatus is UploadStatus.Error, "Photo status")
+        assertTrue(photoStatus is UploadStatus.Error, "Photo status: expected Error, actual is $photoStatus")
         val expectedPhotoErrorStatus = UploadStatus.Error(
             UiTextResource(
                 Res.string.error_upload_failed_with_message,
-                "Simulated upload failure for $failUploadForFile (500 Internal Server Error)"
+                "Simulated upload failure for $failUploadForFile (406 Not Acceptable)"
             )
         )
         assertEquals(
@@ -651,8 +626,7 @@ class UploadPhotosTest : KoinTest {
 
         val albumStatus = album.uploadStatus
         assertTrue(
-            albumStatus is UploadStatus.Error,
-            "Album status: Expected Error, was $albumStatus"
+            albumStatus is UploadStatus.Error, "Album status: Expected Error, is $albumStatus"
         )
         val expectedAlbumErrorStatus = UploadStatus.Error(
             UiTextResource(
@@ -671,7 +645,7 @@ class UploadPhotosTest : KoinTest {
     fun `album status is error when adding photos to album fails`() = runTest {
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine = createMockEngine(requestLog = requests, shouldFailAddToAlbum = true)
-        setupKoin(mockEngine)
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
         val album1 = Album(
@@ -686,29 +660,32 @@ class UploadPhotosTest : KoinTest {
         photoRepo.updateAlbums(listOf(album1))
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        val platformContext = createTestPlatformContext()
+        // Activate flow
+        backgroundScope.launch { viewModel.uiState.collect() }
+        // Explicitly await the state synchronization
+        viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val albumStatus = album.uploadStatus
-        assertTrue(albumStatus is UploadStatus.Error, "Album status")
+        assertTrue(
+            albumStatus is UploadStatus.Error,
+            "Album status: expected = Error, actual is $albumStatus"
+        )
         assertEquals(
             UploadStatus.Error(
                 UiTextResource(
-                    Res.string.error_one_or_more_photos_failed,
-                    listOf(
+                    Res.string.error_one_or_more_photos_failed, listOf(
                         UiTextResource(
                             Res.string.error_add_media_items_failed_with_message,
                             "500 Internal Server Error"
                         )
                     )
                 )
-            ).message.toString(),
-            albumStatus.message.toString()
+            ).message.toString(), albumStatus.message.toString()
         )
     }
 
@@ -716,8 +693,8 @@ class UploadPhotosTest : KoinTest {
     fun `photo and album status is error on partial add to album failure`() = runTest {
         val requests = mutableListOf<HttpRequestData>()
         val mockEngine =
-                createMockEngine(requestLog = requests, failAddToAlbumForFileName = "photo2.jpg")
-        setupKoin(mockEngine)
+            createMockEngine(requestLog = requests, failAddToAlbumForFileName = "photo2.jpg")
+        startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
         val photo1 = Photo(createTestKmpFile("/p1"), "/p1".toPath(), "photo1.jpg")
         val photo2 = Photo(createTestKmpFile("/p2"), "/p2".toPath(), "photo2.jpg")
@@ -733,11 +710,13 @@ class UploadPhotosTest : KoinTest {
         photoRepo.updateAlbums(listOf(album1))
 
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
-        backgroundScope.launch(testDispatcher) { viewModel.uiState.collect() }
-        testDispatcher.scheduler.advanceUntilIdle()
+        val platformContext = createTestPlatformContext()
+        // Activate flow
+        backgroundScope.launch { viewModel.uiState.collect() }
+        // Explicitly await the state synchronization
+        viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
 
         val album = viewModel.uiState.value.albumUiStates.first()
@@ -751,8 +730,7 @@ class UploadPhotosTest : KoinTest {
         )
         val expectedPhotoErrorMessage = UploadStatus.Error(
             UiTextResource(
-                Res.string.error_add_to_album_failed,
-                "3: Failed to add to album"
+                Res.string.error_add_to_album_failed, "3: Failed to add to album"
             )
         ).message.toString()
         assertEquals(
@@ -772,13 +750,14 @@ class UploadPhotosTest : KoinTest {
     // --- Helpers ---
 
     private fun UiState.getAlbumContaining(namePart: String) =
-            this.albumUiStates.find { it.name.contains(namePart) }!!
+        this.albumUiStates.find { it.name.contains(namePart) }!!
 
     private fun createMockEngine(
         requestLog: MutableList<HttpRequestData>,
         shouldFailAlbumCreation: Boolean = false,
         shouldFailUploadForFile: String? = null,
         shouldFailAddToAlbum: Boolean = false,
+        shouldRetryFailure: Boolean = false,
         failAddToAlbumForFileName: String? = null,
     ): MockEngine = MockEngine { request ->
         requestLog.add(request)
@@ -804,19 +783,20 @@ class UploadPhotosTest : KoinTest {
             url.endsWith(ENDPOINT_UPLOADS) -> {
                 val fileName = request.headers["X-Goog-Upload-File-Name"]
                 if (shouldFailUploadForFile != null && fileName == shouldFailUploadForFile) {
+                    val errorCode =
+                        if (shouldRetryFailure) HttpStatusCode.InternalServerError else HttpStatusCode.NotAcceptable
                     val errorResponse = GooglePhotosErrorResponse(
                         error = GooglePhotosErrorContent(
-                            code = HttpStatusCode.InternalServerError.value,
+                            code = errorCode.value,
                             message = "Simulated upload failure for $shouldFailUploadForFile",
-                            status = HttpStatusCode.InternalServerError.description
+                            status = errorCode.description
                         )
                     )
                     respond(
                         content = json.encodeToString(errorResponse),
-                        status = HttpStatusCode.InternalServerError,
+                        status = errorCode,
                         headers = headersOf(
-                            HttpHeaders.ContentType,
-                            ContentType.Application.Json.toString()
+                            HttpHeaders.ContentType, ContentType.Application.Json.toString()
                         )
                     )
                 } else {
@@ -832,16 +812,14 @@ class UploadPhotosTest : KoinTest {
                 } else {
                     val body = request.body as TextContent
                     val batchRequest =
-                            json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
+                        json.decodeFromString<BatchCreateMediaItemsRequest>(body.text)
                     val results = batchRequest.newMediaItems.mapIndexed { _, item ->
                         val status =
-                                if (failAddToAlbumForFileName != null
-                                    && item.simpleMediaItem.fileName == failAddToAlbumForFileName
-                                ) {
-                                    StatusInfo(code = 3, message = "Failed to add to album")
-                                } else {
-                                    StatusInfo(0, "OK")
-                                }
+                            if (failAddToAlbumForFileName != null && item.simpleMediaItem.fileName == failAddToAlbumForFileName) {
+                                StatusInfo(code = 3, message = "Failed to add to album")
+                            } else {
+                                StatusInfo(0, "OK")
+                            }
 
                         MediaItemResult(
                             uploadToken = item.simpleMediaItem.uploadToken,
@@ -923,16 +901,16 @@ class UploadPhotosTest : KoinTest {
      */
     private suspend fun TestScope.uploadPhotos() {
         val viewModel: PhotoUploaderViewModel by inject()
-        viewModel.platformContext = createTestPlatformContext()
+        val platformContext = createTestPlatformContext()
 
         backgroundScope.launch { viewModel.loadingState.collect() }
         backgroundScope.launch { viewModel.uiState.collect() }
 
         viewModel.updatePath(
-            kmpFile = createTestKmpFile(ROOT_PATH)
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle() // Wait for scan
-        viewModel.uploadPhotos()?.join()
+        viewModel.uploadPhotos(platformContext)?.join()
         advanceUntilIdle()
     }
 
@@ -970,8 +948,9 @@ class UploadPhotosTest : KoinTest {
 
     private fun List<HttpRequestData>.assertAlbumNotCreated(titlePart: String) {
         assertTrue(this.none {
-            it.url.toString()
-                .endsWith(ENDPOINT_ALBUMS) && getAlbumTitleFromRequest(it)?.contains(titlePart) == true
+            it.url.toString().endsWith(ENDPOINT_ALBUMS) && getAlbumTitleFromRequest(it)?.contains(
+                titlePart
+            ) == true
         }, "Album with title containing '$titlePart' should not have been created")
     }
 

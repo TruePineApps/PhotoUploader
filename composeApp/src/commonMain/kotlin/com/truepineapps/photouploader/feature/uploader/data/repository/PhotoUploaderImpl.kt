@@ -7,12 +7,6 @@ import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import com.truepineapps.photouploader.core.util.FileUtils
 import com.truepineapps.photouploader.core.util.ServiceUtil
 import com.truepineapps.photouploader.core.util.UiTextResource
-import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
-import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
-import com.truepineapps.photouploader.resources.error_network_auth_required
-import com.truepineapps.photouploader.resources.error_sign_in_failed
-import com.truepineapps.photouploader.resources.error_upload_failed_with_message
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumData
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumResponse
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsRequest
@@ -24,6 +18,12 @@ import com.truepineapps.photouploader.feature.uploader.data.dto.NewMediaItem
 import com.truepineapps.photouploader.feature.uploader.data.dto.UpdateAlbumCoverRequest
 import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoUploader
 import com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_add_media_items_failed_with_message
+import com.truepineapps.photouploader.resources.error_album_creation_failed_with_message
+import com.truepineapps.photouploader.resources.error_network_auth_required
+import com.truepineapps.photouploader.resources.error_sign_in_failed
+import com.truepineapps.photouploader.resources.error_upload_failed_with_message
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -44,8 +44,6 @@ import io.ktor.utils.io.writeFully
 import kotlinx.serialization.json.Json
 import okio.Buffer
 import okio.use
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 // Google Photos API allows up to 50 items per batch
 private const val GOOGLE_PHOTO_BATCH_SIZE = 50
@@ -53,13 +51,11 @@ private const val GOOGLE_PHOTO_BATCH_SIZE = 50
 private const val BUFFER_SIZE = 8192L
 
 class PhotoUploaderImpl(
-    val accessToken: String,
-    val context: PlatformContext,
-) : KoinComponent, PhotoUploader {
-    private val platformFileSystem: PlatformFileSystem by inject()
-    private val client: HttpClient by inject()
-    private val json: Json by inject()
-    private val log: Logger by inject()
+    private val platformFileSystem: PlatformFileSystem,
+    private val client: HttpClient,
+    private val json: Json,
+    private val log: Logger,
+) : PhotoUploader {
 
     /**
      * Verifies if an album with the given ID exists on Google Photos.
@@ -68,6 +64,7 @@ class PhotoUploaderImpl(
      */
     override suspend fun verifyAlbumExists(
         albumId: String,
+        accessToken: String,
         serviceUtil: ServiceUtil
     ): Boolean {
         val response: HttpResponse =
@@ -85,7 +82,7 @@ class PhotoUploaderImpl(
                     serviceUtil = serviceUtil,
                     isAlbumCreation = true
                 ) {
-                    result = verifyAlbumExists(albumId, serviceUtil)
+                    result = verifyAlbumExists(albumId, accessToken, serviceUtil)
                 }
                 result
             }
@@ -100,6 +97,7 @@ class PhotoUploaderImpl(
      */
     override suspend fun createAlbum(
         albumTitle: String,
+        accessToken: String,
         serviceUtil: ServiceUtil
     ): String {
         val response: HttpResponse = client.post("https://photoslibrary.googleapis.com/v1/albums") {
@@ -120,7 +118,7 @@ class PhotoUploaderImpl(
         } else {
             var result = ""
             handleError(response = response, serviceUtil = serviceUtil, isAlbumCreation = true) {
-                result = createAlbum(albumTitle, serviceUtil)
+                result = createAlbum(albumTitle, accessToken, serviceUtil)
             }
             result
         }
@@ -135,6 +133,8 @@ class PhotoUploaderImpl(
     override suspend fun uploadPhoto(
         photoName: String,
         kmpFile: KmpFile,
+        accessToken: String,
+        platformContext: PlatformContext,
         serviceUtil: ServiceUtil
     ): String {
         // Upload the bytes to Google Photos
@@ -147,7 +147,7 @@ class PhotoUploaderImpl(
                     append("X-Goog-Upload-File-Name", photoName)
                 }
                 contentType(ContentType.Application.OctetStream)
-                setBody(photoChannelContent(kmpFile))
+                setBody(photoChannelContent(kmpFile, platformContext))
             }
 
         return if (response.status.isSuccess()) {
@@ -155,7 +155,7 @@ class PhotoUploaderImpl(
         } else {
             var result = ""
             handleError(response, serviceUtil) {
-                result = uploadPhoto(photoName, kmpFile, serviceUtil)
+                result = uploadPhoto(photoName, kmpFile, accessToken, platformContext, serviceUtil)
             }
             result
         }
@@ -167,13 +167,13 @@ class PhotoUploaderImpl(
     override suspend fun addPhotosToAlbum(
         albumId: String,
         newMediaItems: List<NewMediaItem>,
+        accessToken: String,
     ): List<MediaItemResult> {
-        val batchSize =
-            GOOGLE_PHOTO_BATCH_SIZE
+        val batchSize = GOOGLE_PHOTO_BATCH_SIZE
         val allResults = mutableListOf<MediaItemResult>()
 
         newMediaItems.chunked(batchSize).forEachIndexed { batchIndex, batch ->
-            addOneBatchOfPhotosToAlbum(albumId, batchIndex, batch, allResults)
+            addOneBatchOfPhotosToAlbum(albumId, batchIndex, batch, allResults, accessToken)
         }
         return allResults
     }
@@ -183,6 +183,7 @@ class PhotoUploaderImpl(
         batchIndex: Int,
         batch: List<NewMediaItem>,
         allResults: MutableList<MediaItemResult>,
+        accessToken: String,
         serviceUtil: ServiceUtil = ServiceUtil(
             "addOneBatchOfPhotosToAlbum (batch=$batchIndex)"
         )
@@ -213,13 +214,21 @@ class PhotoUploaderImpl(
             }
         } else {
             handleError(response = response, serviceUtil = serviceUtil, isBatchAdd = true) {
-                addOneBatchOfPhotosToAlbum(albumId, batchIndex, batch, allResults, serviceUtil)
+                addOneBatchOfPhotosToAlbum(
+                    albumId,
+                    batchIndex,
+                    batch,
+                    allResults,
+                    accessToken,
+                    serviceUtil
+                )
             }
         }
     }
 
     override suspend fun updateAlbumCover(
         albumId: String, coverMediaItemId: String,
+        accessToken: String,
         serviceUtil: ServiceUtil
     ) {
         val response: HttpResponse =
@@ -235,16 +244,16 @@ class PhotoUploaderImpl(
 
         if (!response.status.isSuccess()) {
             handleError(response = response, serviceUtil = serviceUtil) {
-                updateAlbumCover(albumId, coverMediaItemId, serviceUtil)
+                updateAlbumCover(albumId, coverMediaItemId, accessToken, serviceUtil)
             }
         }
     }
 
-    private fun photoChannelContent(kmpFile: KmpFile): OutgoingContent.WriteChannelContent =
+    private fun photoChannelContent(kmpFile: KmpFile, platformContext: PlatformContext): OutgoingContent.WriteChannelContent =
         object : OutgoingContent.WriteChannelContent() {
             override val contentType = ContentType.Application.OctetStream
             override suspend fun writeTo(channel: ByteWriteChannel) {
-                platformFileSystem.source(kmpFile, context).use { source ->
+                platformFileSystem.source(kmpFile, platformContext).use { source ->
                     val buffer = Buffer()
                     while (true) {
                         val bytesRead = source.read(buffer,

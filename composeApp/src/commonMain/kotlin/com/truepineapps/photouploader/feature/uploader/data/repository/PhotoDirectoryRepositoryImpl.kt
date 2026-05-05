@@ -3,45 +3,43 @@ package com.truepineapps.photouploader.feature.uploader.data.repository
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
-import com.truepineapps.photouploader.core.domain.repository.DataLoadingRepository
 import com.truepineapps.photouploader.core.domain.state.DataLoadingState
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import com.truepineapps.photouploader.core.util.FileUtils
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
+import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import okio.Path.Companion.toPath
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class PhotoDirectoryRepository(
-    private val platformFileSystem: PlatformFileSystem
-) : DataLoadingRepository, KoinComponent {
+class PhotoDirectoryRepositoryImpl(
+    private val platformFileSystem: PlatformFileSystem,
+    private val log: Logger
+) : PhotoDirectoryRepository {
 
     private val _albums = MutableStateFlow<List<Album>>(emptyList())
-    val albums: StateFlow<List<Album>> = _albums.asStateFlow()
-    private val log: Logger by inject()
+    override val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    var context: PlatformContext? = null
+    var platformContext: PlatformContext? = null
     private var currentKmpFile: KmpFile? = null
 
     // Flag to control when a disk scan is actually necessary
     private var needsRefresh = true
 
-    fun setPath(kmpFile: KmpFile, platformContext: PlatformContext) {
+    override fun setPath(kmpFile: KmpFile, platformContext: PlatformContext) {
         currentKmpFile = kmpFile
-        context = platformContext
+        this.platformContext = platformContext
         // A new path means we definitely need to scan
         needsRefresh = true
     }
 
     // Allow updating albums from outside (e.g. toggling check boxes in ViewModel)
-    fun updateAlbums(newAlbums: List<Album>) {
-        log.d("Updating albums, new list size is ${newAlbums.size}")
+    override fun updateAlbums(newAlbums: List<Album>) {
+        log.d("Repository updating albums, new list size is ${newAlbums.size}")
         _albums.value = newAlbums
         needsRefresh = false
     }
@@ -83,7 +81,7 @@ class PhotoDirectoryRepository(
         requireNotNull(rootDir)
 
         // Get a safe non-mutable context variable
-        val currentContext = context ?: throw IllegalStateException("currentContext is null")
+        val currentContext = platformContext ?: throw IllegalStateException("current platformContext is null")
         log.d { "Scanning directory: ${platformFileSystem.getDisplayName(rootDir, currentContext)}" }
 
         // The root itself might contain photos
