@@ -348,6 +348,8 @@ class PhotoUploaderViewModel(
                     }
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
+                    disableSuccessfulUploads()
+
                     _viewState.update { it.copy(status = AppStatus.IDLE) }
                     // Ensure processJob is cleared if this specific job finishes
                     if (processJob == coroutineContext[Job]) {
@@ -376,6 +378,24 @@ class PhotoUploaderViewModel(
                     }
                     currentAlbumState.copy(
                         uploadStatus = UploadStatus.None,
+                        photoUiStates = updatedPhotos
+                    )
+                } else {
+                    currentAlbumState
+                }
+            }
+        }
+    }
+
+    private fun disableSuccessfulUploads() {
+        _albumUiStates.update { currentAlbumStates ->
+            currentAlbumStates.map { currentAlbumState ->
+                if (currentAlbumState.isEnabled && currentAlbumState.uploadStatus == UploadStatus.Success) {
+                    val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
+                        if (p.isEnabled && p.uploadStatus == UploadStatus.Success) p.copy(isEnabled = false) else p
+                    }
+                    currentAlbumState.copy(
+                        isEnabled = false,
                         photoUiStates = updatedPhotos
                     )
                 } else {
@@ -703,11 +723,7 @@ class PhotoUploaderViewModel(
 
     private fun updateAlbumStatus(albumId: String, status: UploadStatus) {
         updateAlbum(albumId) {
-            it.copy(
-                uploadStatus = status,
-                // Disable the album on success to prevent accidental second upload
-                isEnabled = it.isEnabled && status != UploadStatus.Success
-            )
+            it.copy(uploadStatus = status)
         }
     }
 

@@ -146,7 +146,16 @@ class UploadPhotosTest : KoinTest {
         val mockEngine = createMockEngine(requests)
         startTestKoin(mockEngine = mockEngine, fileSystem = fileSystem)
 
-        uploadPhotos()
+        val viewModel: PhotoUploaderViewModel by inject()
+        val platformContext = createTestPlatformContext()
+        backgroundScope.launch { viewModel.loadingState.collect() }
+        backgroundScope.launch { viewModel.uiState.collect() }
+        viewModel.updatePath(
+            kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
+        )
+        advanceUntilIdle() // Wait for scan
+        viewModel.uploadPhotos(platformContext)?.join()
+        advanceUntilIdle()
 
         // Verify requests
         // 1 create album, 2 uploads, 1 batch create, 1 patch for cover
@@ -155,6 +164,26 @@ class UploadPhotosTest : KoinTest {
         requests.assertPhotoUploaded("photo1.jpg")
         requests.assertPhotoUploaded("photo2.png")
         requests.assertAlbumCoverPatched()
+
+        // Make sure the state is success and the items are disabled to prevent accidental redo
+        val uiState = viewModel.uiState.value
+        assertFalse(uiState.albumUiStates.isEmpty(), "Album state exists")
+        val album = uiState.albumUiStates.first()
+        assertEquals(UploadStatus.Success, album.uploadStatus, "Album status mismatch")
+        assertFalse(album.isEnabled, "Album enabled state mismatch")
+
+        assertEquals(2, album.photoUiStates.size, "Expected 2 photo UI states")
+        val photo1 = album.photoUiStates.first { it.name == "photo1.jpg" }
+        val photo2 = album.photoUiStates.first { it.name == "photo2.png" }
+
+        assertEquals(
+            UploadStatus.Success, photo1.uploadStatus, "Photo 1 status mismatch"
+        )
+        assertEquals(
+            UploadStatus.Success, photo2.uploadStatus, "Photo 2 status mismatch"
+        )
+        assertFalse(photo1.isEnabled, "Photo 1 enabled state mismatch")
+        assertFalse(photo2.isEnabled, "Photo 2 enabled state mismatch")
     }
 
     @Test
