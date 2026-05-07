@@ -36,4 +36,8 @@ class GoogleAuthServiceTestStub(
             )
         }
     }
+
+    override fun shutdown() {
+        // No-op for stub
+    }
 }

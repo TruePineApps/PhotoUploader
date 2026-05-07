@@ -187,6 +187,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
         if (userCredential != null) {
             flow.credentialDataStore.delete(USER)
         }
+        shutdown()
     }
 
     /**
@@ -223,6 +224,14 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
             log.d { "restoreSignIn: Delete token because expired" }
             flow.credentialDataStore.delete(USER)
             null
+        }
+    }
+
+    override fun shutdown() {
+        try {
+            httpTransport.shutdown()
+        } catch (e: Exception) {
+            log.e(e) { "AuthService: Error shutting down httpTransport" }
         }
     }
 

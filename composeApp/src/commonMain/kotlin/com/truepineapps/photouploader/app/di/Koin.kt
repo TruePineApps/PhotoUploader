@@ -14,8 +14,11 @@ import com.truepineapps.photouploader.core.presentation.component.platformpicker
 import com.truepineapps.photouploader.core.feature.settings.viewmodel.LocaleViewModel
 import com.truepineapps.photouploader.core.feature.about.viewmodel.LicenseViewModel
 import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
@@ -65,6 +68,18 @@ fun initKoin(
             coreModule(isPickerDefined)
         )
     }
+}
+
+/**
+ * Call stopKoin after cleaning up the viewModel
+ */
+fun exitKoin(koin: Koin) {
+    // ViewModels are complex, because they are also owned by the ViewModelStore. At the close of
+    // the app, the onClose might not be called, therefore do it explicitly here.
+    val photoUploaderViewModel = koin.getOrNull<PhotoUploaderViewModel>()
+    photoUploaderViewModel?.shutdown()
+
+    stopKoin()
 }
 
 /**

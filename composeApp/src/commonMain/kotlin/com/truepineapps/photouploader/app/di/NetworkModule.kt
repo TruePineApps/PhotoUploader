@@ -12,6 +12,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -55,5 +56,5 @@ val networkModule = module {
                 sanitizeHeader { header -> header == HttpHeaders.Authorization }
             }
         }
-    }
+    } onClose { it?.close() }
 }

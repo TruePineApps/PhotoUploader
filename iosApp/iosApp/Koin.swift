@@ -2,12 +2,10 @@ import Foundation
 import ComposeApp
 
 func startKoin() {
-    let koinApplication = KoinIOSKt.doInitKoinIos()
-    _koin = koinApplication.koin
+    _ = KoinIOSKt.doInitKoinIos()
 }
 
-private var _koin: Koin_coreKoin?
-var koin: Koin_coreKoin {
-    return _koin!
+func stopKoin() {
+    KoinIOSKt.doStopKoinIos()
 }
 

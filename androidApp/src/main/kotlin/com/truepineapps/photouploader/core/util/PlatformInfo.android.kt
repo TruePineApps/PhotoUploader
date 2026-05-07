@@ -1,8 +1,7 @@
-package com.truepineapps.photouploader
+package com.truepineapps.photouploader.core.util
 
 import android.os.Build
-import com.truepineapps.photouploader.core.util.PlatformInfo
-import com.truepineapps.photouploader.core.util.PlatformType
+import com.truepineapps.photouploader.BuildConfig
 
 /**
  * Android-specific implementation of PlatformInfo.

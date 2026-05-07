@@ -5,4 +5,8 @@ class KoinStarter: ObservableObject {
     init() {
         startKoin()
     }
+
+    deinit {
+        stopKoin()
+    }
 }

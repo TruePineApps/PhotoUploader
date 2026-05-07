@@ -33,7 +33,12 @@ import com.truepineapps.photouploader.resources.photo_folders
 import com.truepineapps.photouploader.resources.session_expired
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +48,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okio.Path
 
 class PhotoUploaderViewModel(
@@ -53,6 +59,7 @@ class PhotoUploaderViewModel(
 ) : LoadingViewModel(repository) {
 
     private var processJob: Job? = null
+    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _viewState = MutableStateFlow(ViewState())
     private val _albumUiStates = MutableStateFlow(emptyList<AlbumUiState>())
@@ -366,37 +373,65 @@ class PhotoUploaderViewModel(
     }
 
     private fun resetNonFinalUploadStatuses() {
-        _albumUiStates.update { currentAlbumStates ->
-            currentAlbumStates.map { currentAlbumState ->
-                if (currentAlbumState.isEnabled && !currentAlbumState.uploadStatus.isFinal) {
-                    val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
-                        if (p.isEnabled && !p.uploadStatus.isFinal) p.copy(uploadStatus = UploadStatus.None) else p
+        try {
+            _albumUiStates.update { currentAlbumStates ->
+                currentAlbumStates.map { currentAlbumState ->
+                    if (currentAlbumState.isEnabled && !currentAlbumState.uploadStatus.isFinal) {
+                        val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
+                            if (p.isEnabled && !p.uploadStatus.isFinal) p.copy(uploadStatus = UploadStatus.None) else p
+                        }
+                        currentAlbumState.copy(
+                            uploadStatus = UploadStatus.None,
+                            photoUiStates = updatedPhotos
+                        )
+                    } else {
+                        currentAlbumState
                     }
-                    currentAlbumState.copy(
-                        uploadStatus = UploadStatus.None,
-                        photoUiStates = updatedPhotos
-                    )
-                } else {
-                    currentAlbumState
                 }
+            }
+        } catch (e: Exception) {
+            log.e(e) { "resetNonFinalUploadStatuses failed: ${e.message}" }
+            // Do not override an earlier message with this one
+            if (_viewState.value.globalErrorMessage == null) {
+                val uiText = if (e.message == null) {
+                    UiTextResource(Res.string.error_unknown)
+                } else {
+                    UiTextString(e.message!!)
+                }
+                _viewState.update { it.copy(globalErrorMessage = uiText) }
             }
         }
     }
 
     private fun disableSuccessfulUploads() {
-        _albumUiStates.update { currentAlbumStates ->
-            currentAlbumStates.map { currentAlbumState ->
-                if (currentAlbumState.isEnabled && currentAlbumState.uploadStatus == UploadStatus.Success) {
-                    val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
-                        if (p.isEnabled && p.uploadStatus == UploadStatus.Success) p.copy(isEnabled = false) else p
+        try {
+            _albumUiStates.update { currentAlbumStates ->
+                currentAlbumStates.map { currentAlbumState ->
+                    if (currentAlbumState.isEnabled && currentAlbumState.uploadStatus == UploadStatus.Success) {
+                        val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
+                            if (p.isEnabled && p.uploadStatus == UploadStatus.Success) p.copy(
+                                isEnabled = false
+                            ) else p
+                        }
+                        currentAlbumState.copy(
+                            isEnabled = false,
+                            photoUiStates = updatedPhotos
+                        )
+                    } else {
+                        currentAlbumState
                     }
-                    currentAlbumState.copy(
-                        isEnabled = false,
-                        photoUiStates = updatedPhotos
-                    )
-                } else {
-                    currentAlbumState
                 }
+            }
+        } catch (e: Exception) {
+            log.e(e) { "disableSuccessfulUploads failed: ${e.message}" }
+            // Do not override an earlier message with this one
+            if (_viewState.value.globalErrorMessage == null) {
+                val uiText = if (e.message == null) {
+                    UiTextResource(Res.string.error_unknown)
+                } else {
+                    UiTextString(e.message!!)
+                }
+                _viewState.update { it.copy(globalErrorMessage = uiText) }
             }
         }
     }
@@ -482,15 +517,16 @@ class PhotoUploaderViewModel(
             // Create media items for the uploaded bytes to make them appear on Google Photos.
             // Use an independent thread since a child thread already has status Cancelling which
             // will immediately cancel any network requests.
-            viewModelScope.launch {
-                createMediaItemsForUpload(
-                    albumId = albumUiState.id,
-                    googleAlbumId = googleAlbumId,
-                    uploadedItems = e.successfullyUploaded,
-                    isCancelled = true,
-                    accessToken = accessToken
-                )
-
+            cleanupScope.launch {
+                withContext(NonCancellable) {
+                    createMediaItemsForUpload(
+                        albumId = albumUiState.id,
+                        googleAlbumId = googleAlbumId,
+                        uploadedItems = e.successfullyUploaded,
+                        isCancelled = true,
+                        accessToken = accessToken
+                    )
+                }
             }
             // Re-throw the exception to ensure the main loop in `uploadPhotosImpl` stops and
             // doesn't proceed to the next album.
@@ -712,7 +748,7 @@ class PhotoUploaderViewModel(
             try {
                 photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId, accessToken)
             } catch (e: UploadException) {
-                log.e(e) { "setAlbumCover:     Failed to update cover photo" }
+                log.e(e) { "setAlbumCover:     Failed to update cover photo for ${albumUiState.coverPhotoUiState.name}" }
             }
         }
     }
@@ -765,6 +801,12 @@ class PhotoUploaderViewModel(
             else
                 updatedAlbum
         }
+    }
+
+    // Cleanup when Koin notifies the end of the life cycle
+    fun shutdown() {
+        processJob?.cancel()
+        cleanupScope.cancel()
     }
 
 }

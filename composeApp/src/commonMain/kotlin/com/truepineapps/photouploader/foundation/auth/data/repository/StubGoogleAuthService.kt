@@ -22,4 +22,8 @@ class StubGoogleAuthService : GoogleAuthService {
     override suspend fun restoreSignIn(): UserProfile? {
         return null
     }
+
+    override fun shutdown() {
+        // No-op for stub
+    }
 }

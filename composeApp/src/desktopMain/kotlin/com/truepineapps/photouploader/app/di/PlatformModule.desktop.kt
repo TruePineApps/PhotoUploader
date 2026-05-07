@@ -12,6 +12,7 @@ import com.truepineapps.photouploader.foundation.auth.data.repository.DesktopGoo
 import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 
 actual fun platformModule(): Module = module {
@@ -21,7 +22,7 @@ actual fun platformModule(): Module = module {
             tag = "PhotoUploader"
         )
     }
-    single<GoogleAuthService> { DesktopGoogleAuthService(get()) }
+    single<GoogleAuthService> { DesktopGoogleAuthService(get()) } onClose { it?.shutdown() }
     single<AppInfo> { JvmAppInfo }
     single<PlatformInfo> { JvmPlatformInfo }
 }
