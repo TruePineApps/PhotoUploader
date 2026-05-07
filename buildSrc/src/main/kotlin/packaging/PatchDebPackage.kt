@@ -10,8 +10,10 @@ import java.io.File
  * 1. Replacing the auto-generated .desktop file with a custom one that
  *    includes StartupWMClass (required for correct taskbar icon behavior).
  *    See: https://youtrack.jetbrains.com/issue/CMP-9837
- * 2. Replacing the auto-generated copyright file with a Debian-compliant one.
- * 3. Adding LICENSE, NOTICE, OFL.txt and NOTICES to
+ * 2. Fixing the Maintainer field in the control file (removing <Unknown>).
+ * 3. Replacing the auto-generated copyright file with a Debian-compliant one
+ *    in the standard location (/usr/share/doc/...).
+ * 4. Adding LICENSE, NOTICE, OFL.txt and NOTICES to
  *    /opt/photo-uploader/share/doc/.
  */
 abstract class PatchDebPackage : PackageTask() {
@@ -44,6 +46,7 @@ abstract class PatchDebPackage : PackageTask() {
             }
 
             replaceDesktopFile(extractDir)
+            fixControlFile(extractDir)
             replaceCopyrightFile(extractDir)
             copyLicenseFiles(File(extractDir, "/opt/photo-uploader/share/doc"))
 
@@ -53,6 +56,25 @@ abstract class PatchDebPackage : PackageTask() {
             }
 
             logger.lifecycle("Successfully patched .deb: ${deb.name}")
+        }
+    }
+
+    /**
+     * Fix the Maintainer field in the control file.
+     * jpackage often fails to correctly include the email, resulting in "<Unknown>".
+     */
+    private fun fixControlFile(extractDir: File) {
+        val controlFile = File(extractDir, "DEBIAN/control")
+        if (!controlFile.exists()) {
+            logger.warn("Control file not found at: ${controlFile.absolutePath}")
+            return
+        }
+
+        val content = controlFile.readText()
+        if (content.contains("<Unknown>")) {
+            val fixedContent = content.replace("<Unknown>", "<photouploader@truepineapps.com>")
+            controlFile.writeText(fixedContent)
+            logger.lifecycle("Fixed Maintainer in control file")
         }
     }
 
@@ -89,8 +111,10 @@ abstract class PatchDebPackage : PackageTask() {
 
     private fun replaceCopyrightFile(extractDir: File) {
         val copyrightSource = copyrightSourceFile.asFile.get()
-        val copyrightTarget = File(extractDir, "/opt/photo-uploader/share/doc/copyright")
+        // Debian standard location for copyright files
+        val copyrightTarget = File(extractDir, "/usr/share/doc/photo-uploader/copyright")
+        copyrightTarget.parentFile.mkdirs()
         copyrightSource.copyTo(copyrightTarget, overwrite = true)
-        logger.lifecycle("Replaced copyright file")
+        logger.lifecycle("Replaced copyright file at standard location")
     }
 }
