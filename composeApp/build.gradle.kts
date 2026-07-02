@@ -72,7 +72,6 @@ kotlin {
     }
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -238,7 +237,6 @@ dependencies {
     add("kspDesktop", libs.koin.ksp.compiler)
 
     // For Apple targets (iOS, macOS, etc.), KSP configurations can be per-target
-    add("kspIosX64", libs.koin.ksp.compiler)
     add("kspIosArm64", libs.koin.ksp.compiler)
     add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
 }
@@ -255,7 +253,6 @@ dependencies {
 //         "kspKotlinMacos",
 //         "kspKotlinMacosArm",
 //         "kspKotlinLinux",
-//         "kspKotlinIosX64",
 //         "kspKotlinIosArm64",
 //         "kspKotlinIosSimulatorArm64",
 //     )
