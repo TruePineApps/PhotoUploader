@@ -19,7 +19,9 @@ val appId: String = libs.versions.appId.get()
 val versionCode: Int = libs.versions.appVersionCode.get().toInt()
 val versionName: String = libs.versions.appVersionName.get()
 
-val generateBuildProperties by tasks.registering {
+val generateBuildProperties = tasks.register("generateBuildProperties") {
+    description = "gemerate the file build-info.properties with build properties to be used by the app"
+
     val outputDir = layout.buildDirectory.dir("generated/resources/custom")
     val propsFile = outputDir.map { it.file("build-info.properties") }
 
@@ -167,7 +169,7 @@ kotlin {
             implementation(libs.mockito.junit.jupiter)
         }
 
-        val androidMain by getting {
+        named("androidMain") {
             dependencies {
                 // Android preferences
                 implementation(libs.androidx.preference.ktx)
@@ -176,7 +178,7 @@ kotlin {
             }
         }
 
-        val iosMain by getting {
+        named("iosMain") {
             dependencies {
                 // Networking & Serialization
                 implementation(libs.ktor.client.darwin)
@@ -186,14 +188,14 @@ kotlin {
                 implementation(libs.touchlab.skie.annotations)
             }
         }
-        val iosTest by getting {
+        named("iosTest") {
             dependencies {
                 // Conversion of enum, sealed classes and coroutines to native iOS
                 implementation(libs.touchlab.skie.annotations)
             }
         }
 
-        val desktopMain by getting {
+         named("desktopMain") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
 
@@ -207,7 +209,11 @@ kotlin {
             }
         }
 
-        val desktopTest by getting
+        named("desktopTest") {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
 
     }
 
@@ -290,6 +296,8 @@ compose.resources {
 // For debugging the build configuration: `./gradlew printKotlinDetails` shows the details of the
 // configuration defined here.
 tasks.register("printKotlinDetails") {
+    description = "Prints details about Kotlin source sets, compilations, and KSP configurations for debugging."
+
     doLast {
         println(">>> Kotlin Source Sets <<<")
         kotlin.sourceSets.forEach {
