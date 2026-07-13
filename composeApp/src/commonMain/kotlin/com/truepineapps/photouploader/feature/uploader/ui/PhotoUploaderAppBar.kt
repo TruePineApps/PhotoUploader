@@ -38,8 +38,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
 import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigator
-import com.truepineapps.photouploader.core.feature.moreMenu.ui.MoreMenu
+import com.truepineapps.photouploader.core.feature.moremenu.navigation.MoreMenuNavigator
+import com.truepineapps.photouploader.core.feature.moremenu.ui.MoreMenu
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.design.Opacity

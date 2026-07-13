@@ -35,7 +35,8 @@ import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import com.truepineapps.photouploader.app.navigation.PhotoUploaderAppNavHost
 import com.truepineapps.photouploader.app.theme.AppTheme
-import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigatorImpl
+import com.truepineapps.photouploader.core.feature.legal.ui.LegalGateScreen
+import com.truepineapps.photouploader.core.feature.moremenu.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.core.presentation.design.Opacity
@@ -69,17 +70,19 @@ fun App(
 
     AppTheme {
         AppEnvironment(localeViewModel = koinInject()) {
-            ThemedLocalizedApp(
-                startDestination = startDestination,
-                modifier = modifier
-            )
+            LegalGateScreen {
+                ThemedLocalizedLegalAcceptedApp(
+                    startDestination = startDestination,
+                    modifier = modifier
+                )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemedLocalizedApp(
+private fun ThemedLocalizedLegalAcceptedApp(
     startDestination: String,
     modifier: Modifier = Modifier,
 ) {

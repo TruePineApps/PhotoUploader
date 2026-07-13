@@ -10,39 +10,39 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 object LocalizedFormatter : KoinComponent {
-    val dateTimeFormatter: com.truepineapps.photouploader.core.localization.DateTimeFormatter by inject()
-    val numberFormatter: com.truepineapps.photouploader.core.localization.NumberFormatter by inject()
+    val dateTimeFormatter: DateTimeFormatter by inject()
+    val numberFormatter: NumberFormatter by inject()
 }
 
 
 // --- DateTime Extensions ---
 fun LocalDateTime.toLocalizedString(): String =
-    _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.formatDateTime(this)
+    LocalizedFormatter.dateTimeFormatter.formatDateTime(this)
 
-fun LocalDate.toLocalizedString(): String = _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.formatDate(this)
-fun LocalTime.toLocalizedString(): String = _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.formatTime(this)
-fun LocalTime.Companion.is24HourFormat(): Boolean = _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.is24HourFormat()
+fun LocalDate.toLocalizedString(): String = LocalizedFormatter.dateTimeFormatter.formatDate(this)
+fun LocalTime.toLocalizedString(): String = LocalizedFormatter.dateTimeFormatter.formatTime(this)
+fun LocalTime.Companion.is24HourFormat(): Boolean = LocalizedFormatter.dateTimeFormatter.is24HourFormat()
 
 fun LocalDate.Companion.dayMonthFormat(): DateTimeFormat<LocalDate> = Format {
     day()
     char(' ')
     monthName(MonthNames(
-        _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
-            _root_ide_package_.com.truepineapps.photouploader.core.localization.NameStyle.FULL)))
+        LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
+            NameStyle.FULL)))
 }
 
 fun LocalDate.Companion.shortMonthYearFormat(): DateTimeFormat<LocalDate> = Format {
     monthName(MonthNames(
-        _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
-            _root_ide_package_.com.truepineapps.photouploader.core.localization.NameStyle.ABBREVIATED)))
+        LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
+            NameStyle.ABBREVIATED)))
     char(' ')
     year()
 }
 
 fun LocalDate.Companion.fullMonthYearFormat(): DateTimeFormat<LocalDate> = Format {
     monthName(MonthNames(
-        _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
-            _root_ide_package_.com.truepineapps.photouploader.core.localization.NameStyle.FULL)))
+        LocalizedFormatter.dateTimeFormatter.localizedMonthNames(
+            NameStyle.FULL)))
     char(' ')
     year()
 }
@@ -51,13 +51,13 @@ fun LocalDate.Companion.fullMonthYearFormat(): DateTimeFormat<LocalDate> = Forma
 // --- Number Extensions ---
 fun Double.toLocalizedDecimalString(
     minIntegerDigits: Int = 1, minFractionDigits: Int = 0, maxFractionDigits: Int = 3
-): String = _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.numberFormatter.formatDecimal(
+): String = LocalizedFormatter.numberFormatter.formatDecimal(
     this, minIntegerDigits, minFractionDigits, maxFractionDigits
 )
 
 fun Double.toLocalizedCurrencyString(
     minIntegerDigits: Int = 1, minFractionDigits: Int = 2, maxFractionDigits: Int = 2
-): String = _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.numberFormatter.formatCurrency(
+): String = LocalizedFormatter.numberFormatter.formatCurrency(
     amount = this,
     minIntegerDigits = minIntegerDigits,
     minFractionDigits = minFractionDigits,
@@ -65,4 +65,4 @@ fun Double.toLocalizedCurrencyString(
 )
 
 fun String.toLocaleFormattedDoubleOrNull(): Double? =
-    _root_ide_package_.com.truepineapps.photouploader.core.localization.LocalizedFormatter.numberFormatter.parseDecimal(this)
+    LocalizedFormatter.numberFormatter.parseDecimal(this)

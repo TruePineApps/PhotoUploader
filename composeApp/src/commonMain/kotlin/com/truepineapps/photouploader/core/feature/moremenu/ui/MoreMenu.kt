@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moreMenu.ui
+package com.truepineapps.photouploader.core.feature.moremenu.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -10,17 +10,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.truepineapps.photouploader.core.feature.moreMenu.navigation.MoreMenuNavigator
+import com.truepineapps.photouploader.core.feature.moremenu.navigation.MoreMenuNavigator
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
+import com.truepineapps.photouploader.resources.debug_actions
 import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.more_menu
 import com.truepineapps.photouploader.resources.preferences
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
-fun MoreMenu(isEnabled: Boolean, moreMenuNavigator: MoreMenuNavigator) {
+fun MoreMenu(
+    isEnabled: Boolean,
+    moreMenuNavigator: MoreMenuNavigator,
+    platformInfo: PlatformInfo = koinInject(),
+) {
     // The expanded state of the dropdown menu.
     var expanded by remember { mutableStateOf(false) }
 
@@ -55,5 +62,14 @@ fun MoreMenu(isEnabled: Boolean, moreMenuNavigator: MoreMenuNavigator) {
                 expanded = false
             }
         )
+        if (platformInfo.isDebugBuild) {
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.debug_actions)) },
+                onClick = {
+                    moreMenuNavigator.navigateToDebugActions()
+                    expanded = false
+                }
+            )
+        }
     }
 }

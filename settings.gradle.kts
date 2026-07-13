@@ -1,6 +1,8 @@
 rootProject.name = "PhotoUploader"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+/* Note: warnings about calls marked with @incubating are expected, other warnings should be handled */
+
 pluginManagement {
     repositories {
         google {
@@ -16,6 +18,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google {
             mavenContent {

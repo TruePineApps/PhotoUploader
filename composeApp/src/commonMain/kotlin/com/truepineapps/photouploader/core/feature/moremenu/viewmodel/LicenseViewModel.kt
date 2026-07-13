@@ -1,14 +1,14 @@
-package com.truepineapps.photouploader.core.feature.about.viewmodel
-
+package com.truepineapps.photouploader.core.feature.moremenu.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.core.util.loadResourceFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 class LicenseViewModel : ViewModel() {
     private val _fontResult = MutableStateFlow<LoadLicenseResult>(LoadLicenseResult.Loading)
@@ -22,23 +22,16 @@ class LicenseViewModel : ViewModel() {
     }
 
     private fun loadLicenses() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // Read files concurrently
-            val fontJob = async { loadLicenseFile("OFL.txt") }
-            val noticesJob = async { loadLicenseFile("NOTICES") }
+            val fontJob = async { loadResourceFile("OFL.txt") }
+            val noticesJob = async { loadResourceFile("NOTICES") }
 
-            _fontResult.value = fontJob.await()
-            _noticesResult.value = noticesJob.await()
+            _fontResult.value = fontJob.await().toLoadLicenseResult()
+            _noticesResult.value = noticesJob.await().toLoadLicenseResult()
         }
     }
 
-    @OptIn(ExperimentalResourceApi::class)
-    private suspend fun loadLicenseFile(fileName: String): LoadLicenseResult = try {
-        val bytes = Res.readBytes("files/$fileName")
-        LoadLicenseResult.Success(bytes.decodeToString())
-    } catch (e: Exception) {
-        LoadLicenseResult.Error(e)
-    }
 }
 
 sealed interface LoadLicenseResult {
@@ -46,3 +39,9 @@ sealed interface LoadLicenseResult {
     data class Success(val licenseText: String) : LoadLicenseResult
     data class Error(val exception: Throwable) : LoadLicenseResult
 }
+
+private fun Result<String>.toLoadLicenseResult(): LoadLicenseResult =
+    fold(
+        onSuccess = { LoadLicenseResult.Success(licenseText = it) },
+        onFailure = { LoadLicenseResult.Error(exception = it) }
+    )

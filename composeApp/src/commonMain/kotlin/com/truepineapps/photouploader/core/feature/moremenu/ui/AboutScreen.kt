@@ -7,7 +7,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  */
 
-package com.truepineapps.photouploader.core.feature.about.ui
+package com.truepineapps.photouploader.core.feature.moremenu.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
+import com.truepineapps.photouploader.core.feature.moremenu.navigation.AboutDestination
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
@@ -51,11 +51,13 @@ fun AboutScreen(
     Column(
         modifier = modifier
     ) {
+        val debugVersion = if (platformInfo.isDebugBuild) " - debug" else ""
+
         Text(
             text = stringResource(Res.string.about_photo_uploader) + "(Beta)",
             style = MaterialTheme.typography.titleLarge,
         )
-        PlatformDetailRow(Res.string.version, "${appInfo.versionName} (${appInfo.versionCode})")
+        PlatformDetailRow(Res.string.version, "${appInfo.versionName} (${appInfo.versionCode}$debugVersion)")
         PlatformDetailRow(Res.string.app_id, appInfo.appId)
         PlatformDetailRow(Res.string.platform, platformInfo.name)
         PlatformDetailRow(Res.string.website, "truepineapps.com/photouploader")

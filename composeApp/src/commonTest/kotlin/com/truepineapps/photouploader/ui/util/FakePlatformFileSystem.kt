@@ -5,6 +5,7 @@ import com.mohamedrejeb.calf.io.KmpFile
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.Sink
 import okio.Source
 
 expect fun createTestKmpFile(path: String): KmpFile
@@ -60,12 +61,14 @@ class FakePlatformFileSystem(private val fileSystem: FileSystem) : PlatformFileS
         return path.name
     }
 
-    override fun source(
-        file: KmpFile,
-        context: PlatformContext,
-    ): Source {
+    override fun source(file: KmpFile, context: PlatformContext): Source {
         val pathString = getPath(file, context)
         return fileSystem.source(pathString.toPath())
+    }
+
+    override fun sink(file: KmpFile, context: PlatformContext): Sink {
+        val pathString = getPath(file, context)
+        return fileSystem.sink(pathString.toPath())
     }
 
 }

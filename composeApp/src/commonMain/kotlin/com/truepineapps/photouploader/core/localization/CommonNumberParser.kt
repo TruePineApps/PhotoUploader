@@ -6,10 +6,7 @@ package com.truepineapps.photouploader.core.localization
 object CommonNumberParser {
 
     // The current implementation assumes that the locale has '.' or ',' as decimal separator.
-    fun parseDecimalCommon(
-        formattedString: String,
-        formatter: com.truepineapps.photouploader.core.localization.NumberFormatter
-    ): Double? {
+    fun parseDecimalCommon(formattedString: String, formatter: NumberFormatter): Double? {
         val decimalSeparator = deduceDecimalSeparator(formatter)
 
         var normalizedString = formattedString.trim()
@@ -30,7 +27,7 @@ object CommonNumberParser {
         return normalizedString.toDoubleOrNull()
     }
 
-    private fun deduceDecimalSeparator(formatter: com.truepineapps.photouploader.core.localization.NumberFormatter): Char {
+    private fun deduceDecimalSeparator(formatter: NumberFormatter): Char {
         val sampleDecimal = 1.5
         val formattedSampleDecimal = formatter.formatDecimal(
             sampleDecimal,

@@ -39,9 +39,14 @@ licenseReport {
 
 // Task to copy the generated report to composeResources/files in composeApp so shared code can see it
 val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
+    description = "Copy the generated report to composeResources/files in composeApp so shared code can see it"
+
     dependsOn("generateLicenseReport")
     // Source: desktopApp build folder
     from(dependencyDir.map { it.file(noticesName) })
+    from(rootProject.file("LICENSE"))
+    from(rootProject.file("TERMS.md"))
+    from(rootProject.file("PRIVACY.md"))
     // Target: composeApp resources (relative to project root)
     into(sharedResourceFiles)
 }
@@ -121,11 +126,13 @@ compose.desktop {
 
 /**
  * 1. Add license files
- * - copyright: Use COPYRIGHT instead of the generated copyright file
+ * - copyright: Use COPYRIGHT instead of the generated copyright file in the
+ *   standard location (/usr/share/doc/...) and the app share folder.
  * - LICENSE: The Apache 2.0 license for non-Debian users
  * - OFL.txt: For the Noto Sans font license
  * - NOTICES: For the third party license notices
- * 2. Fix Linux .desktop file.
+ * 2. Add compressed changelog.gz in the standard location.
+ * 3. Fix Linux .desktop file and metadata (Maintainer, Section, Description).
  * To make the app icon appear in the launch bar and on top of the screenshot in the change task bar,
  * the .desktop file must contain the property StartupWMClass. Run 'lg' by pressing [Alt-F2] and
  * entering lg and click the 'Windows' button to find the value. Alternatively, start the app, run
@@ -135,6 +142,7 @@ compose.desktop {
  * in the assembled .deb file.
  * This custom .desktop file src/main/resources/linux/Photo-Uploader.desktop now contains the
  * necessary StartupWMClass.
+ * 4. Standardize file permissions and ownership (root:root).
  * 
  * This class must not reference `project` or global variables in this file.
  */
@@ -148,20 +156,22 @@ afterEvaluate {
 
         // Register a unique fix task for this package task
         val fixTask = tasks.register<PatchDebPackage>(fixTaskName) {
-            description = "Patch .desktop file and add license files in generated .deb pacakge"
+            description = "Patch .desktop file, fix metadata and add license files in generated .deb package"
+
             packageFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
             desktopSourceFile.set(layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop"))
             copyrightSourceFile.set(layout.projectDirectory.file("../COPYRIGHT"))
             licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
             sharedResourceDir.set(project.file(sharedResourceFiles))
             noticesFileName.set(noticesName)
+            appVersion.set(libs.versions.appVersionName.get())
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
 }
 
 /**
- * Copy license files to the Windows/MacOS app resources directory before MSI/DMG packaging.
+ * Copy license files to the Windows/macOS app resources directory before MSI/DMG packaging.
  * jpackage will include everything under appResourcesRootDir in the installed app\resources\ folder.
  * This avoids MSI post-processing, which requires platform-specific tooling, and changing an
  * already signed DMG file.
@@ -169,14 +179,19 @@ afterEvaluate {
 fun prepareLicenseFiles(resourceDir: String) = tasks.register<Copy>(
     "prepare${resourceDir.substringBefore('/').capitalizeFirstChar()}LicenseFiles"
 ) {
+    description = "Copy license files to the Windows/macOS app resources directory before MSI/DMG packaging."
+
     // Explicitly depend on the task that generates NOTICES
     dependsOn(copyNoticesToResources)
 
     from(rootProject.file("LICENSE"))
     from(sharedResourceFiles.asFile.resolve("NOTICES"))
     from(sharedResourceFiles.asFile.resolve("OFL.txt"))
+    from(sharedResourceFiles.asFile.resolve("TERMS.md"))
+    from(sharedResourceFiles.asFile.resolve("PRIVACY.md"))
     into(layout.projectDirectory.dir("src/main/resources/$resourceDir"))
 }
+
 // Installed location: C:\Program Files\Photo-Uploader\app\resources\legal\
 val prepareWindowsLicenseFiles = prepareLicenseFiles("windows/legal")
 // This maps to: PhotoUploader.app/Contents/app/resources/

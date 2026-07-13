@@ -32,7 +32,7 @@ interface PlatformInfo {
      * The exact definition of "debug" can vary by platform.
      * - Android: Typically corresponds to the 'debug' build type.
      * - iOS: Corresponds to binaries compiled with the debug configuration.
-     * - JVM: May rely on system properties or arguments passed at runtime.
+     * - JVM: Relies on environment variable.
      *
      * @return True if the current build is in debug mode, false otherwise.
      */

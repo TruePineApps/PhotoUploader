@@ -8,7 +8,8 @@
     <string name="retry_button">Opnieuw proberen</string>
     <string name="show_selection_dialog">Selectievenster weergeven</string>
     <string name="more_menu">Meer...</string>
-    <string name="preferences">Instellingen</string>
+    <string name="preferences">Voorkeuren</string>
+    <string name="settings">Instellingen</string>
     <string name="locale">Locale</string>
     <string name="language">Taal</string>
     <string name="en">Engels</string>
@@ -16,6 +17,7 @@
     <string name="system">Systeem</string>
     <string name="about">Over</string>
     <string name="about_photo_uploader">Over Photo Uploader</string>
+    <string name="debug_actions">Debug acties</string>
     <string name="version">Versie</string>
     <string name="platform">Platform</string>
     <string name="website">Website</string>
@@ -71,7 +73,7 @@
     <string name="error_one_or_more_photos_failed">Upload van eén of meer foto\'s mislukt: %1$s</string>
     <string name="network_error">Netwerkfout</string>
     <string name="unknown_error">Onbekende fout</string>
-    <string name="error_loading_license">Laden licenses mislukt: %1$s</string>
+    <string name="error_loading_license">Laden licenties mislukt: %1$s</string>
     
     <!-- Upload statuses -->
     <string name="status_none"> </string>
@@ -81,4 +83,34 @@
     <string name="status_success">Succes</string>
     <string name="status_canceled">Geannuleerd</string>
     <string name="status_error">Fout</string>
+
+    <!-- Legal gate — generic -->
+    <string name="legal">Juridisch</string>
+    <string name="legal_loading">Juridische documenten worden geladen…</string>
+    <string name="legal_error_title">Juridische documenten konden niet worden geladen</string>
+    <string name="legal_error_retry">Opnieuw proberen</string>
+
+    <!-- Legal gate — titles -->
+    <string name="legal_title_first_launch">Welkom — lees het onderstaande voor u verdergaat</string>
+    <string name="legal_title_update">Onze juridische documenten zijn bijgewerkt</string>
+
+    <!-- Section headers -->
+    <string name="legal_section_terms">Gebruiksvoorwaarden</string>
+    <string name="legal_section_privacy">Privacybeleid</string>
+
+    <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
+    <string name="legal_checkbox_terms">Ik heb de gebruiksvoorwaarden gelezen en ga hiermee akkoord</string>
+    <string name="legal_checkbox_privacy">Ik heb het privacybeleid gelezen en ga hiermee akkoord</string>
+
+    <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
+    <string name="legal_backup_acknowledgement">
+    Ik begrijp dat deze app mijn foto\'s en gegevens niet automatisch back-upt.
+    Het is mijn eigen verantwoordelijkheid om back-ups bij te houden. Gegevensverlies
+    door storing, verwijdering van de app of per ongeluk wissen kan niet worden
+    hersteld door de app of de ontwikkelaar.
+    </string>
+
+    <!-- Accept button -->
+    <string name="legal_button_accept">Ik ga akkoord — Doorgaan</string>
+
 </resources>

@@ -17,6 +17,7 @@
     <string name="system">System</string>
     <string name="about">About</string>
     <string name="about_photo_uploader">About Photo Uploader</string>
+    <string name="debug_actions">Debug actions</string>
     <string name="version">Version</string>
     <string name="platform">Platform</string>
     <string name="website">Website</string>
@@ -56,7 +57,6 @@
         Photo Uploader uploads a photo collection organized in folders into albums on Google Photos. The album name is derived from the folder name.
     </string>
 
-    
     <!-- Error messages -->
     <string name="error_unknown">An unknown error occurred.</string>
     <string name="error_platform_context_not_set">Platform context not set</string>
@@ -83,4 +83,34 @@
     <string name="status_success">Success</string>
     <string name="status_canceled">Cancelled</string>
     <string name="status_error">Error</string>
+
+    <!-- Legal gate — generic -->
+    <string name="legal">Legal</string>
+    <string name="legal_loading">Checking legal documents…</string>
+    <string name="legal_error_title">Could not load legal documents</string>
+    <string name="legal_error_retry">Try again</string>
+
+    <!-- Legal gate — titles -->
+    <string name="legal_title_first_launch">Welcome — please review before continuing</string>
+    <string name="legal_title_update">Our legal documents have been updated</string>
+
+    <!-- Section headers -->
+    <string name="legal_section_terms">Terms of Service</string>
+    <string name="legal_section_privacy">Privacy Policy</string>
+
+    <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
+    <string name="legal_checkbox_terms">I have read and accept the Terms of Service</string>
+    <string name="legal_checkbox_privacy">I have read and accept the Privacy Policy</string>
+
+    <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
+    <string name="legal_backup_acknowledgement">
+        I understand that this app does not back up my photos or data automatically.
+        It is my responsibility to maintain my own backups. Data loss due to device
+        failure, uninstallation, or accidental deletion cannot be recovered by the app or its
+        developer.
+    </string>
+
+    <!-- Accept button -->
+    <string name="legal_button_accept">I agree — Continue</string>
+
 </resources>

@@ -49,6 +49,10 @@ abstract class PackageTask : DefaultTask() {
     @get:Input
     abstract val noticesFileName: Property<String>
 
+    /** The version of the application. */
+    @get:Input
+    abstract val appVersion: Property<String>
+
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
@@ -77,8 +81,8 @@ abstract class PackageTask : DefaultTask() {
      * - NOTICES (generated third-party notices)
      *
      * OFL.txt and NOTICES are sourced from [sharedResourceDir] and logged as errors if not found.
-     * NOTICES is a file generate by [generateLicenseReport]. Since it is shown on the
-     * [LicenseScreen], it is also checked in.
+     * NOTICES is a file generate by Gradle task 'generateLicenseReport'. Since it is shown on the
+     * LicenseScreen, it is also checked in.
      */
     protected fun copyLicenseFiles(targetDir: File) {
         targetDir.mkdirs()
@@ -88,6 +92,8 @@ abstract class PackageTask : DefaultTask() {
 
         copyResourceFile("OFL.txt", targetDir)
         copyResourceFile(noticesFileName.get(), targetDir)
+        copyResourceFile("TERMS.md", targetDir)
+        copyResourceFile("PRIVACY.md", targetDir)
     }
 
     /**

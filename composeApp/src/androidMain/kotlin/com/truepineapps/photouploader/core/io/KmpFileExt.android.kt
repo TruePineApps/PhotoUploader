@@ -2,15 +2,21 @@ package com.truepineapps.photouploader.core.io
 
 import android.net.Uri.decode
 import android.os.Environment
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
+import com.mohamedrejeb.calf.io.toKmpFile
+import okio.Sink
 import okio.Source
+import okio.sink
 import okio.source
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.FileNotFoundException
+
+actual fun getApplicationHomeDirectory(context: PlatformContext): String = context.filesDir.absolutePath
 
 /**
  * Lists the contents of this directory.
@@ -93,8 +99,31 @@ actual fun KmpFile.getDisplayName(context: PlatformContext): String =
         ?: "Unknown"
 
 actual fun KmpFile.source(context: PlatformContext): Source {
-    val contentResolver = context.contentResolver
-    val inputStream = contentResolver.openInputStream(this.uri)
-        ?: throw FileNotFoundException("Unable to open input stream for URI: $uri")
+    val inputStream = context.contentResolver.openInputStream(this.uri)
+        ?: throw FileNotFoundException("Unable to open input stream for URI: ${this.uri}")
+
     return inputStream.source()
 }
+
+actual fun KmpFile.sink(context: PlatformContext): Sink {
+    val outputStream = context.contentResolver.openOutputStream(this.uri)
+        ?: throw FileNotFoundException("Unable to open output stream for URI: ${this.uri}")
+
+    return outputStream.sink()
+}
+
+actual fun KmpFile.writeText(context: PlatformContext, text: String) {
+    val outputStream = context.contentResolver.openOutputStream(this.uri)
+        ?: throw FileNotFoundException("Unable to open output stream for URI: ${this.uri}")
+
+    outputStream.writer().use { writer -> writer.write(text) }
+}
+
+actual fun KmpFile.readText(context: PlatformContext): String {
+    val inputStream = context.contentResolver.openInputStream(this.uri)
+        ?: throw FileNotFoundException("Unable to open input stream for URI: ${this.uri}")
+
+    return inputStream.bufferedReader().use { it.readText() }
+}
+
+actual fun String.toKmpFile(): KmpFile = toUri().toKmpFile()

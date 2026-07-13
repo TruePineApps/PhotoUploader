@@ -3,17 +3,19 @@ package com.truepineapps.photouploader.app.di
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.koin.KermitKoinLogger
 import com.russhwolf.settings.Settings
-import com.truepineapps.photouploader.core.feature.settings.domain.repository.UserPreferencesRepository
+import com.truepineapps.photouploader.core.feature.moremenu.viewmodel.LicenseViewModel
+import com.truepineapps.photouploader.core.feature.legal.di.legalModule
+import com.truepineapps.photouploader.core.feature.moremenu.di.moreMenuModule
 import com.truepineapps.photouploader.core.feature.settings.data.repository.UserPreferencesSettingsRepository
+import com.truepineapps.photouploader.core.feature.settings.domain.repository.UserPreferencesRepository
+import com.truepineapps.photouploader.core.feature.settings.viewmodel.LocaleViewModel
+import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
 import com.truepineapps.photouploader.core.localization.DateTimeFormatter
 import com.truepineapps.photouploader.core.localization.NumberFormatter
 import com.truepineapps.photouploader.core.localization.PlatformLocaleManager
 import com.truepineapps.photouploader.core.localization.PlatformLocaleProvider
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.CalfPlatformPicker
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
-import com.truepineapps.photouploader.core.feature.settings.viewmodel.LocaleViewModel
-import com.truepineapps.photouploader.core.feature.about.viewmodel.LicenseViewModel
-import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
@@ -63,6 +65,10 @@ fun initKoin(
             // Settings storage
             // Platform dependent, in Kotlin
             settingsModule,
+            // Legal consent objects
+            legalModule,
+            // Debug Actions
+            moreMenuModule,
             // Common core modules
             // Platform independent, in Kotlin
             coreModule(isPickerDefined)

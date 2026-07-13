@@ -1,0 +1,4 @@
+# Overrides for jpackage-generated structure
+photo-uploader: dir-or-file-in-opt opt/photo-uploader/
+photo-uploader: jar-not-in-usr-share opt/photo-uploader/lib/app/*.jar
+photo-uploader: codeless-jar opt/photo-uploader/lib/app/*.jar

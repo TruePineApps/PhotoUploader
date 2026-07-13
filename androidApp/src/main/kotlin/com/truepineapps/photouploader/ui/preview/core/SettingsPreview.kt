@@ -8,5 +8,5 @@ import com.truepineapps.photouploader.core.feature.settings.ui.SettingsScreenPre
 @Preview(showBackground = true)
 @Composable
 fun PreviewLicenseScreen() {
-    AppTheme() { SettingsScreenPreview() }
+    AppTheme { SettingsScreenPreview() }
 }

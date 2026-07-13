@@ -153,6 +153,8 @@ kotlin {
             // Images
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            // Markdown
+            implementation(libs.compose.rich.editor)
             // Logging, add kermit logging to api
             api(libs.kermit.core)
             implementation(libs.kermit.koin)

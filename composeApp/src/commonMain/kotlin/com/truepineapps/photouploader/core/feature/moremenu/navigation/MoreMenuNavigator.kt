@@ -7,17 +7,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  */
 
-package com.truepineapps.photouploader.core.feature.moreMenu.navigation
+package com.truepineapps.photouploader.core.feature.moremenu.navigation
 
 import androidx.navigation.NavHostController
-import com.truepineapps.photouploader.core.feature.about.navigation.AboutDestination
-import com.truepineapps.photouploader.core.feature.about.navigation.LicenseDestination
 import com.truepineapps.photouploader.core.feature.settings.navigation.SettingsDestination
 
 interface MoreMenuNavigator {
     fun navigateToSettings()
     fun navigateToAbout()
     fun navigateToLicenseScreen()
+    fun navigateToDebugActions()
 }
 
 class MoreMenuNavigatorImpl(private val navController: NavHostController) : MoreMenuNavigator {
@@ -31,5 +30,9 @@ class MoreMenuNavigatorImpl(private val navController: NavHostController) : More
 
     override fun navigateToLicenseScreen() {
         navController.navigate(LicenseDestination.route)
+    }
+
+    override fun navigateToDebugActions() {
+        navController.navigate(DebugActionDestination.route)
     }
 }
