@@ -6,7 +6,14 @@ import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalAcceptanceState
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
+import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalRemoteException
 import com.truepineapps.photouploader.core.feature.legal.domain.repository.LegalRepository
+import com.truepineapps.photouploader.core.util.UiText
+import com.truepineapps.photouploader.core.util.UiTextResource
+import com.truepineapps.photouploader.core.util.UiTextString
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.remote_error
+import com.truepineapps.photouploader.resources.unknown_error
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format.char
+import org.jetbrains.compose.resources.StringResource
 
 class LegalViewModel(
     private val legalRepository: LegalRepository,
@@ -55,16 +63,39 @@ class LegalViewModel(
                         )
                     }
                 },
-                onFailure = {
-                    log.d { "checkAcceptance failed: ${it.message ?: "unknown error"}" }
-                    _state.value = LegalUiState.Error(
-                        it.message
-                            ?: "Failed to verify legal documents. Please check your internet connection and try again."
+                onFailure = { throwable ->
+                    log.d { "checkAcceptance failed: ${throwable.message ?: "unknown error"}" }
+
+                    val messages = mutableListOf<UiText>()
+                    messages.add(
+                        mapThrowableToUiText(
+                            throwable,
+                            if (throwable.suppressedExceptions.isEmpty()) Res.string.remote_error else Res.string.unknown_error
+                        )
                     )
+
+                    throwable.suppressedExceptions.firstOrNull()?.let { suppressed ->
+                        messages.add(mapThrowableToUiText(suppressed, Res.string.remote_error))
+                    }
+
+                    _state.value = LegalUiState.Error(messages)
                 }
             )
         }
     }
+
+    private fun mapThrowableToUiText(throwable: Throwable, defaultMessage: StringResource): UiText =
+        when (throwable) {
+            is LegalRemoteException -> throwable.uiText
+            else -> {
+                val message = throwable.message
+                if (message.isNullOrBlank()) {
+                    UiTextResource(defaultMessage)
+                } else {
+                    UiTextString(message)
+                }
+            }
+        }
 
     /**
      * Determines whether the user needs to see the legal flow.

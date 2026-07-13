@@ -74,6 +74,8 @@
     <string name="network_error">Network error</string>
     <string name="unknown_error">Unknown error</string>
     <string name="error_loading_license">Error loading licenses: %1$s</string>
+    <string name="error_remote_file_not_found">Remote %1$s not found (%2$s)</string>
+    <string name="remote_error">Remote error</string>
     
     <!-- Upload statuses -->
     <string name="status_none"> </string>

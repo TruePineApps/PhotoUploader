@@ -34,7 +34,7 @@ fun LegalGateScreen(
     when (val s = state) {
         is LegalUiState.Loading -> LegalLoadingScreen()
         is LegalUiState.Error -> LegalErrorScreen(
-            message = s.message,
+            messages = s.messages,
             onRetry = { viewModel.onIntent(context, LegalIntent.Retry) }
         )
 

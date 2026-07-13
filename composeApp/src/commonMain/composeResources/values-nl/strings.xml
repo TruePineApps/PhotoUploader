@@ -74,7 +74,9 @@
     <string name="network_error">Netwerkfout</string>
     <string name="unknown_error">Onbekende fout</string>
     <string name="error_loading_license">Laden licenties mislukt: %1$s</string>
-    
+    <string name="error_remote_file_not_found">Remote %1$s net gevonden (%2$s)</string>
+    <string name="remote_error">Remote error</string>
+
     <!-- Upload statuses -->
     <string name="status_none"> </string>
     <string name="status_waiting">Wachten</string>

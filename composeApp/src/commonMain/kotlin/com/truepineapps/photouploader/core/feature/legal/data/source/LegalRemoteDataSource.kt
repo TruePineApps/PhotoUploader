@@ -3,6 +3,9 @@ package com.truepineapps.photouploader.core.feature.legal.data.source
 import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalConfig
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalRemoteException
+import com.truepineapps.photouploader.core.util.UiTextResource
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.error_remote_file_not_found
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -23,14 +26,17 @@ class LegalRemoteDataSource(
     suspend fun fetchPrivacyPolicy(): Result<String> =
         fetchRemoteContent(legalConfig.privacyPolicyUrl, "Privacy Policy")
 
-    private suspend fun fetchRemoteContent(url: String, name: String): Result<String> = runCatching {
-        val response = httpClient.get(url)
-        if (response.status == HttpStatusCode.OK) {
-            response.bodyAsText().trim()
-        } else {
-            val httpStatus = response.status.value
-            log.d("fetch content for $name returns HTTP status $httpStatus")
-            throw LegalRemoteException("Remote $name not found ($httpStatus)")
+    private suspend fun fetchRemoteContent(url: String, name: String): Result<String> =
+        runCatching {
+            val response = httpClient.get(url)
+            if (response.status == HttpStatusCode.OK) {
+                response.bodyAsText().trim()
+            } else {
+                val httpStatus = response.status.value
+                log.d("Fetch content for $name returns HTTP status $httpStatus")
+                throw LegalRemoteException(
+                    UiTextResource(Res.string.error_remote_file_not_found, name, httpStatus)
+                )
+            }
         }
-    }
 }

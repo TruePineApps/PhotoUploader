@@ -323,7 +323,7 @@ class PhotoUploaderViewModel(
                         uploadPhotosImpl(state.albumUiStates, platformContext)
                     }
                 } catch (e: UploadException.GlobalException) {
-                    log.d { "Upload process caught global exception: ${e.message}" }
+                    log.d { "Upload process caught global exception: ${e.message} (${e.status})" }
                     resetNonFinalUploadStatuses()
                     if (e.status == HttpStatusCode.Unauthorized
                         || e.uiText.toString()
@@ -600,7 +600,7 @@ class PhotoUploaderViewModel(
                     updateAlbum(albumId) { currentAlbum -> currentAlbum.copy(googleAlbumId = null) }
                 }
             } catch (e: UploadException.AlbumException) {
-                log.e(e) { "getOrCreateGoogleAlbum: Error verifying album '$albumName'" }
+                log.e(e) { "getOrCreateGoogleAlbum: Error verifying album '$albumName' (${e.status})" }
                 updateAlbumStatus(albumId, UploadStatus.Error(e.uiText))
                 return null
             }
@@ -614,7 +614,7 @@ class PhotoUploaderViewModel(
             log.d { "getOrCreateGoogleAlbum:     Created album with ID: $googleAlbumId for '$albumName'" }
             googleAlbumId
         } catch (e: UploadException.AlbumException) {
-            log.e(e) { "getOrCreateGoogleAlbum:     Failed to create album for '$albumName'" }
+            log.e(e) { "getOrCreateGoogleAlbum:     Failed to create album for '$albumName' (${e.status})" }
             updateAlbumStatus(albumId, UploadStatus.Error(e.uiText))
             null
         }
@@ -642,7 +642,7 @@ class PhotoUploaderViewModel(
                     successfullyUploaded.add(photo to uploadToken)
                     log.d { "uploadPhotosInAlbum:       Successfully uploaded: ${photo.name}" }
                 } catch (e: UploadException.PhotoException) {
-                    log.e(e) { "uploadPhotosInAlbum:       ERROR: Failed to upload '${photo.name}'" }
+                    log.e(e) { "uploadPhotosInAlbum:       ERROR: Failed to upload '${photo.name}' (${e.status})" }
                     updatePhotoStatus(albumUiState.id, photo.path, UploadStatus.Error(e.uiText))
                 }
             }
@@ -685,7 +685,7 @@ class PhotoUploaderViewModel(
                 )
             }
         } catch (e: UploadException.PhotoException) {
-            log.e(e) { "addMediaItemsToAlbum:       ERROR: Failed to add media items to album '${albumUiState.name}'" }
+            log.e(e) { "addMediaItemsToAlbum:       ERROR: Failed to add media items to album '${albumUiState.name}' (${e.status})" }
             updateAlbum(albumUiState.id) { currentAlbum ->
                 // Mark all photos that were part of this upload attempt as failed
                 val updatedPhotos = currentAlbum.photoUiStates.map { p ->

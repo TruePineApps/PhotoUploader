@@ -8,21 +8,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.legal_error_retry
 import com.truepineapps.photouploader.resources.legal_error_title
 import org.jetbrains.compose.resources.stringResource
 
-@Deprecated("Use ErrorScreen")
 @Composable
-fun LegalErrorScreen(message: String, onRetry: () -> Unit) {
+fun LegalErrorScreen(messages: List<UiText>, onRetry: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(stringResource(Res.string.legal_error_title), style = MaterialTheme.typography.titleMedium)
-            Text(message, style = MaterialTheme.typography.bodySmall)
+            
+            messages.forEach { message ->
+                Text(message.asString(), style = MaterialTheme.typography.bodySmall)
+            }
+
             Button(onClick = onRetry) {
                 Text(stringResource(Res.string.legal_error_retry))
             }

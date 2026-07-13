@@ -1,3 +1,6 @@
 package com.truepineapps.photouploader.core.feature.legal.domain.model
 
-class LegalRemoteException(message: String) : Exception(message)
+import com.truepineapps.photouploader.core.util.UiText
+
+class LegalRemoteException(val uiText: UiText) :
+    Exception(uiText.toString())

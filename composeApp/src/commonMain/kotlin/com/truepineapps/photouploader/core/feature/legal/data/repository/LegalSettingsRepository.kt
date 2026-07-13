@@ -34,9 +34,14 @@ class LegalSettingsRepository(
 
                 localDataSource.saveContent(context, version, terms, privacy)
                 LegalContent(version, terms, privacy)
-            }.recoverCatching { e ->
-                log.e(e) { "Remote fetch failed, attempting local fallback" }
-                localDataSource.readContent(context).getOrThrow()
+            }.recoverCatching { remoteException ->
+                log.e(remoteException) { "Remote fetch failed, attempting local fallback" }
+
+                // Attempt local read, and if it fails, associate the remote error
+                localDataSource.readContent(context).getOrElse { localException ->
+                    localException.addSuppressed(remoteException)
+                    throw localException
+                }
             }
         }
 
