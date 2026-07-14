@@ -96,9 +96,10 @@
     <string name="legal_title_first_launch">Welcome — please review before continuing</string>
     <string name="legal_title_update">Our legal documents have been updated</string>
 
-    <!-- Section headers -->
-    <string name="legal_section_terms">Terms of Service</string>
-    <string name="legal_section_privacy">Privacy Policy</string>
+    <!-- Legal document names -->
+    <string name="legal_version_file">Legal Version File</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="privacy_policy">Privacy Policy</string>
 
     <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
     <string name="legal_checkbox_terms">I have read and accept the Terms of Service</string>

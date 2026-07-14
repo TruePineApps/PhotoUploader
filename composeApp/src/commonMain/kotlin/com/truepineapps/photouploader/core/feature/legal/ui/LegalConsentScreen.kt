@@ -39,10 +39,10 @@ import com.truepineapps.photouploader.resources.legal_backup_acknowledgement
 import com.truepineapps.photouploader.resources.legal_button_accept
 import com.truepineapps.photouploader.resources.legal_checkbox_privacy
 import com.truepineapps.photouploader.resources.legal_checkbox_terms
-import com.truepineapps.photouploader.resources.legal_section_privacy
-import com.truepineapps.photouploader.resources.legal_section_terms
 import com.truepineapps.photouploader.resources.legal_title_first_launch
 import com.truepineapps.photouploader.resources.legal_title_update
+import com.truepineapps.photouploader.resources.privacy_policy
+import com.truepineapps.photouploader.resources.terms_of_service
 import org.jetbrains.compose.resources.stringResource
 
 // TODO: replace dimensions with constants
@@ -74,7 +74,7 @@ fun LegalConsentScreen(
 
             // ── Terms of Service ──────────────────────────────────────────
             LegalSection(
-                title = stringResource(Res.string.legal_section_terms),
+                title = stringResource(Res.string.terms_of_service),
                 body = state.content.termsOfService,
                 isChecked = state.termsChecked,
                 checkLabel = stringResource(Res.string.legal_checkbox_terms),
@@ -84,7 +84,7 @@ fun LegalConsentScreen(
 
             // ── Privacy Policy ────────────────────────────────────────────
             LegalSection(
-                title = stringResource(Res.string.legal_section_privacy),
+                title = stringResource(Res.string.privacy_policy),
                 body = state.content.privacyPolicy,
                 isChecked = state.privacyChecked,
                 checkLabel = stringResource(Res.string.legal_checkbox_privacy),

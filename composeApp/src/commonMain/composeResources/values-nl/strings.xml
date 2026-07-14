@@ -96,6 +96,11 @@
     <string name="legal_title_first_launch">Welkom — lees het onderstaande voor u verdergaat</string>
     <string name="legal_title_update">Onze juridische documenten zijn bijgewerkt</string>
 
+    <!-- Legal document names -->
+    <string name="legal_version_file">Juridisch Versie Bestand</string>
+    <string name="terms_of_service">Gebruiksvoorwaarden</string>
+    <string name="privacy_policy">Privacybeleid</string>
+
     <!-- Section headers -->
     <string name="legal_section_terms">Gebruiksvoorwaarden</string>
     <string name="legal_section_privacy">Privacybeleid</string>
