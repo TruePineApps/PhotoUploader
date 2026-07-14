@@ -9,8 +9,9 @@ object Dimensions {
     val padding_extra_small: Dp = 2.dp
     val padding_very_small: Dp = 4.dp
     val padding_small: Dp = 8.dp
+    val padding_medium_extra: Dp = 12.dp
     val padding_medium: Dp = 16.dp
-    val padding_large: Dp = 20.dp
+    val padding_large: Dp = 24.dp
     val padding_extra_large: Dp = 32.dp
     val colorbox_height: Dp = 45.dp
     val colorbox_small_height: Dp = 30.dp
@@ -20,6 +21,7 @@ object Dimensions {
     val icon_size: Dp = 24.dp
     val medium_icon_size: Dp = 36.dp
     val big_icon_size: Dp = 64.dp
+    val text_area_height: Dp = 220.dp
     val home_icon_size: Dp = 256.dp
     val home_button_height: Dp = 128.dp
     val home_button_area_height: Dp = 256.dp

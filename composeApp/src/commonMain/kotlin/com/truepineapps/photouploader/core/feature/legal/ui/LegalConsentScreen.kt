@@ -28,12 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalIntent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
 import com.truepineapps.photouploader.core.presentation.component.MarkDownText
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.legal_backup_acknowledgement
 import com.truepineapps.photouploader.resources.legal_button_accept
@@ -58,11 +58,11 @@ fun LegalConsentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = Dimensions.padding_medium)
                 .verticalScroll(outerScroll),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.padding_large),
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(Dimensions.padding_medium))
 
             Text(
                 text = if (state.isUpdate)
@@ -104,15 +104,13 @@ fun LegalConsentScreen(
                 enabled = state.canAccept,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = Dimensions.padding_large),
             ) {
                 Text(stringResource(Res.string.legal_button_accept))
             }
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun LegalSection(
@@ -134,21 +132,21 @@ private fun LegalSection(
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(Dimensions.padding_medium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.padding_medium_extra)
         ) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(Dimensions.text_area_height)
                     .border(
-                        width = 1.dp,
+                        width = Dimensions.border_width,
                         color = MaterialTheme.colorScheme.outlineVariant,
                         shape = MaterialTheme.shapes.small
                     )
-                    .padding(8.dp)
+                    .padding(Dimensions.padding_small)
             ) {
                 MarkDownText(
                     markdown = body,
@@ -158,7 +156,7 @@ private fun LegalSection(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isChecked, onCheckedChange = onChecked)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(Dimensions.padding_small))
                 Text(text = checkLabel, style = MaterialTheme.typography.bodyMedium)
             }
         }
@@ -175,11 +173,11 @@ private fun BackupAcknowledgementRow(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(Dimensions.padding_medium),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(checked = isChecked, onCheckedChange = onChecked)
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(Dimensions.padding_small))
             Text(
                 text = stringResource(Res.string.legal_backup_acknowledgement),
                 style = MaterialTheme.typography.bodyMedium,

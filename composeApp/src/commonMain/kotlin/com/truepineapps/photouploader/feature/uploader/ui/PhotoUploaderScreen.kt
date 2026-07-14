@@ -17,19 +17,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
+import com.truepineapps.photouploader.core.presentation.component.LoadingScreen
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.navigation.NavigationDestination
+import com.truepineapps.photouploader.core.util.isExpandedWidth
+import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.app_name
 import com.truepineapps.photouploader.resources.photo_uploader
 import com.truepineapps.photouploader.resources.select_photo_folder
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
-import com.truepineapps.photouploader.core.presentation.navigation.NavigationDestination
-import com.truepineapps.photouploader.core.presentation.component.LoadingScreen
-import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
-import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
-import com.truepineapps.photouploader.core.util.isExpandedWidth
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -150,7 +149,7 @@ fun StartScreen(showDirPicker: () -> Unit, canChooseDirectory: Boolean, modifier
         )
         Text(
             text = stringResource(Res.string.select_photo_folder),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(Dimensions.padding_medium)
         )
     }
 }

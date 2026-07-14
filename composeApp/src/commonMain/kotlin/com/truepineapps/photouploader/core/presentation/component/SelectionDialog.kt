@@ -29,9 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import com.truepineapps.photouploader.app.theme.AppTheme
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.show_selection_dialog
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -89,56 +91,98 @@ private fun <T> SelectionDialog(
     BasicAlertDialog(
         onDismissRequest = onDismissRequest, modifier = modifier.wrapContentHeight()
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        SelectionDialogContent(
+            label = label,
+            currentDisplayValue = currentDisplayValue,
+            items = items,
+            onGetKey = onGetKey,
+            onGetDisplayName = onGetDisplayName,
+            onChange = onChange,
+            onDismissRequest = onDismissRequest
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> SelectionDialogContent(
+    label: String,
+    currentDisplayValue: Any,
+    items: List<T>,
+    onGetKey: (T) -> Any,
+    onGetDisplayName: @Composable (T) -> Any,
+    onChange: (T) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(Dimensions.padding_large)
+                .border(
+                    width = Dimensions.border_width,
+                    color = MaterialTheme.colorScheme.surfaceTint
+                )
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(Dimensions.padding_large)
-                    .border(width = Dimensions.border_width, color = MaterialTheme.colorScheme.surfaceTint)
-            ) {
-                val evenColor = MaterialTheme.colorScheme.surfaceContainer
-                val oddColor = MaterialTheme.colorScheme.surfaceVariant
-                LazyColumn {
-                    item {
-                        Text(
-                            text = label,
-                            color = MaterialTheme.colorScheme.surface,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = MaterialTheme.colorScheme.surfaceTint)
-                                .padding(Dimensions.padding_small)
-                        )
+            val evenColor = MaterialTheme.colorScheme.surfaceContainer
+            val oddColor = MaterialTheme.colorScheme.surfaceVariant
+            LazyColumn {
+                item {
+                    Text(
+                        text = label,
+                        color = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surfaceTint)
+                            .padding(Dimensions.padding_small)
+                    )
+                }
+                itemsIndexed(
+                    items = items, key = { _, item -> onGetKey(item) }
+                ) { index, item ->
+                    val displayName = onGetDisplayName(item)
+                    val isSelected = displayName == currentDisplayValue
+                    val backgroundColor = if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        if (index % 2 == 0) evenColor else oddColor
                     }
-                    itemsIndexed(
-                        items = items, key = { _, item -> onGetKey(item) }
-                    ) { index, item ->
-                        val displayName = onGetDisplayName(item)
-                        val isSelected = displayName == currentDisplayValue
-                        val backgroundColor = if (isSelected) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            if (index % 2 == 0) evenColor else oddColor
-                        }
-                        val textColor = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            Color.Unspecified
-                        }
-                        DisplayableText(
-                            text = displayName,
-                            color = textColor,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = backgroundColor)
-                                .padding(Dimensions.padding_small)
-                                .clickable {
-                                    onChange(item)
-                                    onDismissRequest()
-                                })
+                    val textColor = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        Color.Unspecified
                     }
+                    DisplayableText(
+                        text = displayName,
+                        color = textColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = backgroundColor)
+                            .padding(Dimensions.padding_small)
+                            .clickable {
+                                onChange(item)
+                                onDismissRequest()
+                            })
                 }
             }
         }
+    }
+}
+
+@Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
+@Composable
+fun PreviewSelectionDialogContent() {
+    // Note that the preview shows as if the mouse hovers "value 1"
+    AppTheme {
+        SelectionDialogContent(
+            label = "Preview",
+            currentDisplayValue = "value 3",
+            items = listOf("value 1", "value 2", "value 3"),
+            onGetKey = { it },
+            onGetDisplayName = { it },
+            onChange = { },
+            onDismissRequest = { },
+        )
     }
 }
