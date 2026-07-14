@@ -32,7 +32,7 @@ Full contact details: https://truepineapps.com/en/imprint
 ### 2. What the App Does
 
 Photo-Uploader is an open-source desktop tool that helps you upload photos from your local
-device to your own Google Photos account and organise them into albums based on your local
+device to your own Google Photos account and organize them into albums based on your local
 directory structure.
 
 The App runs entirely on your local device. Your photos are uploaded directly to your own
@@ -83,8 +83,8 @@ continued availability of the App in its current form.
 
 To keep things fair and legal for everyone, please make sure that you:
 
-- Only use the App with a Google account that you own or are authorised to use.
-- Only upload photos that you own or have the right to upload and organise.
+- Only use the App with a Google account that you own or are authorized to use.
+- Only upload photos that you own or have the right to upload and organize.
 - Comply with [Google's Terms of Service](https://policies.google.com/terms) and
   [Google Photos policies](https://policies.google.com/privacy).
 - Do not use the App to upload content that infringes someone else's copyright or other
@@ -104,7 +104,7 @@ The App is provided **"as is"** and **"as available"**. The Developer does not m
 promises about the App — for example, that it will always work correctly, that it will be
 available without interruption, or that it will produce the results you expect.
 
-The App performs automated uploads and organisational actions on your Google Photos library.
+The App performs automated uploads and organizational actions on your Google Photos library.
 While designed to operate safely, such operations may result in unintended outcomes,
 including duplicate uploads or incomplete uploads, due to software errors or unforeseen
 interactions with third-party services. You acknowledge and accept these risks.
@@ -150,7 +150,7 @@ You are responsible for making sure that:
 
 - You maintain independent backups of your photos at all times. Never rely solely on any single 
   storage location — including Google Photos — as your only copy of important photos.
-- You have the right to upload and organise the photos you process with the App.
+- You have the right to upload and organize the photos you process with the App.
 - You are comfortable with the changes the App will make to your Google Photos library
   before you let it proceed.
 
