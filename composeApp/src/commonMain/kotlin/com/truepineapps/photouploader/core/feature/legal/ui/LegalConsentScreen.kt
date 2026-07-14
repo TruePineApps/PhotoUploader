@@ -45,7 +45,6 @@ import com.truepineapps.photouploader.resources.privacy_policy
 import com.truepineapps.photouploader.resources.terms_of_service
 import org.jetbrains.compose.resources.stringResource
 
-// TODO: replace dimensions with constants
 @Composable
 fun LegalConsentScreen(
     state: LegalUiState.ShowLegal,
