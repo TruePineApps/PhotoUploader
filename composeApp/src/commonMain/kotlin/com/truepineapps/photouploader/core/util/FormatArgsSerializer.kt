@@ -11,18 +11,18 @@ import kotlinx.serialization.encoding.Encoder
 @OptIn(ExperimentalSerializationApi::class)
 object FormatArgsSerializer : KSerializer<Array<out Any>> {
     override val descriptor: SerialDescriptor =
-        ArraySerializer(_root_ide_package_.com.truepineapps.photouploader.core.util.PrimitiveFormatValue.serializer()).descriptor
+        ArraySerializer(PrimitiveFormatValue.serializer()).descriptor
 
     override fun serialize(encoder: Encoder, value: Array<out Any>) {
         encoder.encodeSerializableValue(
-            ArraySerializer(_root_ide_package_.com.truepineapps.photouploader.core.util.PrimitiveFormatValue.serializer()),
-            value.map { arg -> _root_ide_package_.com.truepineapps.photouploader.core.util.PrimitiveFormatValue.toFormatValue(arg) }.toTypedArray()
+            ArraySerializer(PrimitiveFormatValue.serializer()),
+            value.map { arg -> PrimitiveFormatValue.toFormatValue(arg) }.toTypedArray()
         )
     }
 
     override fun deserialize(decoder: Decoder): Array<Any> {
         return decoder.decodeSerializableValue(
-            ArraySerializer(_root_ide_package_.com.truepineapps.photouploader.core.util.PrimitiveFormatValue.serializer())
+            ArraySerializer(PrimitiveFormatValue.serializer())
         ).map { value -> value.argValue }.toTypedArray()
     }
 }
@@ -35,70 +35,48 @@ sealed class PrimitiveFormatValue {
         fun toFormatValue(value: Any): PrimitiveFormatValue {
             return when (value) {
                 // Allow UiText arguments to be serialized
-                is com.truepineapps.photouploader.core.util.UiText -> _root_ide_package_.com.truepineapps.photouploader.core.util.UiTextFormatValue(
-                    value
-                )
-                is String -> _root_ide_package_.com.truepineapps.photouploader.core.util.StringFormatValue(
-                    value
-                )
-                is Boolean -> _root_ide_package_.com.truepineapps.photouploader.core.util.BooleanFormatValue(
-                    value
-                )
-                is Byte -> _root_ide_package_.com.truepineapps.photouploader.core.util.ByteFormatValue(
-                    value
-                )
-                is Short -> _root_ide_package_.com.truepineapps.photouploader.core.util.ShortFormatValue(
-                    value
-                )
-                is Int -> _root_ide_package_.com.truepineapps.photouploader.core.util.IntFormatValue(
-                    value
-                )
-                is Long -> _root_ide_package_.com.truepineapps.photouploader.core.util.LongFormatValue(
-                    value
-                )
-                is Float -> _root_ide_package_.com.truepineapps.photouploader.core.util.FloatFormatValue(
-                    value
-                )
-                is Double -> _root_ide_package_.com.truepineapps.photouploader.core.util.DoubleFormatValue(
-                    value
-                )
-                is Char -> _root_ide_package_.com.truepineapps.photouploader.core.util.CharFormatValue(
-                    value
-                )
-                else -> _root_ide_package_.com.truepineapps.photouploader.core.util.StringFormatValue(
-                    value.toString()
-                )
+                is UiText -> UiTextFormatValue(value)
+                is String -> StringFormatValue(value)
+                is Boolean -> BooleanFormatValue(value)
+                is Byte -> ByteFormatValue(value)
+                is Short -> ShortFormatValue(value)
+                is Int -> IntFormatValue(value)
+                is Long -> LongFormatValue(value)
+                is Float -> FloatFormatValue(value)
+                is Double -> DoubleFormatValue(value)
+                is Char -> CharFormatValue(value)
+                else -> StringFormatValue(value.toString())
             }
         }
     }
 }
 
 @Serializable
-data class BooleanFormatValue(override val argValue: Boolean) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class BooleanFormatValue(override val argValue: Boolean) : PrimitiveFormatValue()
 
 @Serializable
-data class ByteFormatValue(override val argValue: Byte) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class ByteFormatValue(override val argValue: Byte) : PrimitiveFormatValue()
 
 @Serializable
-data class ShortFormatValue(override val argValue: Short) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class ShortFormatValue(override val argValue: Short) : PrimitiveFormatValue()
 
 @Serializable
-data class IntFormatValue(override val argValue: Int) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class IntFormatValue(override val argValue: Int) : PrimitiveFormatValue()
 
 @Serializable
-data class LongFormatValue(override val argValue: Long) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class LongFormatValue(override val argValue: Long) : PrimitiveFormatValue()
 
 @Serializable
-data class FloatFormatValue(override val argValue: Float) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class FloatFormatValue(override val argValue: Float) : PrimitiveFormatValue()
 
 @Serializable
-data class DoubleFormatValue(override val argValue: Double) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class DoubleFormatValue(override val argValue: Double) : PrimitiveFormatValue()
 
 @Serializable
-data class CharFormatValue(override val argValue: Char) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class CharFormatValue(override val argValue: Char) : PrimitiveFormatValue()
 
 @Serializable
-data class StringFormatValue(override val argValue: String) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class StringFormatValue(override val argValue: String) : PrimitiveFormatValue()
 
 @Serializable
-data class UiTextFormatValue(override val argValue: com.truepineapps.photouploader.core.util.UiText) : com.truepineapps.photouploader.core.util.PrimitiveFormatValue()
+data class UiTextFormatValue(override val argValue: UiText) : PrimitiveFormatValue()

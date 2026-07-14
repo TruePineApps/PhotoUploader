@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.foundation.auth.data.repository
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 class StubGoogleAuthService : GoogleAuthService {
     override suspend fun signIn(): UserProfile {
@@ -16,7 +17,7 @@ class StubGoogleAuthService : GoogleAuthService {
     }
 
     override suspend fun signOut() {
-        delay(500)
+        delay(500.milliseconds)
     }
 
     override suspend fun restoreSignIn(): UserProfile? {

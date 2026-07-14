@@ -4,7 +4,7 @@ package com.truepineapps.photouploader.core.localization
  * Manages the application-wide preferred locale.
  */
 interface PlatformLocaleManager :
-    com.truepineapps.photouploader.core.localization.PlatformLocaleProvider { // Extends LocaleProvider for convenience
+    PlatformLocaleProvider { // Extends LocaleProvider for convenience
     /**
      * Platform-specific function to set the chosen locale tag to the application's environment.
      * Passing null will result in using the system's default locale.

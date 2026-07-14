@@ -79,21 +79,6 @@ open class CalfPlatformPicker : PlatformPicker {
         launchFilePicker(show = show, pickerLauncher = pickerLauncher)
     }
 
-    @Composable
-    fun PlatformFolderPicker(
-        show: Boolean,
-        onFolderSelected: (KmpFile) -> Unit,
-    ) {
-        val pickerLauncher = rememberFilePickerLauncher(
-            type = FilePickerFileType.Folder,
-            selectionMode = FilePickerSelectionMode.Single,
-            onResult = { files ->
-                if (files.isNotEmpty()) onFolderSelected(files[0])
-            }
-        )
-        launchFilePicker(show = show, pickerLauncher = pickerLauncher)
-    }
-
     protected fun launchFilePicker(show: Boolean, pickerLauncher: FilePickerLauncher) {
         if (show) {
             pickerLauncher.launch()

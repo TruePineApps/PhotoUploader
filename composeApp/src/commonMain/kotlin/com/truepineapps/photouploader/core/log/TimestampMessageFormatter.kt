@@ -9,8 +9,8 @@ import com.truepineapps.photouploader.core.util.now
 
 object TimestampMessageFormatter : MessageStringFormatter {
     override fun formatMessage(severity: Severity?, tag: Tag?, message: Message): String {
-        val timestampString = _root_ide_package_.com.truepineapps.photouploader.core.util.DEFAULT_TIMESTAMP_FORMAT.format(
-            _root_ide_package_.com.truepineapps.photouploader.core.util.now()
+        val timestampString = DEFAULT_TIMESTAMP_FORMAT.format(
+            now()
         )
         // Super implementation prefixed with timestamp
         val sb = StringBuilder(timestampString).append(" ")

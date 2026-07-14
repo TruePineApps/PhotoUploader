@@ -26,7 +26,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ErrorScreen(message: String, retryAction: () -> Unit, modifier: Modifier = Modifier) {
     // Positioning
-    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize(),) {
+    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         // Layout
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

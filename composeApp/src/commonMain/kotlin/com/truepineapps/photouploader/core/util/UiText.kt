@@ -30,7 +30,7 @@ sealed class UiText {
 }
 
 @Serializable
-open class UiTextString(private val str: String) : com.truepineapps.photouploader.core.util.UiText() {
+open class UiTextString(private val str: String) : UiText() {
     override fun isEmpty(): Boolean = str.isEmpty()
 
     override fun toString(): String = str
@@ -40,15 +40,15 @@ open class UiTextString(private val str: String) : com.truepineapps.photouploade
 }
 
 @Serializable
-object EmptyText : com.truepineapps.photouploader.core.util.UiTextString("") {
+object EmptyText : UiTextString("") {
     override fun isEmpty(): Boolean = true
 }
 
-@Serializable(with = _root_ide_package_.com.truepineapps.photouploader.core.util.UiTextResourceSerializer::class)
+@Serializable(with = UiTextResourceSerializer::class)
 data class UiTextResource(
     val resource: StringResource,
     val formatArgs: List<Any> = emptyList(),
-) : com.truepineapps.photouploader.core.util.UiText() {
+) : UiText() {
 
     constructor(resource: StringResource, vararg args: Any) : this(resource, args.toList())
 

@@ -17,18 +17,8 @@
 
 package com.truepineapps.photouploader.core.util
 
-import com.truepineapps.photouploader.core.util.daysInMonth
-import com.truepineapps.photouploader.core.util.format
-import com.truepineapps.photouploader.core.util.formatDate
-import com.truepineapps.photouploader.core.util.formatDateTime
-import com.truepineapps.photouploader.core.util.formatTime
-import com.truepineapps.photouploader.core.util.getPreviousOrSameOffset
-import com.truepineapps.photouploader.core.util.toInstant
-import com.truepineapps.photouploader.core.util.toLocalDateTime
-import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -45,37 +35,39 @@ import kotlinx.datetime.periodUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 // region Now
 
-/** Now as Instant */
+/** Now as [Instant] */
 @OptIn(ExperimentalTime::class)
 fun nowInstant(): Instant = Clock.System.now()
 
 @OptIn(ExperimentalTime::class)
-fun startOfMonthInstant(): Instant = _root_ide_package_.com.truepineapps.photouploader.core.util.startOfMonth()
+fun startOfMonthInstant(): Instant = startOfMonth()
     .toInstant()
 
 @OptIn(ExperimentalTime::class)
-fun endOfMonthInstant(): Instant = _root_ide_package_.com.truepineapps.photouploader.core.util.endOfMonth()
+fun endOfMonthInstant(): Instant = endOfMonth()
     .toInstant()
 
-/** Now as LocalDateTime */
+/** Now as [LocalDateTime] */
 @OptIn(ExperimentalTime::class)
-fun now(): LocalDateTime = _root_ide_package_.com.truepineapps.photouploader.core.util.nowInstant().toLocalDateTime(TimeZone.currentSystemDefault())
+fun now(): LocalDateTime = nowInstant().toLocalDateTime(TimeZone.currentSystemDefault())
 
 /** Now in UTC milliseconds */
 @OptIn(ExperimentalTime::class)
-fun nowMillis(): Long = _root_ide_package_.com.truepineapps.photouploader.core.util.nowInstant().toEpochMilliseconds()
+fun nowMillis(): Long = nowInstant().toEpochMilliseconds()
 
 fun startOfMonth(): LocalDate {
-    val now = _root_ide_package_.com.truepineapps.photouploader.core.util.now()
+    val now = now()
     return LocalDate(now.year, now.month, 1)
 }
 
 fun endOfMonth(): LocalDate {
-    return _root_ide_package_.com.truepineapps.photouploader.core.util.startOfMonth()
+    return startOfMonth()
         .plus(1, DateTimeUnit.MONTH)
 }
 
@@ -83,21 +75,21 @@ fun endOfMonth(): LocalDate {
 
 // region Conversion
 
-/** Convert UTC milliseconds to LocalDateTime in the default time zone */
+/** Convert UTC milliseconds to [LocalDateTime] in the default time zone */
 @OptIn(ExperimentalTime::class)
 fun ofEpochMilli(utcMillis: Long): LocalDateTime =
     Instant.fromEpochMilliseconds(utcMillis).toLocalDateTime(TimeZone.currentSystemDefault())
 
-/** Convert LocalDateTime to UTC milliseconds */
+/** Convert [LocalDateTime] to UTC milliseconds */
 @OptIn(ExperimentalTime::class)
 fun LocalDateTime.toEpochMilli(): Long =
     toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
 
-/** Convert Instant to LocalDateTime using the default time zone */
+/** Convert [Instant] to [LocalDateTime] using the default time zone */
 @OptIn(ExperimentalTime::class)
 fun Instant.toLocalDateTime(): LocalDateTime = toLocalDateTime(TimeZone.currentSystemDefault())
 
-/** Convert LocalDate to Instant using the default time zone */
+/** Convert [LocalDate] to [Instant] using the default time zone */
 @OptIn(ExperimentalTime::class)
 fun LocalDate.toInstant(): Instant = atStartOfDayIn(TimeZone.currentSystemDefault())
 
@@ -107,7 +99,7 @@ fun LocalDate.toInstant(): Instant = atStartOfDayIn(TimeZone.currentSystemDefaul
 private val regex = """(yyyy|yy|MM|dd|HH|mm|ss)|(.)""".toRegex()
 private fun getDateTimeFormat(pattern: String): DateTimeFormat<LocalDateTime> =
     LocalDateTime.Format {
-        _root_ide_package_.com.truepineapps.photouploader.core.util.regex.findAll(pattern).forEach { matchResult ->
+        regex.findAll(pattern).forEach { matchResult ->
             val token = matchResult.groupValues[1]
             val literal = matchResult.groupValues[2]
 
@@ -130,7 +122,7 @@ private fun getDateTimeFormat(pattern: String): DateTimeFormat<LocalDateTime> =
     }
 
 private fun getDateFormat(pattern: String): DateTimeFormat<LocalDate> = LocalDate.Format {
-    _root_ide_package_.com.truepineapps.photouploader.core.util.regex.findAll(pattern).forEach { matchResult ->
+    regex.findAll(pattern).forEach { matchResult ->
         val token = matchResult.groupValues[1]
         val literal = matchResult.groupValues[2]
 
@@ -150,7 +142,7 @@ private fun getDateFormat(pattern: String): DateTimeFormat<LocalDate> = LocalDat
 }
 
 private fun getTimeFormat(pattern: String): DateTimeFormat<LocalTime> = LocalTime.Format {
-    _root_ide_package_.com.truepineapps.photouploader.core.util.regex.findAll(pattern).forEach { matchResult ->
+    regex.findAll(pattern).forEach { matchResult ->
         val token = matchResult.groupValues[1]
         val literal = matchResult.groupValues[2]
 
@@ -168,19 +160,19 @@ private fun getTimeFormat(pattern: String): DateTimeFormat<LocalTime> = LocalTim
     }
 }
 
-/** Format a LocalDateTime according to the given pattern */
+/** Format a [LocalDateTime] according to the given pattern */
 fun LocalDateTime.format(pattern: String): String = format(
-    _root_ide_package_.com.truepineapps.photouploader.core.util.getDateTimeFormat(
+    getDateTimeFormat(
         pattern
     )
 )
 fun LocalDate.format(pattern: String): String = format(
-    _root_ide_package_.com.truepineapps.photouploader.core.util.getDateFormat(
+    getDateFormat(
         pattern
     )
 )
 fun LocalTime.format(pattern: String): String = format(
-    _root_ide_package_.com.truepineapps.photouploader.core.util.getTimeFormat(
+    getTimeFormat(
         pattern
     )
 )
@@ -228,32 +220,32 @@ val DEFAULT_INSTANT_DATETIME_FORMAT by lazy {
 fun formatUtcMillis(utcMillis: Long?): String {
     if (utcMillis == null) return ""
     val dateTime =
-        _root_ide_package_.com.truepineapps.photouploader.core.util.ofEpochMilli(utcMillis)
+        ofEpochMilli(utcMillis)
     return dateTime.formatDateTime()
 }
 
-/** Format a LocalDateTime according to the short default format */
+/** Format a [LocalDateTime] according to the short default format */
 fun LocalDateTime.formatDateTime(): String = "${formatDate()} ${formatTime()}"
 
-/** Format a LocalDateTime as a date according to the short default format */
+/** Format a [LocalDateTime] as a date according to the short default format */
 fun LocalDateTime.formatDate(): String = date.format()
 
-/** Format a LocalDateTime as a time according to the short default format */
+/** Format a [LocalDateTime] as a time according to the short default format */
 fun LocalDateTime.formatTime(): String = time.format()
 
 
-/** Format a LocalDate according to the short default format */
-fun LocalDate.format(): String = _root_ide_package_.com.truepineapps.photouploader.core.util.DEFAULT_DATE_FORMAT.format(this)
+/** Format a [LocalDate] according to the short default format */
+fun LocalDate.format(): String = DEFAULT_DATE_FORMAT.format(this)
 
-/** Format a LocalTime according to the short default format */
-fun LocalTime.format(): String = _root_ide_package_.com.truepineapps.photouploader.core.util.DEFAULT_TIME_FORMAT.format(this)
+/** Format a [LocalTime] according to the short default format */
+fun LocalTime.format(): String = DEFAULT_TIME_FORMAT.format(this)
 
 /** Format the time component of an Instant according to the short default format */
 @OptIn(ExperimentalTime::class)
 fun Instant.formatTime(): String = toLocalDateTime().formatTime()
 
 /** Parse a date string according to the short default format */
-fun String.parseDate(): LocalDate = _root_ide_package_.com.truepineapps.photouploader.core.util.DEFAULT_DATE_FORMAT.parse(this)
+fun String.parseDate(): LocalDate = DEFAULT_DATE_FORMAT.parse(this)
 
 // endregion
 
