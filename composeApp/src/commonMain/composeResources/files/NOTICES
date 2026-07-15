@@ -7,12 +7,12 @@ True Pine Apps (https://www.truepineapps.com/).
 THIRD-PARTY SOFTWARE NOTICES
 ============================================================
 
-Total Unique Packages: 246
+Total Unique Packages: 248
 Note: Where packages are listed under combined license headers (e.g., Apache-2.0 OR LGPL),
 True Pine Apps distributes them under the Apache-2.0 license.
 
 ------------------------------------------------------------
-Apache-2.0 (242 packages)
+Apache-2.0 (244 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 ------------------------------------------------------------
   androidx.annotation:annotation:1.9.1  (https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1)
@@ -73,14 +73,14 @@ https://www.apache.org/licenses/LICENSE-2.0
   com.google.oauth-client:google-oauth-client:1.39.0
   com.google.oauth-client:google-oauth-client-java6:1.39.0
   com.google.oauth-client:google-oauth-client-jetty:1.39.0
-  com.mohamedrejeb.calf:calf-core:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-core-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-coil:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-coil-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-file-picker-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-io:0.11.0  (https://github.com/MohamedRejeb/Calf)
-  com.mohamedrejeb.calf:calf-io-desktop:0.11.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-core:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-core-desktop:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-coil:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-coil-desktop:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-file-picker-desktop:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-io:0.12.0  (https://github.com/MohamedRejeb/Calf)
+  com.mohamedrejeb.calf:calf-io-desktop:0.12.0  (https://github.com/MohamedRejeb/Calf)
   com.mohamedrejeb.ksoup:ksoup-entities:0.6.0  (https://github.com/MohamedRejeb/Ksoup)
   com.mohamedrejeb.ksoup:ksoup-entities-jvm:0.6.0  (https://github.com/MohamedRejeb/Ksoup)
   com.mohamedrejeb.ksoup:ksoup-html:0.6.0  (https://github.com/MohamedRejeb/Ksoup)
@@ -107,20 +107,20 @@ https://www.apache.org/licenses/LICENSE-2.0
   io.coil-kt.coil3:coil-network-ktor3-jvm:3.5.0  (https://github.com/coil-kt/coil)
   io.grpc:grpc-api:1.70.0  (https://github.com/grpc/grpc-java)
   io.grpc:grpc-context:1.70.0  (https://github.com/grpc/grpc-java)
-  io.insert-koin:koin-annotations:2.3.1  (https://insert-koin.io/)
-  io.insert-koin:koin-annotations-jvm:2.3.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose-jvm:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose-viewmodel:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose-viewmodel-jvm:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose-viewmodel-navigation:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-compose-viewmodel-navigation-jvm:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-core:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-core-annotations:4.1.0  (https://insert-koin.io/)
-  io.insert-koin:koin-core-annotations-jvm:4.1.0  (https://insert-koin.io/)
-  io.insert-koin:koin-core-jvm:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-core-viewmodel:4.1.1  (https://insert-koin.io/)
-  io.insert-koin:koin-core-viewmodel-jvm:4.1.1  (https://insert-koin.io/)
+  io.insert-koin:koin-annotations:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-annotations-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose-viewmodel:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose-viewmodel-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose-viewmodel-navigation:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-compose-viewmodel-navigation-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core-annotations:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core-annotations-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core-jvm:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core-viewmodel:4.2.2  (https://insert-koin.io/)
+  io.insert-koin:koin-core-viewmodel-jvm:4.2.2  (https://insert-koin.io/)
   io.ktor:ktor-client-auth:3.5.1  (https://github.com/ktorio/ktor)
   io.ktor:ktor-client-auth-jvm:3.5.1  (https://github.com/ktorio/ktor)
   io.ktor:ktor-client-cio:3.5.1  (https://github.com/ktorio/ktor)
@@ -235,6 +235,8 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0  (https://github.com/Kotlin/kotlinx.coroutines)
   org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0  (https://github.com/Kotlin/kotlinx.coroutines)
   org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.11.0  (https://github.com/Kotlin/kotlinx.coroutines)
+  org.jetbrains.kotlinx:kotlinx-datetime:0.8.0  (https://github.com/Kotlin/kotlinx-datetime)
+  org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.8.0  (https://github.com/Kotlin/kotlinx-datetime)
   org.jetbrains.kotlinx:kotlinx-datetime:0.7.1  (https://github.com/Kotlin/kotlinx-datetime)
   org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1  (https://github.com/Kotlin/kotlinx-datetime)
   org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.0  (https://github.com/Kotlin/kotlinx-io)
