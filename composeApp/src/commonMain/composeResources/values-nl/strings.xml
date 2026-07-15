@@ -106,6 +106,7 @@
     <string name="legal_section_privacy">Privacybeleid</string>
 
     <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
+    <string name="scroll_to_read">Scroll naar beneden om alles te lezen voordat u akkoord gaat.</string>
     <string name="legal_checkbox_terms">Ik heb de gebruiksvoorwaarden gelezen en ga hiermee akkoord</string>
     <string name="legal_checkbox_privacy">Ik heb het privacybeleid gelezen en ga hiermee akkoord</string>
 

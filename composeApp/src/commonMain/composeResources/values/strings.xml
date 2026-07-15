@@ -102,6 +102,7 @@
     <string name="privacy_policy">Privacy Policy</string>
 
     <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
+    <string name="scroll_to_read">Scroll to read before accepting</string>
     <string name="legal_checkbox_terms">I have read and accept the Terms of Service</string>
     <string name="legal_checkbox_privacy">I have read and accept the Privacy Policy</string>
 

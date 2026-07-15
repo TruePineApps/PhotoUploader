@@ -42,6 +42,7 @@ import com.truepineapps.photouploader.resources.legal_checkbox_terms
 import com.truepineapps.photouploader.resources.legal_title_first_launch
 import com.truepineapps.photouploader.resources.legal_title_update
 import com.truepineapps.photouploader.resources.privacy_policy
+import com.truepineapps.photouploader.resources.scroll_to_read
 import com.truepineapps.photouploader.resources.terms_of_service
 import org.jetbrains.compose.resources.stringResource
 
@@ -75,21 +76,21 @@ fun LegalConsentScreen(
             LegalSection(
                 title = stringResource(Res.string.terms_of_service),
                 body = state.content.termsOfService,
+                isCheckboxEnabled = state.termsScrolled,
                 isChecked = state.termsChecked,
-                checkLabel = stringResource(Res.string.legal_checkbox_terms),
+                checkText = stringResource(Res.string.legal_checkbox_terms),
                 onScrolledToBottom = { onIntent(LegalIntent.TermsScrolledToBottom) },
-                onChecked = { onIntent(LegalIntent.TermsChecked(it)) },
-            )
+            ) { onIntent(LegalIntent.TermsChecked(it)) }
 
             // ── Privacy Policy ────────────────────────────────────────────
             LegalSection(
                 title = stringResource(Res.string.privacy_policy),
                 body = state.content.privacyPolicy,
+                isCheckboxEnabled = state.privacyScrolled,
                 isChecked = state.privacyChecked,
-                checkLabel = stringResource(Res.string.legal_checkbox_privacy),
+                checkText = stringResource(Res.string.legal_checkbox_privacy),
                 onScrolledToBottom = { onIntent(LegalIntent.PrivacyScrolledToBottom) },
-                onChecked = { onIntent(LegalIntent.PrivacyChecked(it)) },
-            )
+            ) { onIntent(LegalIntent.PrivacyChecked(it)) }
 
             // ── Backup Acknowledgement ────────────────────────────────────
             BackupAcknowledgementRow(
@@ -115,8 +116,9 @@ fun LegalConsentScreen(
 private fun LegalSection(
     title: String,
     body: String,
+    isCheckboxEnabled: Boolean,
     isChecked: Boolean,
-    checkLabel: String,
+    checkText: String,
     onScrolledToBottom: () -> Unit,
     onChecked: (Boolean) -> Unit,
 ) {
@@ -154,9 +156,13 @@ private fun LegalSection(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isChecked, onCheckedChange = onChecked)
+                Checkbox(checked = isChecked, enabled = isCheckboxEnabled, onCheckedChange = onChecked)
                 Spacer(Modifier.width(Dimensions.padding_small))
-                Text(text = checkLabel, style = MaterialTheme.typography.bodyMedium)
+                if (isCheckboxEnabled) {
+                    Text(text = checkText, style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Text(text = stringResource(Res.string.scroll_to_read), style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }
