@@ -37,7 +37,7 @@ interface NumberFormatter {
 
     // This default implementation requires the 'this' instance of NumberFormatter.
     fun parseDecimal(formattedString: String): Double? =
-        _root_ide_package_.com.truepineapps.photouploader.core.localization.CommonNumberParser.parseDecimalCommon(formattedString, this)
+        CommonNumberParser.parseDecimalCommon(formattedString, this)
 
     // Could add formatInt, formatPercentage etc. later
 }
