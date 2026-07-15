@@ -28,7 +28,6 @@ fun LegalGateScreen(
         viewModel.checkAcceptance(context)
     }
 
-
     val state by viewModel.state.collectAsState()
 
     when (val s = state) {
