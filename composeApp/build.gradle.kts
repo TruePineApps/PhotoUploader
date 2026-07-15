@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -80,6 +82,18 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+        }
+    }
+
+    // Strip non-global (local) symbols from RELEASE binaries. Passes -x to Apple's ld linker,
+    // which discards Kotlin/Native metadata from __LINKEDIT (e.g. type descriptors, protocol
+    // conformance witnesses, etc.) that are unused by dyld at runtime.
+    // Reduces binary size substantially without affecting debugging (dSYMs are generated beforehand).
+    targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.all {
+            if (buildType == NativeBuildType.RELEASE) {
+                linkerOpts("-Wl,-x")
+            }
         }
     }
 
