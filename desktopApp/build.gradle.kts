@@ -145,6 +145,9 @@ compose.desktop {
  * 4. Standardize file permissions and ownership (root:root).
  * 
  * This class must not reference `project` or global variables in this file.
+ *
+ * Note that althoug using afterEvaluate is generally discourages, using it for a reporting task is
+ * appropriate.
  */
 afterEvaluate {
     // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)

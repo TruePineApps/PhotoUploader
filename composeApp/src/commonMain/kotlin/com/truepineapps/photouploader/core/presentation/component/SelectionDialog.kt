@@ -105,7 +105,7 @@ private fun <T> SelectionDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> SelectionDialogContent(
+fun <T> SelectionDialogContent(
     label: String,
     currentDisplayValue: Any,
     items: List<T>,

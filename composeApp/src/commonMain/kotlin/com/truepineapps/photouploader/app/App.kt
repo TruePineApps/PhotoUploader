@@ -145,7 +145,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
         snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
+            SnackbarHost(hostState = snackbarHostState) { data ->
                 // Custom Snackbar with error styling
                 Snackbar(
                     snackbarData = data,
