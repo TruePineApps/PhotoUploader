@@ -17,8 +17,8 @@ sealed interface LegalUiState {
         val backupChecked: Boolean,
     ) : LegalUiState {
         val canAccept: Boolean
-            get() = (termsScrolled || termsChecked)
-                    && (privacyScrolled || privacyChecked)
+            get() = termsScrolled && termsChecked
+                    && privacyScrolled && privacyChecked
                     && backupChecked
     }
 }

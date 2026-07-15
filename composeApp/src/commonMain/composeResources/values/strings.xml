@@ -76,7 +76,7 @@
     <string name="error_loading_license">Error loading licenses: %1$s</string>
     <string name="error_remote_file_not_found">Remote %1$s not found (%2$s)</string>
     <string name="remote_error">Remote error</string>
-    
+
     <!-- Upload statuses -->
     <string name="status_none"> </string>
     <string name="status_waiting">Waiting</string>
@@ -107,10 +107,12 @@
 
     <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
     <string name="legal_backup_acknowledgement">
-        I understand that this app does not back up my photos or data automatically.
-        It is my responsibility to maintain my own backups. Data loss due to device
-        failure, uninstallation, or accidental deletion cannot be recovered by the app or its
-        developer.
+        I understand that Photo-Uploader uploads photos to Google Photos but cannot
+    guarantee that all uploads are stored correctly. The App reports what was sent
+    and acknowledged — what Google Photos ultimately stores is beyond the App\'s
+    visibility. I am responsible for maintaining independent backups of my photos
+    at all times, and I will verify my uploads in Google Photos before deleting
+    any local copies.
     </string>
 
     <!-- Accept button -->

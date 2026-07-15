@@ -22,9 +22,9 @@ If you do not agree, please do not install or use the App. You will also be aske
 your agreement the first time you launch the App.
 
 **Contact:**
-**Marcel van Heerwaarden**, trading as **True Pine Apps**    
+**Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
-Email: marcel@truepineapps.com    
+Email: marcel@truepineapps.com  
 Full contact details: https://truepineapps.com/en/imprint  
 
 ---
