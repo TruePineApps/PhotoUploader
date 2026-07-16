@@ -3,8 +3,8 @@ package com.truepineapps.photouploader.app.di
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.koin.KermitKoinLogger
 import com.russhwolf.settings.Settings
-import com.truepineapps.photouploader.core.feature.moremenu.viewmodel.LicenseViewModel
 import com.truepineapps.photouploader.core.feature.legal.di.legalModule
+import com.truepineapps.photouploader.core.feature.legal.viewmodel.LicenseViewModel
 import com.truepineapps.photouploader.core.feature.moremenu.di.moreMenuModule
 import com.truepineapps.photouploader.core.feature.settings.data.repository.UserPreferencesSettingsRepository
 import com.truepineapps.photouploader.core.feature.settings.domain.repository.UserPreferencesRepository

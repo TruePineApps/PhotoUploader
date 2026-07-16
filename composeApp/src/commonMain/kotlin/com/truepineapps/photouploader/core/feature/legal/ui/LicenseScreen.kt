@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moremenu.ui
+package com.truepineapps.photouploader.core.feature.legal.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -37,7 +37,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import com.truepineapps.photouploader.core.feature.moremenu.navigation.LicenseDestination
+import com.truepineapps.photouploader.core.feature.legal.navigation.LicenseDestination
+import com.truepineapps.photouploader.core.feature.legal.viewmodel.LicenseViewModel
+import com.truepineapps.photouploader.core.feature.legal.viewmodel.LoadLicenseResult
+import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.error_loading_license
@@ -49,10 +53,6 @@ import com.truepineapps.photouploader.resources.loading
 import com.truepineapps.photouploader.resources.noto_sans
 import com.truepineapps.photouploader.resources.third_party_notices
 import com.truepineapps.photouploader.resources.unknown_error
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
-import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
-import com.truepineapps.photouploader.core.feature.moremenu.viewmodel.LicenseViewModel
-import com.truepineapps.photouploader.core.feature.moremenu.viewmodel.LoadLicenseResult
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 

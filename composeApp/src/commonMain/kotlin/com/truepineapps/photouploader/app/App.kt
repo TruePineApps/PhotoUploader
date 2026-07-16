@@ -37,8 +37,8 @@ import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import com.truepineapps.photouploader.app.navigation.PhotoUploaderAppNavHost
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.legal.ui.LegalGateScreen
-import com.truepineapps.photouploader.core.feature.moremenu.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
+import com.truepineapps.photouploader.core.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderAppBar

@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moremenu.navigation
+package com.truepineapps.photouploader.core.feature.legal.navigation
 
 import com.truepineapps.photouploader.core.presentation.navigation.NavigationDestination
 import com.truepineapps.photouploader.resources.Res

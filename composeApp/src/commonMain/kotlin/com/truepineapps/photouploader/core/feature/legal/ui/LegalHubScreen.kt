@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moremenu.ui
+package com.truepineapps.photouploader.core.feature.legal.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.truepineapps.photouploader.core.feature.moremenu.navigation.LegalDestination
+import com.truepineapps.photouploader.core.feature.legal.navigation.LegalDestination
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.licenses

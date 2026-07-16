@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moremenu.viewmodel
+package com.truepineapps.photouploader.core.feature.legal.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

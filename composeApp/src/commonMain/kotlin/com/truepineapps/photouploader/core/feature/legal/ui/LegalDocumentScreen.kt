@@ -1,4 +1,4 @@
-package com.truepineapps.photouploader.core.feature.moremenu.ui
+package com.truepineapps.photouploader.core.feature.legal.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.truepineapps.photouploader.core.feature.legal.ui.LegalErrorScreen
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalViewModel
 import com.truepineapps.photouploader.core.presentation.component.MarkDownText
@@ -24,10 +23,11 @@ import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.loading
 import com.truepineapps.photouploader.resources.privacy_policy
 import com.truepineapps.photouploader.resources.terms_of_service
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-enum class DocumentType(val titleRes: org.jetbrains.compose.resources.StringResource) {
+enum class DocumentType(val titleRes: StringResource) {
     TERMS(Res.string.terms_of_service),
     PRIVACY(Res.string.privacy_policy)
 }

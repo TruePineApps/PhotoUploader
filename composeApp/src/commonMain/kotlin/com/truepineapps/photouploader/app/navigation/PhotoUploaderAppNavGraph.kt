@@ -19,9 +19,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import co.touchlab.kermit.Logger
-import com.truepineapps.photouploader.core.feature.moremenu.navigation.aboutGraph
 import com.truepineapps.photouploader.core.feature.settings.navigation.settingsGraph
 import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
+import com.truepineapps.photouploader.core.navigation.aboutGraph
 import com.truepineapps.photouploader.core.presentation.navigation.getStringArg
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoListDestination
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoListScreen

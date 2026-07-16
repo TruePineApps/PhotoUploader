@@ -110,6 +110,10 @@ navigation (depends on ui)      di (depends on data + domain)
   import `ui` or `viewmodel`.
 * **`navigation`** imports `ui` (to reference screen composables) and `domain/model` (for typed
   route arguments). It must never import `data` or `di`.
+* **Shared Navigation:** Navigation functionality that bridges `core` features
+    (e.g., `MoreMenuNavigator`) should reside in `core/navigation/`. This
+    allows integrated core feature navigation without depending on the `app` layer
+    directly.
 
 The arrow on `domain` is intentionally bidirectional: both `viewmodel` and `data` depend on
 `domain`, but `domain` depends on neither. This is the **Dependency Inversion Principle** in
