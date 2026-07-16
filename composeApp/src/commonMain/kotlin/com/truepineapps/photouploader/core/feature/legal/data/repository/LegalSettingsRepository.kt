@@ -45,6 +45,11 @@ class LegalSettingsRepository(
             }
         }
 
+    override suspend fun getLocalLegalContent(context: PlatformContext): Result<LegalContent> =
+        withContext(defaultDispatcher) {
+            localDataSource.readContent(context)
+        }
+
     override fun getAcceptedVersion(): String? =
         settings.getStringOrNull(PREF_KEY_ACCEPTED_VERSION)
 

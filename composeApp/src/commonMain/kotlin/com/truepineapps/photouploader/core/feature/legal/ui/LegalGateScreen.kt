@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalIntent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
@@ -17,7 +18,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LegalGateScreen(
     viewModel: LegalViewModel = koinViewModel(),
-    appContent: @Composable () -> Unit,
+    log: Logger,
+    appContent: @Composable () -> Unit
 ) {
     val context = LocalPlatformContext.current
 
@@ -43,5 +45,9 @@ fun LegalGateScreen(
         )
 
         is LegalUiState.Accepted -> appContent()
+        else -> {
+            // DocumentLoaded is never returned by viewModel.checkAcceptance
+            log.e("Unexpected state: $state")
+        }
     }
 }

@@ -75,7 +75,7 @@ fun PhotoUploaderAppNavHost(
 
         /* Menu screens */
         settingsGraph(onUpdateTopAppBar, log, settingsViewModel)
-        aboutGraph(onUpdateTopAppBar)
+        aboutGraph(onUpdateTopAppBar, navController, log)
     }
 }
 

@@ -136,6 +136,27 @@ class LegalViewModel(
         }
     }
 
+    fun loadDocument(context: PlatformContext) {
+        _state.value = LegalUiState.Loading
+        viewModelScope.launch {
+            legalRepository.getLocalLegalContent(context).fold(
+                onSuccess = { content ->
+                    _state.value = LegalUiState.DocumentLoaded(content)
+                },
+                onFailure = { throwable ->
+                    _state.value = LegalUiState.Error(
+                        listOf(
+                            mapThrowableToUiText(
+                                throwable,
+                                Res.string.remote_error
+                            )
+                        )
+                    )
+                }
+            )
+        }
+    }
+
     private fun acceptAndProceed() {
         val current = _state.value as? LegalUiState.ShowLegal ?: return
         legalRepository.saveAcceptedVersion(current.content.latestVersion)

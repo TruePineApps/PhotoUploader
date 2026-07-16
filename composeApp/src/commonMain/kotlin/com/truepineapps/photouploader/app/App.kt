@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import co.touchlab.kermit.Logger
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.memory.MemoryCache
@@ -54,6 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun App(
     modifier: Modifier = Modifier,
     startDestination: String = PhotoUploaderDestination.route,
+    log: Logger = koinInject()
 ) {
     // Configure the Coil image loader for KmpFile and using max 25% of avail memory for thumbnails
     setSingletonImageLoaderFactory { context ->
@@ -70,7 +72,7 @@ fun App(
 
     AppTheme {
         AppEnvironment(localeViewModel = koinInject()) {
-            LegalGateScreen {
+            LegalGateScreen(log = log) {
                 ThemedLocalizedLegalAcceptedApp(
                     startDestination = startDestination,
                     modifier = modifier

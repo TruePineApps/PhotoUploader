@@ -6,6 +6,7 @@ import com.truepineapps.photouploader.core.util.UiText
 sealed interface LegalUiState {
     data object Loading : LegalUiState
     data object Accepted : LegalUiState
+    data class DocumentLoaded(val content: LegalContent) : LegalUiState
     data class Error(val messages: List<UiText>) : LegalUiState
     data class ShowLegal(
         val content: LegalContent,

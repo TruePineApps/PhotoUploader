@@ -15,6 +15,7 @@ import com.truepineapps.photouploader.core.feature.settings.navigation.SettingsD
 interface MoreMenuNavigator {
     fun navigateToSettings()
     fun navigateToAbout()
+    fun navigateToLegalHub()
     fun navigateToLicenseScreen()
     fun navigateToDebugActions()
 }
@@ -26,6 +27,10 @@ class MoreMenuNavigatorImpl(private val navController: NavHostController) : More
 
     override fun navigateToAbout() {
         navController.navigate(AboutDestination.route)
+    }
+
+    override fun navigateToLegalHub() {
+        navController.navigate(LegalDestination.route)
     }
 
     override fun navigateToLicenseScreen() {

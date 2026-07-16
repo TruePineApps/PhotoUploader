@@ -16,7 +16,7 @@ import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
 import com.truepineapps.photouploader.resources.debug_actions
-import com.truepineapps.photouploader.resources.licenses
+import com.truepineapps.photouploader.resources.legal
 import com.truepineapps.photouploader.resources.more_menu
 import com.truepineapps.photouploader.resources.preferences
 import org.jetbrains.compose.resources.stringResource
@@ -56,9 +56,9 @@ fun MoreMenu(
             }
         )
         DropdownMenuItem(
-            text = { Text(stringResource(Res.string.licenses)) },
+            text = { Text(stringResource(Res.string.legal)) },
             onClick = {
-                moreMenuNavigator.navigateToLicenseScreen()
+                moreMenuNavigator.navigateToLegalHub()
                 expanded = false
             }
         )
