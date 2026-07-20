@@ -145,7 +145,7 @@ class PhotoUploaderViewModel(
                 performSignIn()
             } catch (e: CancellationException) {
                 // Job was canceled (e.g. via cancelProcess), stop gracefully
-                log.d { "signIn: Sign in canceled: ${e.message}" }
+                log.d( "signIn: Sign in canceled: ${e.message}")
             } finally {
                 processJob = null
             }
@@ -168,24 +168,24 @@ class PhotoUploaderViewModel(
             val userProfile = authService.signIn()
 
             if (userProfile != null) {
-                log.d { "sign in successful" }
+                log.d("sign in successful")
                 _viewState.update { it.copy(userProfile = userProfile) }
                 return true
             }
         } catch (e: CancellationException) {
-            log.d { "performSignIn: User canceled sign in: ${e.message}" }
+            log.d("performSignIn: User canceled sign in: ${e.message}")
             throw e // Re-throw to ensure the calling Job is canceled
         } catch (e: AuthException.NetworkError) {
-            log.d { "performSignIn: AuthException ${e::class.simpleName}: ${e.message}" }
+            log.d("performSignIn: AuthException ${e::class.simpleName}: ${e.message}")
             // We keep the credential, if any
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: AuthException) {
-            log.d { "performSignIn: AuthException ${e::class.simpleName}: ${e.message}" }
+            log.d("performSignIn: AuthException ${e::class.simpleName}: ${e.message}")
             // Token expired or general sign in failure: Remove credential
             handleAuthExpiry()
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
-            log.e(e) { "performSignIn: Sign in failed" }
+            log.e("performSignIn: Sign in failed",e)
             val uiText = if (e.message == null) {
                 UiTextResource(Res.string.error_unknown)
             } else {
@@ -205,7 +205,7 @@ class PhotoUploaderViewModel(
     fun cancelProcess() {
         // This will cancel the job running performSignIn(), triggering the CancellationException there
         // The finally block in performSignIn() will handle the state update
-        log.d { "cancelProcess: Cancel process" }
+        log.d("cancelProcess: Cancel process")
         processJob?.cancel()
         processJob = null
     }
@@ -224,7 +224,7 @@ class PhotoUploaderViewModel(
     fun updatePath(kmpFile: KmpFile, platformContext: PlatformContext) {
         val path = kmpFile.getAbsolutePath(platformContext)
         _viewState.update { it.copy(kmpFile = kmpFile, path = path ?: "") }
-        log.d { "updatePath: Setting path to '$path'" }
+        log.d("updatePath: Setting path to '$path'")
         repository.setPath(kmpFile, platformContext)
         // Trigger the repository.albums flow to reload, causing the state to remap
         reload()
@@ -274,7 +274,7 @@ class PhotoUploaderViewModel(
                 }
             }
         }
-        log.d { "toggleAlbums updated: $isUpdated" }
+        log.d("toggleAlbums updated: $isUpdated")
     }
 
     fun togglePhoto(albumId: String, photoPath: Path) {
@@ -305,6 +305,59 @@ class PhotoUploaderViewModel(
 
 
     /**
+     * Starts the upload process without re-authenticating.
+     * Assumes the user is already authenticated.
+     */
+    fun startUpload(platformContext: PlatformContext): Job? {
+        val state = uiState.value
+        val isIdle = state.idle()
+        if (state.albumUiStates.isNotEmpty() && isIdle) {
+            val job = viewModelScope.launch {
+                try {
+                    _viewState.update { it.copy(status = AppStatus.UPLOADING) }
+                    uploadPhotosImpl(state.albumUiStates, platformContext)
+                } catch (e: UploadException.GlobalException) {
+                    log.d("Upload process caught global exception: ${e.message} (${e.status})")
+                    resetNonFinalUploadStatuses()
+                    if (e.status == HttpStatusCode.Unauthorized
+                        || e.uiText.toString()
+                            .contains(other = "UNAUTHENTICATED", ignoreCase = true)
+                    ) {
+                        handleAuthExpiry()
+                    } else {
+                        _viewState.update { it.copy(globalErrorMessage = e.uiText) }
+                    }
+                } catch (e: CancellationException) {
+                    log.d("Upload process canceled: ${e.message}")
+                    if (_viewState.value.status == AppStatus.UPLOADING) {
+                        resetNonFinalUploadStatuses()
+                    }
+                } catch (e: Exception) {
+                    log.e("startUpload: Upload failed", e)
+                    resetNonFinalUploadStatuses()
+
+                    val uiText = if (e.message == null) {
+                        UiTextResource(Res.string.error_unknown)
+                    } else {
+                        UiTextString(e.message!!)
+                    }
+                    _viewState.update { it.copy(globalErrorMessage = uiText) }
+                } finally {
+                    disableSuccessfulUploads()
+
+                    _viewState.update { it.copy(status = AppStatus.IDLE) }
+                    if (processJob == coroutineContext[Job]) {
+                        processJob = null
+                    }
+                }
+            }
+            processJob = job
+            return job
+        }
+        return null
+    }
+
+    /**
      * Uploads photos based on the current UI state to Google Photos.
      */
     fun uploadPhotos(platformContext: PlatformContext): Job? {
@@ -323,7 +376,7 @@ class PhotoUploaderViewModel(
                         uploadPhotosImpl(state.albumUiStates, platformContext)
                     }
                 } catch (e: UploadException.GlobalException) {
-                    log.d { "Upload process caught global exception: ${e.message} (${e.status})" }
+                    log.d("Upload process caught global exception: ${e.message} (${e.status})")
                     resetNonFinalUploadStatuses()
                     if (e.status == HttpStatusCode.Unauthorized
                         || e.uiText.toString()
@@ -335,7 +388,7 @@ class PhotoUploaderViewModel(
                     }
                 } catch (e: CancellationException) {
                     // Job was canceled (e.g. via cancelProcess), stop gracefully
-                    log.d { "Upload process canceled: ${e.message}" }
+                    log.d("Upload process canceled: ${e.message}")
                     // When uploading, reset statuses to remove "Uploading" indicators
                     if (_viewState.value.status == AppStatus.UPLOADING) {
                         resetNonFinalUploadStatuses()
@@ -368,7 +421,7 @@ class PhotoUploaderViewModel(
 
             return job
         }
-        log.d { "No upload, albumUiStates.isEmpty() = ${state.albumUiStates.isEmpty()} and isIdle = $isIdle" }
+        log.d("No upload, albumUiStates.isEmpty() = ${state.albumUiStates.isEmpty()} and isIdle = $isIdle")
         return null
     }
 
@@ -440,7 +493,7 @@ class PhotoUploaderViewModel(
      * Handles 401 errors by signing out locally so the next attempt forces a fresh login.
      */
     private suspend fun handleAuthExpiry() {
-        log.d { "handleAuthExpiry: Signing out" }
+        log.d("handleAuthExpiry: Signing out")
 
         // Clear the invalid token from the local cache/file
         authService.signOut()
@@ -468,7 +521,7 @@ class PhotoUploaderViewModel(
         val userProfile = _viewState.value.userProfile
             ?: throw IllegalStateException("User profile not set")
 
-        log.d { "uploadPhotosImpl: Starting upload process" }
+        log.d("uploadPhotosImpl: Starting upload process")
 
         val albumsToUpload =
             albumUiStates.filter { it.isEnabled && it.photoUiStates.any { p -> p.isEnabled } }
@@ -476,13 +529,13 @@ class PhotoUploaderViewModel(
         // Set initial 'Waiting' status on all items to be uploaded
         setWaitingStatus(albumsToUpload)
 
-        log.d { "uploadPhotosImpl: Starting upload for ${albumsToUpload.size} albums" }
+        log.d("uploadPhotosImpl: Starting upload for ${albumsToUpload.size} albums")
 
         for (album in albumsToUpload) {
             uploadPhotosToNewAlbum(album, userProfile.accessToken, platformContext)
         }
 
-        log.d { "uploadPhotosImpl: Upload process completed!" }
+        log.d("uploadPhotosImpl: Upload process completed!")
     }
 
     internal fun setWaitingStatus(albumsToUpload: List<AlbumUiState>) {
@@ -552,7 +605,7 @@ class PhotoUploaderViewModel(
         // If no photos were successfully uploaded (e.g. all failed), the only thing to do is set
         // the album to a final status.
         if (uploadedItems.isEmpty()) {
-            log.d { "createMediaItemsForUpload:     No photos uploaded successfully for album ${currentAlbumUiState.name}, canceled = $isCancelled" }
+            log.d("createMediaItemsForUpload:     No photos uploaded successfully for album ${currentAlbumUiState.name}, canceled = $isCancelled")
             updateAlbumStatus(
                 albumId = albumId,
                 status = currentAlbumUiState.getDerivedUploadStatus(
@@ -592,10 +645,10 @@ class PhotoUploaderViewModel(
             try {
                 // Verify if the album ID is still valid on the server
                 if (photoUploader.verifyAlbumExists(googleAlbumId, accessToken = accessToken)) {
-                    log.d { "getOrCreateGoogleAlbum: Album '$albumName' already exists on Google Photos. Re-using it." }
+                    log.d("getOrCreateGoogleAlbum: Album '$albumName' already exists on Google Photos. Re-using it.")
                     return googleAlbumId
                 } else {
-                    log.d { "getOrCreateGoogleAlbum: Album ID for '$albumName' is stale. It will be recreated." }
+                    log.d("getOrCreateGoogleAlbum: Album ID for '$albumName' is stale. It will be recreated.")
                     // Clear the invalid ID from our local state before creating a new one.
                     updateAlbum(albumId) { currentAlbum -> currentAlbum.copy(googleAlbumId = null) }
                 }
@@ -608,10 +661,10 @@ class PhotoUploaderViewModel(
 
         // Create a new album.
         return try {
-            log.d { "getOrCreateGoogleAlbum: Creating new album on Google Photos for '$albumName'." }
+            log.d("getOrCreateGoogleAlbum: Creating new album on Google Photos for '$albumName'.")
             val googleAlbumId = photoUploader.createAlbum(albumName, accessToken)
             updateAlbum(albumId) { it.copy(googleAlbumId = googleAlbumId) }
-            log.d { "getOrCreateGoogleAlbum:     Created album with ID: $googleAlbumId for '$albumName'" }
+            log.d("getOrCreateGoogleAlbum:     Created album with ID: $googleAlbumId for '$albumName'")
             googleAlbumId
         } catch (e: UploadException.AlbumException) {
             log.e(e) { "getOrCreateGoogleAlbum:     Failed to create album for '$albumName' (${e.status})" }
@@ -632,7 +685,7 @@ class PhotoUploaderViewModel(
             for ((index, photo) in photosToUpload.withIndex()) {
                 try {
                     updatePhotoStatus(albumUiState.id, photo.path, UploadStatus.Uploading)
-                    log.d { "uploadPhotosInAlbum:     Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}" }
+                    log.d("uploadPhotosInAlbum:     Uploading photo ${index + 1}/${photosToUpload.size}: ${photo.name}")
                     val uploadToken = photoUploader.uploadPhoto(
                         photo.name,
                         photo.kmpFile,
@@ -640,7 +693,7 @@ class PhotoUploaderViewModel(
                         platformContext
                     )
                     successfullyUploaded.add(photo to uploadToken)
-                    log.d { "uploadPhotosInAlbum:       Successfully uploaded: ${photo.name}" }
+                    log.d("uploadPhotosInAlbum:       Successfully uploaded: ${photo.name}")
                 } catch (e: UploadException.PhotoException) {
                     log.e(e) { "uploadPhotosInAlbum:       ERROR: Failed to upload '${photo.name}' (${e.status})" }
                     updatePhotoStatus(albumUiState.id, photo.path, UploadStatus.Error(e.uiText))
@@ -648,8 +701,8 @@ class PhotoUploaderViewModel(
             }
         } catch (e: CancellationException) {
             // The loop was canceled. Throw our custom exception with the partial results
-            log.d { "uploadPhotosInAlbum: Caught cancellation exception: ${e.message}" }
-            log.d { "uploadPhotosInAlbum: Gracefully cancelling photo upload loop for album '${albumUiState.name}'. ${successfullyUploaded.size} photos were completed." }
+            log.d("uploadPhotosInAlbum: Caught cancellation exception: ${e.message}")
+            log.d("uploadPhotosInAlbum: Gracefully cancelling photo upload loop for album '${albumUiState.name}'. ${successfullyUploaded.size} photos were completed.")
             throw GracefulCancellationException(
                 successfullyUploaded
             )
@@ -715,7 +768,7 @@ class PhotoUploaderViewModel(
                         uploadStatus = UploadStatus.Success
                     )
                 } else {
-                    log.e { "updatePhotoWithResult:       ERROR: Failed to add '${p.name}' to album '${currentAlbumUiState.name}'" }
+                    log.e("updatePhotoWithResult:       ERROR: Failed to add '${p.name}' to album '${currentAlbumUiState.name}'")
                     val errorString = mediaResult.status.toString()
                     val errorMessage = if (errorString.isEmpty()) {
                         UiTextResource(Res.string.error_unknown)
@@ -744,11 +797,11 @@ class PhotoUploaderViewModel(
     ) {
         val coverMediaItemId = albumUiState.coverPhotoUiState.mediaItemId
         if (coverMediaItemId != null) {
-            log.d { "setAlbumCover:     Setting cover photo to: ${albumUiState.coverPhotoUiState.name}" }
+            log.d("setAlbumCover:     Setting cover photo to: ${albumUiState.coverPhotoUiState.name}")
             try {
                 photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId, accessToken)
             } catch (e: UploadException) {
-                log.e(e) { "setAlbumCover:     Failed to update cover photo for ${albumUiState.coverPhotoUiState.name}" }
+                log.e("setAlbumCover:     Failed to update cover photo for ${albumUiState.coverPhotoUiState.name}", e)
             }
         }
     }

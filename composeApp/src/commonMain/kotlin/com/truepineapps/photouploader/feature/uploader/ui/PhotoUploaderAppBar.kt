@@ -37,9 +37,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import coil3.compose.AsyncImage
-import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.truepineapps.photouploader.core.feature.moremenu.ui.MoreMenu
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.MoreMenuNavigator
+import com.truepineapps.photouploader.core.feature.moremenu.ui.MoreMenu
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.design.Opacity
@@ -93,6 +92,7 @@ fun PhotoUploaderAppBar(
     navigateUp: () -> Unit,
     showDirPicker: () -> Unit,
     viewModel: PhotoUploaderViewModel,
+    onUploadClick: () -> Unit,
     modifier: Modifier = Modifier,
     actions: @Composable (RowScope.() -> Unit) = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
@@ -169,16 +169,11 @@ fun PhotoUploaderAppBar(
                     viewModel.cancelProcess()
                 }
             } else {
-                val platformContext = LocalPlatformContext.current
                 ThemedIconButton(
                     imageVector = Icons.Filled.Upload,
                     contentDescriptionResource = Res.string.upload_photos,
                     enabled = canUploadPhotos,
-                    onClick = {
-                        // The ViewModel's uploadPhotos launches a coroutine that just needs to be
-                        // triggered here. The returned Job can be ignored here or handled if needed.
-                        viewModel.uploadPhotos(platformContext)
-                    },
+                    onClick = onUploadClick,
                 )
             }
             MoreMenu(
@@ -221,7 +216,6 @@ private fun SignInMenu(
         }
     }
 }
-
 
 @Composable
 private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
@@ -317,4 +311,3 @@ fun AvatarMenu(
         }
     }
 }
-

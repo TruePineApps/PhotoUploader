@@ -43,6 +43,7 @@ import com.truepineapps.photouploader.core.presentation.component.platformpicker
 import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderAppBar
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
+import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderSummaryScreen
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.app_name
@@ -75,6 +76,7 @@ fun App(
             LegalGateScreen(log = log) {
                 ThemedLocalizedLegalAcceptedApp(
                     startDestination = startDestination,
+                    log = log,
                     modifier = modifier
                 )
             }
@@ -86,6 +88,7 @@ fun App(
 @Composable
 private fun ThemedLocalizedLegalAcceptedApp(
     startDestination: String,
+    log: Logger,
     modifier: Modifier = Modifier,
 ) {
     val filePicker: PlatformPicker = koinInject()
@@ -144,6 +147,9 @@ private fun ThemedLocalizedLegalAcceptedApp(
     }
 
     val isEnabled = !uiState.isShowDirPicker
+    val userProfile = uiState.userProfile
+    var showSummaryScreen by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
         snackbarHost = {
@@ -169,6 +175,13 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 scrollBehavior = scrollBehavior,
                 actions = actions.value,
                 viewModel = viewModel,
+                onUploadClick = {
+                    log.d("Upload button clicked")
+                    showSummaryScreen = true
+                    if (userProfile == null) {
+                        viewModel.signIn()
+                    }
+                },
             )
         },
     ) { innerPadding ->
@@ -191,7 +204,24 @@ private fun ThemedLocalizedLegalAcceptedApp(
                     .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
                 startDestination = startDestination
             )
-            // When disabled, lay a transparent Surface over the top to intercept all clicks.
+
+            // The upload summary screen is an overlay inside the main content area
+            if (showSummaryScreen && userProfile != null) {
+                log.d("Show pre-upload summary screen")
+                PhotoUploaderSummaryScreen(
+                    userProfile = userProfile,
+                    totalAlbums = uiState.albumUiStates.count { it.isEnabled },
+                    totalPhotos = uiState.albumUiStates.filter { it.isEnabled }.sumOf { it.photoUiStates.count { p -> p.isEnabled } },
+                    onCancel = { showSummaryScreen = false },
+                    onProceed = {
+                        showSummaryScreen = false
+                        viewModel.startUpload(context)
+                    }
+                )
+            }
+
+            // When disabled, showing the directory picker, lay a transparent Surface over the top
+            // to intercept all clicks.
             if (!isEnabled) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
