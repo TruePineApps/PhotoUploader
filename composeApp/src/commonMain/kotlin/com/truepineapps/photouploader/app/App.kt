@@ -11,7 +11,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -146,9 +145,9 @@ private fun ThemedLocalizedLegalAcceptedApp(
         }
     }
 
-    val isEnabled = !uiState.isShowDirPicker
-    val userProfile = uiState.userProfile
     var showSummaryScreen by remember { mutableStateOf(false) }
+    val isEnabled = !uiState.isShowDirPicker && !showSummaryScreen
+    val userProfile = uiState.userProfile
 
     Scaffold(
         modifier = if (scrollBehavior != null) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier,
@@ -211,22 +210,14 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 PhotoUploaderSummaryScreen(
                     userProfile = userProfile,
                     totalAlbums = uiState.albumUiStates.count { it.isEnabled },
-                    totalPhotos = uiState.albumUiStates.filter { it.isEnabled }.sumOf { it.photoUiStates.count { p -> p.isEnabled } },
+                    totalPhotos = uiState.albumUiStates.filter { it.isEnabled }
+                        .sumOf { it.photoUiStates.count { p -> p.isEnabled } },
                     onCancel = { showSummaryScreen = false },
                     onProceed = {
                         showSummaryScreen = false
                         viewModel.startUpload(context)
                     }
                 )
-            }
-
-            // When disabled, showing the directory picker, lay a transparent Surface over the top
-            // to intercept all clicks.
-            if (!isEnabled) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = Opacity.TRANSPARENT.value) // Transparent
-                ) { /* This Surface consumes all touch events, effectively disabling the content below */ }
             }
         }
     }

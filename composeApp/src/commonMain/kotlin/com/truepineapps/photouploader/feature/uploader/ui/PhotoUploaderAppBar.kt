@@ -100,9 +100,10 @@ fun PhotoUploaderAppBar(
     val uiState by viewModel.uiState.collectAsState()
     val isSigningIn = uiState.isSigningIn
     val isUploading = uiState.isUploading
-    val canChooseDirectory = uiState.idle()
+    val canChooseDirectory = uiState.idle() && isEnabled
     // Only allow uploading if we have albums, path is set, and not currently busy
-    val canUploadPhotos = uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle()
+    val canUploadPhotos =
+        uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle() && isEnabled
     val userProfile = uiState.userProfile
 
 
@@ -144,14 +145,9 @@ fun PhotoUploaderAppBar(
                     enabled = isEnabled
                 )
             } else if (userProfile != null) {
-                AvatarMenu(
-                    userProfile,
-                    isEnabled
-                ) { viewModel.signOut() }
+                AvatarMenu(userProfile, isEnabled && uiState.idle()) { viewModel.signOut() }
             } else {
-                SignInMenu(
-                    isEnabled
-                ) { viewModel.signIn() }
+                SignInMenu(isEnabled && uiState.idle()) { viewModel.signIn() }
             }
         },
         actions = {
@@ -275,7 +271,7 @@ fun AvatarMenu(
                     .padding(Dimensions.padding_small)
                     .size(Dimensions.medium_icon_size)
                     .clip(CircleShape)
-                    .clickable { avatarExpanded = true }
+                    .clickable { if (isEnabled) avatarExpanded = true }
             )
         } else {
             // Fallback icon if no avatar URL
