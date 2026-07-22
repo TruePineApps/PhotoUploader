@@ -20,17 +20,23 @@ import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AppStat
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.GroupUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.PhotoUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadCompletionStatus
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadError
+import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadReport
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadStatus
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.ViewState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.toAlbumUiState
 import com.truepineapps.photouploader.foundation.auth.domain.model.AuthException
 import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.app_busy_upload_not_possible
 import com.truepineapps.photouploader.resources.error_add_to_album_failed
 import com.truepineapps.photouploader.resources.error_sign_in_failed
 import com.truepineapps.photouploader.resources.error_unknown
 import com.truepineapps.photouploader.resources.photo_folders
+import com.truepineapps.photouploader.resources.select_photos_before_uploading
 import com.truepineapps.photouploader.resources.session_expired
+import com.truepineapps.photouploader.resources.sign_in_before_uploading
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +55,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okio.Path
+import kotlin.time.Duration.Companion.milliseconds
 
 class PhotoUploaderViewModel(
     private val authService: GoogleAuthService,
@@ -145,7 +153,7 @@ class PhotoUploaderViewModel(
                 performSignIn()
             } catch (e: CancellationException) {
                 // Job was canceled (e.g. via cancelProcess), stop gracefully
-                log.d( "signIn: Sign in canceled: ${e.message}")
+                log.d("signIn: Sign in canceled: ${e.message}")
             } finally {
                 processJob = null
             }
@@ -185,7 +193,7 @@ class PhotoUploaderViewModel(
             handleAuthExpiry()
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
-            log.e("performSignIn: Sign in failed",e)
+            log.e("performSignIn: Sign in failed", e)
             val uiText = if (e.message == null) {
                 UiTextResource(Res.string.error_unknown)
             } else {
@@ -219,6 +227,46 @@ class PhotoUploaderViewModel(
 
     fun clearGlobalErrorMessage() {
         _viewState.update { it.copy(globalErrorMessage = null) }
+    }
+
+    fun clearUploadReport() {
+        _viewState.update { it.copy(uploadReport = null) }
+    }
+
+    private fun generateUploadReport(): UploadReport {
+        val allEnabledAlbums = _albumUiStates.value.filter { it.isEnabled }
+        val albumsFailed = allEnabledAlbums.count { it.uploadStatus is UploadStatus.Error }
+        val albumsSkipped =
+            allEnabledAlbums.count { it.uploadStatus == UploadStatus.Cancelled || !it.uploadStatus.isFinal }
+
+        val allEnabledPhotos =
+            allEnabledAlbums.flatMap { it.photoUiStates.filter { p -> p.isEnabled } }
+        val photosUploaded = allEnabledPhotos.count { it.uploadStatus == UploadStatus.Success }
+        val photosFailed = allEnabledPhotos.count { it.uploadStatus is UploadStatus.Error }
+        val photosSkipped =
+            allEnabledPhotos.count { it.uploadStatus == UploadStatus.Cancelled || !it.uploadStatus.isFinal }
+
+        val status = when {
+            allEnabledAlbums.any { it.uploadStatus == UploadStatus.Cancelled } || allEnabledPhotos.any { it.uploadStatus == UploadStatus.Cancelled } -> UploadCompletionStatus.CANCELLED
+
+            albumsFailed > 0 || photosFailed > 0 -> UploadCompletionStatus.ERRORS
+            else -> UploadCompletionStatus.SUCCESS
+        }
+
+        return UploadReport(
+            albumsCreated = allEnabledAlbums.count { it.googleAlbumId != null },
+            albumsSkipped = albumsSkipped,
+            albumsFailed = albumsFailed,
+            photosUploaded = photosUploaded,
+            photosSkipped = photosSkipped,
+            photosFailed = photosFailed,
+            errors = allEnabledPhotos.filter { it.uploadStatus is UploadStatus.Error }.map {
+                    UploadError(
+                        it.name, (it.uploadStatus as UploadStatus.Error).message.toString()
+                    )
+                },
+            status = status
+        )
     }
 
     fun updatePath(kmpFile: KmpFile, platformContext: PlatformContext) {
@@ -303,15 +351,25 @@ class PhotoUploaderViewModel(
         }
     }
 
-
     /**
-     * Starts the upload process without re-authenticating.
-     * Assumes the user is already authenticated.
+     * Uploads photos based on the current UI state to Google Photos without re-authenticating.
+     * No upload starts if the user is not authenticated, there are no photos or the app is not idle.
+     *
+     * @return The job that performs the upload, null if no job is created.
      */
-    fun startUpload(platformContext: PlatformContext): Job? {
+    fun uploadPhotos(platformContext: PlatformContext): Job? {
         val state = uiState.value
+        // If not authenticated, no need to do anything
+        if (!state.viewState.isAuthenticated) {
+            log.d("uploadPhotos: Not authenticated")
+            _viewState.update { it.copy(globalErrorMessage = UiTextResource(Res.string.sign_in_before_uploading)) }
+            return null
+        }
+
         val isIdle = state.idle()
-        if (state.albumUiStates.isNotEmpty() && isIdle) {
+        val hasPhotos =
+            state.albumUiStates.any { it.isEnabled && it.photoUiStates.any { p -> p.isEnabled } }
+        if (hasPhotos && isIdle) {
             val job = viewModelScope.launch {
                 try {
                     _viewState.update { it.copy(status = AppStatus.UPLOADING) }
@@ -320,67 +378,7 @@ class PhotoUploaderViewModel(
                     log.d("Upload process caught global exception: ${e.message} (${e.status})")
                     resetNonFinalUploadStatuses()
                     if (e.status == HttpStatusCode.Unauthorized
-                        || e.uiText.toString()
-                            .contains(other = "UNAUTHENTICATED", ignoreCase = true)
-                    ) {
-                        handleAuthExpiry()
-                    } else {
-                        _viewState.update { it.copy(globalErrorMessage = e.uiText) }
-                    }
-                } catch (e: CancellationException) {
-                    log.d("Upload process canceled: ${e.message}")
-                    if (_viewState.value.status == AppStatus.UPLOADING) {
-                        resetNonFinalUploadStatuses()
-                    }
-                } catch (e: Exception) {
-                    log.e("startUpload: Upload failed", e)
-                    resetNonFinalUploadStatuses()
-
-                    val uiText = if (e.message == null) {
-                        UiTextResource(Res.string.error_unknown)
-                    } else {
-                        UiTextString(e.message!!)
-                    }
-                    _viewState.update { it.copy(globalErrorMessage = uiText) }
-                } finally {
-                    disableSuccessfulUploads()
-
-                    _viewState.update { it.copy(status = AppStatus.IDLE) }
-                    if (processJob == coroutineContext[Job]) {
-                        processJob = null
-                    }
-                }
-            }
-            processJob = job
-            return job
-        }
-        return null
-    }
-
-    /**
-     * Uploads photos based on the current UI state to Google Photos.
-     */
-    fun uploadPhotos(platformContext: PlatformContext): Job? {
-        val state = uiState.value
-        val isIdle = state.idle()
-        if (state.albumUiStates.isNotEmpty() && isIdle) {
-            val job = viewModelScope.launch {
-                try {
-                    // Wait for sign-in to complete
-                    val isAuthSuccess = performSignIn()
-
-                    // Only proceed if authenticated
-                    if (isAuthSuccess) {
-                        // Start the actual upload
-                        _viewState.update { it.copy(status = AppStatus.UPLOADING) }
-                        uploadPhotosImpl(state.albumUiStates, platformContext)
-                    }
-                } catch (e: UploadException.GlobalException) {
-                    log.d("Upload process caught global exception: ${e.message} (${e.status})")
-                    resetNonFinalUploadStatuses()
-                    if (e.status == HttpStatusCode.Unauthorized
-                        || e.uiText.toString()
-                            .contains(other = "UNAUTHENTICATED", ignoreCase = true)
+                        || e.uiText.toString().contains(other = "UNAUTHENTICATED", ignoreCase = true)
                     ) {
                         handleAuthExpiry()
                     } else {
@@ -389,12 +387,18 @@ class PhotoUploaderViewModel(
                 } catch (e: CancellationException) {
                     // Job was canceled (e.g. via cancelProcess), stop gracefully
                     log.d("Upload process canceled: ${e.message}")
+                    // Wait for background thread to finalize already uploaded photos using a timeout
+                    withContext<Unit>(NonCancellable) {
+                        withTimeoutOrNull(5000L.milliseconds) {
+                            cleanupScope.coroutineContext[Job]?.children?.forEach { it.join() }
+                        }
+                    }
                     // When uploading, reset statuses to remove "Uploading" indicators
                     if (_viewState.value.status == AppStatus.UPLOADING) {
                         resetNonFinalUploadStatuses()
                     }
                 } catch (e: Exception) {
-                    log.e(e) { "uploadPhotos: Upload failed" }
+                    log.e("uploadPhotos: Upload failed", e)
                     resetNonFinalUploadStatuses()
 
                     val uiText = if (e.message == null) {
@@ -404,22 +408,26 @@ class PhotoUploaderViewModel(
                     }
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
+                    val report = generateUploadReport()
                     disableSuccessfulUploads()
+                    _viewState.update { it.copy(status = AppStatus.IDLE, uploadReport = report) }
 
-                    _viewState.update { it.copy(status = AppStatus.IDLE) }
                     // Ensure processJob is cleared if this specific job finishes
                     if (processJob == coroutineContext[Job]) {
                         processJob = null
                     }
                 }
             }
-
             // Assign this job to processJob.
             // If the user clicks "Cancel" in the AppBar dialog while isSigningIn or isUploading is
             // true, cancelProcess() will cancel THIS job, stopping the upload flow immediately.
+            // Finishing photos in Uploading status is done in a separate thread.
             processJob = job
-
             return job
+        } else if (!isIdle) {
+            _viewState.update { it.copy(globalErrorMessage = UiTextResource(Res.string.app_busy_upload_not_possible)) }
+        } else {
+            _viewState.update { it.copy(globalErrorMessage = UiTextResource(Res.string.select_photos_before_uploading)) }
         }
         log.d("No upload, albumUiStates.isEmpty() = ${state.albumUiStates.isEmpty()} and isIdle = $isIdle")
         return null
@@ -427,14 +435,22 @@ class PhotoUploaderViewModel(
 
     private fun resetNonFinalUploadStatuses() {
         try {
+            log.d("resetNonFinalUploadStatuses called")
             _albumUiStates.update { currentAlbumStates ->
                 currentAlbumStates.map { currentAlbumState ->
-                    if (currentAlbumState.isEnabled && !currentAlbumState.uploadStatus.isFinal) {
+                    if (currentAlbumState.isEnabled
+                        && (!currentAlbumState.uploadStatus.isFinal
+                                || currentAlbumState.uploadStatus == UploadStatus.Cancelled)
+                    ) {
                         val updatedPhotos = currentAlbumState.photoUiStates.map { p ->
                             if (p.isEnabled && !p.uploadStatus.isFinal) p.copy(uploadStatus = UploadStatus.None) else p
                         }
                         currentAlbumState.copy(
-                            uploadStatus = UploadStatus.None,
+                            uploadStatus = if (currentAlbumState.uploadStatus == UploadStatus.Cancelled) {
+                                UploadStatus.Cancelled
+                            } else {
+                                UploadStatus.None
+                            },
                             photoUiStates = updatedPhotos
                         )
                     } else {
@@ -703,9 +719,7 @@ class PhotoUploaderViewModel(
             // The loop was canceled. Throw our custom exception with the partial results
             log.d("uploadPhotosInAlbum: Caught cancellation exception: ${e.message}")
             log.d("uploadPhotosInAlbum: Gracefully cancelling photo upload loop for album '${albumUiState.name}'. ${successfullyUploaded.size} photos were completed.")
-            throw GracefulCancellationException(
-                successfullyUploaded
-            )
+            throw GracefulCancellationException(successfullyUploaded)
         }
         return successfullyUploaded
     }
@@ -801,12 +815,16 @@ class PhotoUploaderViewModel(
             try {
                 photoUploader.updateAlbumCover(googleAlbumId, coverMediaItemId, accessToken)
             } catch (e: UploadException) {
-                log.e("setAlbumCover:     Failed to update cover photo for ${albumUiState.coverPhotoUiState.name}", e)
+                log.e(
+                    "setAlbumCover:     Failed to update cover photo for ${albumUiState.coverPhotoUiState.name}",
+                    e
+                )
             }
         }
     }
 
     private fun updateAlbumStatus(albumId: String, status: UploadStatus) {
+        log.d("Set $albumId to $status")
         updateAlbum(albumId) {
             it.copy(uploadStatus = status)
         }
@@ -845,14 +863,13 @@ class PhotoUploaderViewModel(
 
             // Copy in 2 steps, since getDerivedUploadStatus needs the updated photos to determine the status
             val updatedAlbum = album.copy(photoUiStates = updatedPhotos)
-            if (isPhotoStatusUpdated)
+            if (isPhotoStatusUpdated) {
                 updatedAlbum.copy(
-                    uploadStatus = updatedAlbum.getDerivedUploadStatus(
-                        updatedAlbum.uploadStatus
-                    )
+                    uploadStatus = updatedAlbum.getDerivedUploadStatus(updatedAlbum.uploadStatus)
                 )
-            else
+            } else {
                 updatedAlbum
+            }
         }
     }
 
@@ -870,4 +887,3 @@ class PhotoUploaderViewModel(
 private class GracefulCancellationException(
     val successfullyUploaded: List<Pair<PhotoUiState, String>>,
 ) : CancellationException("Upload gracefully canceled by user.")
-

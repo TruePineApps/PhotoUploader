@@ -16,6 +16,7 @@ data class UiState(
     val path: String get() = viewState.path
     val selectedAlbumId get() = viewState.selectedAlbumId
     val globalErrorMessage: UiText? get() = viewState.globalErrorMessage
+    val uploadReport: UploadReport? get() = viewState.uploadReport
 
     fun busy() = viewState.status != AppStatus.IDLE
     fun idle() = viewState.status == AppStatus.IDLE

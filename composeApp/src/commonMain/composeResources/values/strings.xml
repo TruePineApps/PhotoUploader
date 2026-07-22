@@ -76,6 +76,9 @@
     <string name="error_loading_license">Error loading licenses: %1$s</string>
     <string name="error_remote_file_not_found">Remote %1$s not found (%2$s)</string>
     <string name="remote_error">Remote error</string>
+    <string name="sign_in_before_uploading">Sign in before uploading</string>
+    <string name="app_busy_upload_not_possible">App busy, upload not possible</string>
+    <string name="select_photos_before_uploading">Select photos before uploading</string>
 
     <!-- Upload statuses -->
     <string name="status_none"> </string>

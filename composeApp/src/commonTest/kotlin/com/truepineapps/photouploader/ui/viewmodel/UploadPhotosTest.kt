@@ -1,6 +1,8 @@
 package com.truepineapps.photouploader.ui.viewmodel
 
 import app.cash.turbine.test
+import co.touchlab.kermit.Logger
+import com.mohamedrejeb.calf.core.PlatformContext
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumResponse
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsRequest
@@ -36,6 +38,7 @@ import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -70,6 +73,7 @@ class UploadPhotosTest : KoinTest {
     private val rootPath = ROOT_PATH.toPath()
     private val testDispatcher = StandardTestDispatcher()
     private val json = Json { ignoreUnknownKeys = true }
+    private val log: Logger by inject()
 
 
     @BeforeTest
@@ -107,7 +111,7 @@ class UploadPhotosTest : KoinTest {
 
         // When the root path doesn't exist, the repository returns an empty album list.
         // Consequently, uploadPhotos returns null and performs no actions.
-        val job = viewModel.uploadPhotos(platformContext)
+        val job = signInAndUpload(viewModel, platformContext)
         assertEquals(null, job)
     }
 
@@ -132,7 +136,7 @@ class UploadPhotosTest : KoinTest {
 
         // When the root path is not a directory, the repository returns an empty album list.
         // UploadPhotos returns null.
-        val job = viewModel.uploadPhotos(platformContext)
+        val job = signInAndUpload(viewModel, platformContext)
         assertEquals(null, job)
     }
 
@@ -154,8 +158,7 @@ class UploadPhotosTest : KoinTest {
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle() // Wait for scan
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         // Verify requests
         // 1 create album, 2 uploads, 1 batch create, 1 patch for cover
@@ -358,8 +361,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         // Verify requests:
         // 1 album created (EnabledAlbum)
@@ -401,8 +403,7 @@ class UploadPhotosTest : KoinTest {
 
         advanceUntilIdle() // Wait for UI state to update
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         requests.assertAlbumCreated("Renamed Album Title")
     }
@@ -459,6 +460,12 @@ class UploadPhotosTest : KoinTest {
             )
 
             // Perform upload - this launches the upload coroutine
+            viewModel.signIn()
+            advanceUntilIdle()
+            // Consume the emission from sign-in success
+            val stateAfterSignIn = awaitItem()
+            assertTrue(stateAfterSignIn.isAuthenticated, "Should be authenticated after sign-in")
+
             val uploadJob = viewModel.uploadPhotos(platformContext)
 
             // 4. Await state after `uploadPhotos` sets initial 'Waiting' status for enabled,
@@ -540,6 +547,7 @@ class UploadPhotosTest : KoinTest {
         expectedPhoto2Status: UploadStatus,
         expectedPhoto2Enabled: Boolean,
     ) {
+        log.d("Asserting $testName")
         assertEquals(1, uiState.albumUiStates.size, "$testName - Expected 1 album UI state")
 
         val album = uiState.albumUiStates.first()
@@ -586,8 +594,7 @@ class UploadPhotosTest : KoinTest {
         // Explicitly await the state synchronization
         viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val photo = album.photoUiStates.first()
@@ -634,8 +641,7 @@ class UploadPhotosTest : KoinTest {
         // Explicitly await the state synchronization
         viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val photo = album.photoUiStates.first()
@@ -695,8 +701,7 @@ class UploadPhotosTest : KoinTest {
         // Explicitly await the state synchronization
         viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val albumStatus = album.uploadStatus
@@ -745,8 +750,7 @@ class UploadPhotosTest : KoinTest {
         // Explicitly await the state synchronization
         viewModel.uiState.first { it.albumUiStates.isNotEmpty() }
 
-        viewModel.uploadPhotos(platformContext)?.join()
-        advanceUntilIdle()
+        signInAndUpload(viewModel, platformContext)
 
         val album = viewModel.uiState.value.albumUiStates.first()
         val updatedPhoto1 = album.photoUiStates.find { it.name == "photo1.jpg" }!!
@@ -939,8 +943,19 @@ class UploadPhotosTest : KoinTest {
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
         advanceUntilIdle() // Wait for scan
-        viewModel.uploadPhotos(platformContext)?.join()
+        signInAndUpload(viewModel, platformContext)
+    }
+
+    private suspend fun TestScope.signInAndUpload(
+        viewModel: PhotoUploaderViewModel,
+        platformContext: PlatformContext
+    ): Job? {
+        viewModel.signIn()
         advanceUntilIdle()
+        val job = viewModel.uploadPhotos(platformContext)
+        job?.join()
+        advanceUntilIdle()
+        return job
     }
 
     private fun List<HttpRequestData>.assertAlbumCreated(expectedTitle: String) {

@@ -4,6 +4,7 @@
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
+.artifacts/
 
 # Android Studio generated files and folders
 *.apk

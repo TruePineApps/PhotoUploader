@@ -195,7 +195,7 @@ private fun SignInMenu(
             contentDescription = stringResource(Res.string.sign_in_menu),
             modifier = Modifier
                 .size(Dimensions.medium_icon_size)
-                .clickable { signInExpanded = true }
+                .clickable { if (isEnabled) signInExpanded = true }
                 .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
         )
         DropdownMenu(

@@ -40,6 +40,7 @@ import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
 import com.truepineapps.photouploader.core.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.core.presentation.design.Opacity
+import com.truepineapps.photouploader.feature.uploader.ui.CompletionReportScreen
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderAppBar
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderSummaryScreen
@@ -146,7 +147,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
     }
 
     var showSummaryScreen by remember { mutableStateOf(false) }
-    val isEnabled = !uiState.isShowDirPicker && !showSummaryScreen
+    val isEnabled = !uiState.isShowDirPicker && !showSummaryScreen && uiState.uploadReport == null
     val userProfile = uiState.userProfile
 
     Scaffold(
@@ -204,18 +205,30 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 startDestination = startDestination
             )
 
-            // The upload summary screen is an overlay inside the main content area
+            /* The upload summary and report screens are overlays inside the main content area */
+
             if (showSummaryScreen && userProfile != null) {
-                log.d("Show pre-upload summary screen")
                 PhotoUploaderSummaryScreen(
                     userProfile = userProfile,
                     totalAlbums = uiState.albumUiStates.count { it.isEnabled },
                     totalPhotos = uiState.albumUiStates.filter { it.isEnabled }
                         .sumOf { it.photoUiStates.count { p -> p.isEnabled } },
+                    log = log,
                     onCancel = { showSummaryScreen = false },
                     onProceed = {
                         showSummaryScreen = false
-                        viewModel.startUpload(context)
+                        viewModel.uploadPhotos(context)
+                    }
+                )
+            }
+
+            uiState.uploadReport?.let { report ->
+                CompletionReportScreen(
+                    userProfile = userProfile,
+                    report = report,
+                    log = log,
+                    onClose = {
+                        viewModel.clearUploadReport()
                     }
                 )
             }

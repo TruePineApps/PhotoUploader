@@ -239,7 +239,7 @@ class PhotoUploaderViewModelTest : KoinTest {
                 "Global error should be set on sign-in failure"
             )
             assertTrue(
-                globalErrorMessage.toString().contains("Sign-in failed"),
+                globalErrorMessage.toString().contains("sign_in_before_uploading"),
                 "Error message should indicate sign-in failure, but was: $globalErrorMessage"
             )
         }

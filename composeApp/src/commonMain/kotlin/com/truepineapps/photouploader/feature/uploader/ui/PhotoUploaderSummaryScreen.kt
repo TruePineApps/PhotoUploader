@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImage
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
@@ -19,10 +20,12 @@ fun PhotoUploaderSummaryScreen(
     userProfile: UserProfile,
     totalAlbums: Int,
     totalPhotos: Int,
+    log: Logger,
     onCancel: () -> Unit,
     onProceed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    log.d("Show pre-upload summary screen: Albums = $totalAlbums Photos = $totalPhotos")
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier
@@ -109,6 +112,7 @@ fun PreviewPhotoUploaderSummaryScreen() {
             ),
             totalAlbums = 3,
             totalPhotos = 47,
+            log = Logger,
             onCancel = {  },
             onProceed = {  },
         )

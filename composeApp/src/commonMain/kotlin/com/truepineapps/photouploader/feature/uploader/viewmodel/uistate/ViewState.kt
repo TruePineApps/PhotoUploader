@@ -11,6 +11,7 @@ data class ViewState(
     val path: String = "",
     val selectedAlbumId: String? = null,
     val globalErrorMessage: UiText? = null,
+    val uploadReport: UploadReport? = null,
 ) {
     val isAuthenticated = userProfile != null
 }
