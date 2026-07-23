@@ -233,7 +233,7 @@ class PhotoUploaderViewModel(
         _viewState.update { it.copy(uploadReport = null) }
     }
 
-    private fun generateUploadReport(): UploadReport {
+    private fun generateUploadReport(isCancelled: Boolean): UploadReport {
         val allEnabledAlbums = _albumUiStates.value.filter { it.isEnabled }
         val albumsFailed = allEnabledAlbums.count { it.uploadStatus is UploadStatus.Error }
         val albumsSkipped =
@@ -247,8 +247,7 @@ class PhotoUploaderViewModel(
             allEnabledPhotos.count { it.uploadStatus == UploadStatus.Cancelled || !it.uploadStatus.isFinal }
 
         val status = when {
-            allEnabledAlbums.any { it.uploadStatus == UploadStatus.Cancelled } || allEnabledPhotos.any { it.uploadStatus == UploadStatus.Cancelled } -> UploadCompletionStatus.CANCELLED
-
+            isCancelled -> UploadCompletionStatus.CANCELLED
             albumsFailed > 0 || photosFailed > 0 -> UploadCompletionStatus.ERRORS
             else -> UploadCompletionStatus.SUCCESS
         }
@@ -369,6 +368,7 @@ class PhotoUploaderViewModel(
         val isIdle = state.idle()
         val hasPhotos =
             state.albumUiStates.any { it.isEnabled && it.photoUiStates.any { p -> p.isEnabled } }
+        var isCancelled = false
         if (hasPhotos && isIdle) {
             val job = viewModelScope.launch {
                 try {
@@ -387,6 +387,7 @@ class PhotoUploaderViewModel(
                 } catch (e: CancellationException) {
                     // Job was canceled (e.g. via cancelProcess), stop gracefully
                     log.d("Upload process canceled: ${e.message}")
+                    isCancelled = true
                     // Wait for background thread to finalize already uploaded photos using a timeout
                     withContext<Unit>(NonCancellable) {
                         withTimeoutOrNull(5000L.milliseconds) {
@@ -408,7 +409,7 @@ class PhotoUploaderViewModel(
                     }
                     _viewState.update { it.copy(globalErrorMessage = uiText) }
                 } finally {
-                    val report = generateUploadReport()
+                    val report = generateUploadReport(isCancelled)
                     disableSuccessfulUploads()
                     _viewState.update { it.copy(status = AppStatus.IDLE, uploadReport = report) }
 
@@ -506,7 +507,7 @@ class PhotoUploaderViewModel(
     }
 
     /**
-     * Handles 401 errors by signing out locally so the next attempt forces a fresh login.
+     * Handles 401 errors by signing out locally, so the next attempt forces a fresh login.
      */
     private suspend fun handleAuthExpiry() {
         log.d("handleAuthExpiry: Signing out")
