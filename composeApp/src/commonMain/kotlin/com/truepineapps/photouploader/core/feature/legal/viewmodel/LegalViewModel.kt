@@ -12,7 +12,7 @@ import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.core.util.UiTextString
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.remote_error
+import com.truepineapps.photouploader.resources.server_error
 import com.truepineapps.photouploader.resources.unknown_error
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,12 +70,12 @@ class LegalViewModel(
                     messages.add(
                         mapThrowableToUiText(
                             throwable,
-                            if (throwable.suppressedExceptions.isEmpty()) Res.string.remote_error else Res.string.unknown_error
+                            if (throwable.suppressedExceptions.isEmpty()) Res.string.server_error else Res.string.unknown_error
                         )
                     )
 
                     throwable.suppressedExceptions.firstOrNull()?.let { suppressed ->
-                        messages.add(mapThrowableToUiText(suppressed, Res.string.remote_error))
+                        messages.add(mapThrowableToUiText(suppressed, Res.string.server_error))
                     }
 
                     _state.value = LegalUiState.Error(messages)
@@ -148,7 +148,7 @@ class LegalViewModel(
                         listOf(
                             mapThrowableToUiText(
                                 throwable,
-                                Res.string.remote_error
+                                Res.string.server_error
                             )
                         )
                     )

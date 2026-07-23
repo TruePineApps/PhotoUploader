@@ -14,6 +14,16 @@ import coil3.compose.AsyncImage
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.albums_to_create
+import com.truepineapps.photouploader.resources.avatar
+import com.truepineapps.photouploader.resources.cancel
+import com.truepineapps.photouploader.resources.photos_to_upload
+import com.truepineapps.photouploader.resources.proceed
+import com.truepineapps.photouploader.resources.ready_to_upload
+import com.truepineapps.photouploader.resources.summary_care_message
+import com.truepineapps.photouploader.resources.uploading_to
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PhotoUploaderSummaryScreen(
@@ -35,20 +45,20 @@ fun PhotoUploaderSummaryScreen(
         ) {
             Column(modifier = Modifier.padding(top = Dimensions.padding_large)) {
                 Text(
-                    text = "📤 Ready to Upload",
+                    text = stringResource(Res.string.ready_to_upload),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = Dimensions.padding_large)
                 )
 
                 Text(
-                    text = "Uploading to:",
+                    text = stringResource(Res.string.uploading_to),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(bottom = Dimensions.padding_small)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
                         model = userProfile.avatarUrl,
-                        contentDescription = "Avatar",
+                        contentDescription = stringResource(Res.string.avatar),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -64,13 +74,19 @@ fun PhotoUploaderSummaryScreen(
 
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
-                Text(text = "Albums to create: $totalAlbums", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Photos to upload: $totalPhotos", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = stringResource(Res.string.albums_to_create, totalAlbums),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(Res.string.photos_to_upload, totalPhotos),
+                    style = MaterialTheme.typography.bodyLarge
+                )
 
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
                 Text(
-                    text = "This operation cannot be undone from within the App. Review and removal of uploaded content is available directly in Google Photos. Please verify your uploads in Google Photos before deleting any local copies.",
+                    text = stringResource(Res.string.summary_care_message),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -86,13 +102,13 @@ fun PhotoUploaderSummaryScreen(
                     onClick = onCancel,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel))
                 }
                 Button(
                     onClick = onProceed,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Proceed")
+                    Text(stringResource(Res.string.proceed))
                 }
             }
         }
@@ -113,8 +129,8 @@ fun PreviewPhotoUploaderSummaryScreen() {
             totalAlbums = 3,
             totalPhotos = 47,
             log = Logger,
-            onCancel = {  },
-            onProceed = {  },
+            onCancel = { },
+            onProceed = { },
         )
     }
 }

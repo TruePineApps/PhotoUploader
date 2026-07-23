@@ -39,8 +39,25 @@ import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadC
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadReport
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.albums_created
+import com.truepineapps.photouploader.resources.albums_failed
+import com.truepineapps.photouploader.resources.albums_skipped
 import com.truepineapps.photouploader.resources.appicon
+import com.truepineapps.photouploader.resources.avatar
+import com.truepineapps.photouploader.resources.close_button
+import com.truepineapps.photouploader.resources.hide_error_details
+import com.truepineapps.photouploader.resources.photos_failed
+import com.truepineapps.photouploader.resources.photos_skipped
+import com.truepineapps.photouploader.resources.photos_uploaded
+import com.truepineapps.photouploader.resources.report_cancelled_message
+import com.truepineapps.photouploader.resources.report_care_message
+import com.truepineapps.photouploader.resources.show_error_details
+import com.truepineapps.photouploader.resources.upload_cancelled
+import com.truepineapps.photouploader.resources.upload_complete
+import com.truepineapps.photouploader.resources.upload_with_errors
+import com.truepineapps.photouploader.resources.uploading_to
 import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CompletionReportScreen(
@@ -63,11 +80,13 @@ fun CompletionReportScreen(
         ) {
             Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Text(
-                    text = when (report.status) {
-                        UploadCompletionStatus.SUCCESS -> "✅ Upload Complete"
-                        UploadCompletionStatus.CANCELLED -> "⚠️ Upload Cancelled"
-                        UploadCompletionStatus.ERRORS -> "⚠️ Upload Completed with Errors"
-                    },
+                    text = stringResource(
+                        when (report.status) {
+                            UploadCompletionStatus.SUCCESS -> Res.string.upload_complete
+                            UploadCompletionStatus.CANCELLED -> Res.string.upload_cancelled
+                            UploadCompletionStatus.ERRORS -> Res.string.upload_with_errors
+                        }
+                    ),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = Dimensions.padding_large)
                 )
@@ -77,15 +96,15 @@ fun CompletionReportScreen(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.padding_medium)
                 ) {
                     Text(
-                        text = "Albums created: ${report.albumsCreated}",
+                        text = stringResource(Res.string.albums_created, report.albumsCreated),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (report.albumsSkipped > 0) Text(
-                        text = "Albums skipped: ${report.albumsSkipped}",
+                        text = stringResource(Res.string.albums_skipped, report.albumsSkipped),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (report.albumsFailed > 0) Text(
-                        text = "Albums failed: ${report.albumsFailed}",
+                        text = stringResource(Res.string.albums_failed, report.albumsFailed),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -94,15 +113,15 @@ fun CompletionReportScreen(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.padding_medium)
                 ) {
                     Text(
-                        text = "Photos uploaded: ${report.photosUploaded}",
+                        text = stringResource(Res.string.photos_uploaded, report.photosUploaded),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (report.photosSkipped > 0) Text(
-                        text = "Photos skipped: ${report.photosSkipped}",
+                        text = stringResource(Res.string.photos_skipped, report.photosSkipped),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (report.photosFailed > 0) Text(
-                        text = "Photos failed: ${report.photosFailed}",
+                        text = stringResource(Res.string.photos_failed, report.photosFailed),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -110,7 +129,7 @@ fun CompletionReportScreen(
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
                 Text(
-                    text = "Uploading to:",
+                    text = stringResource(Res.string.uploading_to),
                     style = MaterialTheme.typography.labelLarge
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -127,7 +146,7 @@ fun CompletionReportScreen(
                     } else {
                         AsyncImage(
                             model = userProfile.avatarUrl,
-                            contentDescription = "Avatar",
+                            contentDescription = stringResource(Res.string.avatar),
                             modifier = Modifier.size(Dimensions.medium_icon_size).clip(CircleShape)
                         )
                         Spacer(modifier = Modifier.width(Dimensions.padding_medium))
@@ -150,14 +169,14 @@ fun CompletionReportScreen(
 
                 if (report.status == UploadCompletionStatus.CANCELLED) {
                     Text(
-                        text = "The operation was cancelled before completion. Already uploaded content remains in Google Photos.",
+                        text = stringResource(Res.string.report_cancelled_message),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = Dimensions.padding_medium)
                     )
                 }
 
                 Text(
-                    text = "The App reports what was sent and acknowledged — what Google Photos ultimately stores is beyond the App's visibility. Therefore, please verify your uploads in Google Photos before deleting any local copies.",
+                    text = stringResource(Res.string.report_care_message),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -166,7 +185,12 @@ fun CompletionReportScreen(
 
                 if (report.status == UploadCompletionStatus.ERRORS) {
                     TextButton(onClick = { expanded = !expanded }) {
-                        Text(if (expanded) "Hide error details" else "Show error details (${report.errors.size})")
+                        Text(
+                            if (expanded) stringResource(Res.string.hide_error_details) else stringResource(
+                                Res.string.show_error_details,
+                                report.errors.size
+                            )
+                        )
                         Icon(
                             if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                             contentDescription = null
@@ -189,7 +213,7 @@ fun CompletionReportScreen(
                 onClick = onClose,
                 modifier = Modifier.fillMaxWidth().padding(top = Dimensions.padding_medium)
             ) {
-                Text("Close")
+                Text(stringResource(Res.string.close_button))
             }
         }
     }

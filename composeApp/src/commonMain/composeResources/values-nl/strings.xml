@@ -22,6 +22,7 @@
     <string name="platform">Platform</string>
     <string name="website">Website</string>
     <string name="sources">Bronbestanden</string>
+    <string name="avatar">Avatar</string>
     <string name="app_id">Applicatie-ID</string>
     <string name="licenses">Licenties</string>
     <string name="license_text">Licentietekst</string>
@@ -32,9 +33,11 @@
     <string name="sign_out">Uitloggen</string>
     <string name="close_button">Sluiten</string>
     <string name="back_button">Terug</string>
-    <string name="photo_folders">Foto folders</string>
-    <string name="choose_folder">Map kiezen</string>
-    <string name="upload_photos">Foto\'s uploaden</string>
+    <string name="cancel">Afbreken</string>
+    <string name="proceed">Verder</string>
+    <string name="photo_folders">Foto mappen</string>
+    <string name="choose_folder">Fotomap kiezen</string>
+    <string name="upload_photos">Foto's uploaden</string>
     <string name="select_photo_folder">Selecteer fotomap</string>
     <string name="preview">Voorbeeld</string>
     <string name="album_cover">Albumomslag: %1$s</string>
@@ -42,20 +45,42 @@
     <string name="album_name">Albumnaam</string>
     <plurals name="photos_count">
         <item quantity="one">%1$d foto</item>
-        <item quantity="other">%1$d foto\'s</item>
+        <item quantity="other">%1$d foto's</item>
     </plurals>
 
     <string name="connected_as">Verbonden met Google Photos als %1$s</string>
-    <string name="sign_in_menu">Inlogmenu</string>
-    <string name="sign_out_menu">Uitlogmenu</string>
+    <string name="sign_in_menu">Inlogmenu openen</string>
+    <string name="sign_out_menu">Uitlogmenu openen</string>
     <string name="waiting_for_browser_sign_in">Wachten op inloggen in browser...</string>
     <string name="uploading">Uploaden...</string>
-    <string name="cancel">Annuleren</string>
     <string name="collapse_album">Album inklappen</string>
     <string name="expand_album">Album uitklappen</string>
     <string name="photo_uploader_description">
         Photo Uploader stuurt foto's georganiseerd in folders naar albums op Google Photos. De naam van het album wordt afgeleid van de naam van de folder.
     </string>
+    <string name="ready_to_upload">📤 Klaar voor upload</string>
+    <string name="uploading_to">Uploaden naar:</string>
+    <string name="albums_to_create">Aantal nieuwe albums: %1$s</string>
+    <string name="photos_to_upload">Aantal te uploaden foto's: %1$s</string>
+    <string name="summary_care_message">Het uploaden kan niet ongedaan worden gemaakt in de App. Wat je hebt geüpload kun je controleren en verwijderen in Google Photos zelf. Verifieer de uploads in Google Photos voordat je lokale kopieën verwijdert.</string>
+    <string name="upload_complete">✅ Upload compleet</string>
+    <string name="upload_cancelled">⚠️ Upload afgebroken</string>
+    <string name="upload_with_errors">❌ Upload beëindigd met fouten</string>
+    <string name="albums_created">Nieuwe albums: %1$s</string>
+    <string name="albums_skipped">Albums met overgeslagen foto's: %1$s</string>
+    <string name="albums_failed">Albums met mislukte uploads: %1$s</string>
+    <string name="photos_uploaded">Geüploade foto's: %1$s</string>
+    <string name="photos_skipped">Overgeslagen foto's: %1$s</string>
+    <string name="photos_failed">Mislukte foto uploads: %1$s</string>
+    <string name="no_longer_signed_in">Niet langer ingelogd</string>
+    <string name="report_cancelled_message">
+        De upload werd afgebroken voordat deze beëindigd was. Wat al geüpload was, blijft in Google Photos.
+    </string>
+    <string name="report_care_message">
+        De App rapporteert wat verzonden en bevestigd is — wat Google Photos uiteindelijk opslaat, kan de App niet zien. Verifieer daarom je uploads in Google Photos voordat je lokale kopieën verwijdert.
+    </string>
+    <string name="show_error_details">Toon details van fouten (%1$s fouten)</string>
+    <string name="hide_error_details">Verberg details van fouten</string>
 
     <!-- Error messages -->
     <string name="error_unknown">Er is een onbekende fout opgetreden.</string>
@@ -70,12 +95,15 @@
     <string name="error_add_to_album_failed">Toevoegen aan album mislukt: %1$s</string>
     <string name="error_add_media_items_failed">Mediagegevens toevoegen aan album mislukt</string>
     <string name="error_add_media_items_failed_with_message">Mediagegevens toevoegen aan album mislukt: %1$s</string>
-    <string name="error_one_or_more_photos_failed">Upload van eén of meer foto\'s mislukt: %1$s</string>
+    <string name="error_one_or_more_photos_failed">Upload van één of meer foto's mislukt: %1$s</string>
     <string name="network_error">Netwerkfout</string>
     <string name="unknown_error">Onbekende fout</string>
     <string name="error_loading_license">Laden licenties mislukt: %1$s</string>
-    <string name="error_remote_file_not_found">Remote %1$s net gevonden (%2$s)</string>
-    <string name="remote_error">Remote error</string>
+    <string name="error_remote_file_not_found">Remote %1$s niet gevonden (%2$s)</string>
+    <string name="server_error">Serverfout</string>
+    <string name="sign_in_before_uploading">Log in om te uploaden</string>
+    <string name="app_busy_upload_not_possible">App is bezig, upload nu niet mogelijk</string>
+    <string name="select_photos_before_uploading">Selecteer foto's om te uploaden</string>
 
     <!-- Upload statuses -->
     <string name="status_none"> </string>
@@ -83,7 +111,7 @@
     <string name="status_uploading">Uploaden</string>
     <string name="status_uploading_error">Uploadfout</string>
     <string name="status_success">Succes</string>
-    <string name="status_canceled">Geannuleerd</string>
+    <string name="status_canceled">Afgebroken</string>
     <string name="status_error">Fout</string>
 
     <!-- Legal gate — generic -->
@@ -93,7 +121,7 @@
     <string name="legal_error_retry">Opnieuw proberen</string>
 
     <!-- Legal gate — titles -->
-    <string name="legal_title_first_launch">Welkom — lees het onderstaande voor u verdergaat</string>
+    <string name="legal_title_first_launch">Welkom — lees het onderstaande voordat je verdergaat</string>
     <string name="legal_title_update">Onze juridische documenten zijn bijgewerkt</string>
 
     <!-- Legal document names -->
@@ -101,12 +129,8 @@
     <string name="terms_of_service">Gebruiksvoorwaarden</string>
     <string name="privacy_policy">Privacybeleid</string>
 
-    <!-- Section headers -->
-    <string name="legal_section_terms">Gebruiksvoorwaarden</string>
-    <string name="legal_section_privacy">Privacybeleid</string>
-
     <!-- Inline checkboxes (scroll-to-bottom OR check to acknowledge) -->
-    <string name="scroll_to_read">Scroll naar beneden om alles te lezen voordat u akkoord gaat.</string>
+    <string name="scroll_to_read">Scroll naar beneden om alles te lezen voordat je akkoord gaat.</string>
     <string name="legal_checkbox_terms">Ik heb de gebruiksvoorwaarden gelezen en ga hiermee akkoord</string>
     <string name="legal_checkbox_privacy">Ik heb het privacybeleid gelezen en ga hiermee akkoord</string>
 
