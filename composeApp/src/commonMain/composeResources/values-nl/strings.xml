@@ -69,7 +69,7 @@
         voordat je lokale kopieën verwijdert.
     </string>
     <string name="upload_complete">✅ Upload compleet</string>
-    <string name="upload_cancelled">⚠️ Upload afgebroken</string>
+    <string name="upload_canceled">⚠️ Upload afgebroken</string>
     <string name="upload_with_errors">❌ Upload beëindigd met fouten</string>
     <string name="albums_created">Nieuwe albums: %1$s</string>
     <string name="albums_skipped">Albums met overgeslagen foto's: %1$s</string>
@@ -78,7 +78,7 @@
     <string name="photos_skipped">Overgeslagen foto's: %1$s</string>
     <string name="photos_failed">Mislukte foto uploads: %1$s</string>
     <string name="no_longer_signed_in">Niet langer ingelogd</string>
-    <string name="report_cancelled_message">
+    <string name="report_canceled_message">
         De upload werd afgebroken voordat deze beëindigd was. Wat al geüpload was, blijft in Google
         Photos.
     </string>

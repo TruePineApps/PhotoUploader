@@ -69,7 +69,7 @@
         deleting any local copies.
     </string>
     <string name="upload_complete">✅ Upload Complete</string>
-    <string name="upload_cancelled">⚠️ Upload Cancelled</string>
+    <string name="upload_canceled">⚠️ Upload Cancelled</string>
     <string name="upload_with_errors">❌ Upload Completed with Errors</string>
     <string name="albums_created">Albums created: %1$s</string>
     <string name="albums_skipped">Albums with skipped photos: %1$s</string>
@@ -78,8 +78,8 @@
     <string name="photos_skipped">Photos skipped: %1$s</string>
     <string name="photos_failed">Photos failed: %1$s</string>
     <string name="no_longer_signed_in">No longer signed in</string>
-    <string name="report_cancelled_message">
-        The upload was cancelled before completion. Already uploaded content remains in Google
+    <string name="report_canceled_message">
+        The upload was canceled before completion. Already uploaded content remains in Google
         Photos.
     </string>
     <string name="report_care_message">

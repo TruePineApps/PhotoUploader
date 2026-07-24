@@ -41,10 +41,10 @@ import com.truepineapps.photouploader.resources.hide_error_details
 import com.truepineapps.photouploader.resources.photos_failed
 import com.truepineapps.photouploader.resources.photos_skipped
 import com.truepineapps.photouploader.resources.photos_uploaded
-import com.truepineapps.photouploader.resources.report_cancelled_message
+import com.truepineapps.photouploader.resources.report_canceled_message
 import com.truepineapps.photouploader.resources.report_care_message
 import com.truepineapps.photouploader.resources.show_error_details
-import com.truepineapps.photouploader.resources.upload_cancelled
+import com.truepineapps.photouploader.resources.upload_canceled
 import com.truepineapps.photouploader.resources.upload_complete
 import com.truepineapps.photouploader.resources.upload_with_errors
 import org.jetbrains.compose.resources.StringResource
@@ -76,7 +76,7 @@ fun UploadCompletionReportScreen(
                     text = stringResource(
                         when (report.status) {
                             UploadCompletionStatus.SUCCESS -> Res.string.upload_complete
-                            UploadCompletionStatus.CANCELLED -> Res.string.upload_cancelled
+                            UploadCompletionStatus.CANCELLED -> Res.string.upload_canceled
                             UploadCompletionStatus.ERRORS -> Res.string.upload_with_errors
                         }
                     ),
@@ -146,7 +146,7 @@ fun UploadCompletionReportScreen(
 
                 if (report.status == UploadCompletionStatus.CANCELLED) {
                     Text(
-                        text = stringResource(Res.string.report_cancelled_message).normalizeWhitespace(),
+                        text = stringResource(Res.string.report_canceled_message).normalizeWhitespace(),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = Dimensions.padding_medium)
                     )
