@@ -9,6 +9,8 @@
 
 package com.truepineapps.photouploader.core.presentation.design
 
+import androidx.compose.ui.graphics.Color
+
 /**
  * Standard opacity states.
  * Predefined float values for common states like transparent, disabled, and fully opaque.
@@ -19,6 +21,12 @@ package com.truepineapps.photouploader.core.presentation.design
  */
 enum class Opacity(val value: Float) {
     TRANSPARENT(0f),
+
+    // To convert a primary color to a container color using Color.copy(alpha = CONTAINER)
+    CONTAINER(0.1f),
     DISABLED(0.38f), // See also IconButtonTokens.DisabledIconOpacity
     FULL(1f)
 }
+
+fun Color.toEnabled(isEnabled: Boolean) = if (isEnabled) this else this.copy(alpha = Opacity.DISABLED.value)
+fun Color.toContainer() = this.copy(alpha = Opacity.CONTAINER.value)

@@ -9,7 +9,10 @@ data class ExtendedColorScheme(
     val statusSuccess: Color,
     val statusWarning: Color,
     val statusError: Color,
-    val statusDisabled: Color
+    val statusDisabled: Color,
+    val successContainer: Color,
+    val warningContainer: Color,
+    val errorContainer: Color,
 )
 
 val LocalExtendedColors = staticCompositionLocalOf {
@@ -19,5 +22,8 @@ val LocalExtendedColors = staticCompositionLocalOf {
         statusWarning = Color.Unspecified,
         statusError = Color.Unspecified,
         statusDisabled = Color.Unspecified,
+        successContainer = Color.Unspecified,
+        warningContainer = Color.Unspecified,
+        errorContainer = Color.Unspecified,
     )
 }

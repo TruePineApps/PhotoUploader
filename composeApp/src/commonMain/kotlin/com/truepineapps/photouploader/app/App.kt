@@ -212,8 +212,12 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 UploadSummaryScreen(
                     userProfile = userProfile,
                     totalAlbums = uiState.albumUiStates.count { it.isEnabled },
-                    totalPhotos = uiState.albumUiStates.filter { it.isEnabled }
+                    totalPhotos = uiState.albumUiStates
+                        .filter { it.isEnabled }
                         .sumOf { it.photoUiStates.count { p -> p.isEnabled } },
+                    albumsMissingCoverPhotos = uiState.albumUiStates
+                        .filter { it.isEnabled && !it.coverPhotoUiState.isEnabled }
+                        .map { it.name },
                     log = log,
                     onCancel = { showSummaryScreen = false },
                     onProceed = {

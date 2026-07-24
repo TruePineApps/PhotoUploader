@@ -881,10 +881,14 @@ class PhotoUploaderViewModel(
     ) {
         updateAlbum(albumId) { album ->
             var isPhotoStatusUpdated = false
+            var updatedCoverPhoto: PhotoUiState = album.coverPhotoUiState
             val updatedPhotos = album.photoUiStates.map { photo ->
                 if (photo.path == photoPath) {
                     val updatedPhoto = transform(photo)
                     isPhotoStatusUpdated = (updatedPhoto.uploadStatus != photo.uploadStatus)
+                    if (updatedCoverPhoto.path == photo.path) {
+                        updatedCoverPhoto = updatedPhoto
+                    }
                     updatedPhoto
                 } else {
                     photo
@@ -892,7 +896,10 @@ class PhotoUploaderViewModel(
             }
 
             // Copy in 2 steps, since getDerivedUploadStatus needs the updated photos to determine the status
-            val updatedAlbum = album.copy(photoUiStates = updatedPhotos)
+            val updatedAlbum = album.copy(
+                photoUiStates = updatedPhotos,
+                coverPhotoUiState = updatedCoverPhoto
+            )
             if (isPhotoStatusUpdated) {
                 updatedAlbum.copy(
                     uploadStatus = updatedAlbum.getDerivedUploadStatus(updatedAlbum.uploadStatus)

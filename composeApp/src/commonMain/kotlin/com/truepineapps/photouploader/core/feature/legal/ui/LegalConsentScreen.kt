@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
@@ -34,6 +35,7 @@ import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalIntent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
 import com.truepineapps.photouploader.core.presentation.component.MarkDownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.agree_to_continue
@@ -178,7 +180,7 @@ private fun BackupAcknowledgementRow(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        colors = CardDefaults.cardColors(containerColor = LocalExtendedColors.current.warningContainer),
     ) {
         Row(
             modifier = Modifier.padding(Dimensions.padding_medium),
@@ -189,7 +191,7 @@ private fun BackupAcknowledgementRow(
             Text(
                 text = stringResource(Res.string.legal_backup_acknowledgement).normalizeWhitespace(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
+                color = Color.Black,
             )
         }
     }

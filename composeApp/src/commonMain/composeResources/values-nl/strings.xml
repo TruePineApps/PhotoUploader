@@ -63,6 +63,11 @@
     <string name="uploading_to">Uploaden naar:</string>
     <string name="albums_to_create">Aantal nieuwe albums: %1$s</string>
     <string name="photos_to_upload">Aantal te uploaden foto's: %1$s</string>
+    <plurals name="no_cover_photo_selected">
+        <item quantity="one">⚠️ Geen omslagfoto geselecteerd voor album %1$s</item>
+        <item quantity="other">⚠️ Geen omslagfoto's geselecteerd voor albums %1$s</item>
+    </plurals>
+
     <string name="summary_care_message">
         Het uploaden kan niet ongedaan worden gemaakt in de App. Wat je hebt geüpload kun je
         controleren en verwijderen in Google Photos zelf. Verifieer de uploads in Google Photos

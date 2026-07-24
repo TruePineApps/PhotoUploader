@@ -63,6 +63,10 @@
     <string name="uploading_to">Uploading to:</string>
     <string name="albums_to_create">Albums to create: %1$s</string>
     <string name="photos_to_upload">Photos to upload: %1$s</string>
+    <plurals name="no_cover_photo_selected">
+        <item quantity="one">⚠️ No cover photo selected for album %1$s</item>
+        <item quantity="other">⚠️ No cover photos selected for albums %1$s</item>
+    </plurals>
     <string name="summary_care_message">
         This operation cannot be undone from within the App. Review and removal of uploaded content
         is available directly in Google Photos. Please verify your uploads in Google Photos before

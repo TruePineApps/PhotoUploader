@@ -42,6 +42,7 @@ import com.truepineapps.photouploader.core.feature.moremenu.ui.MoreMenu
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.design.Opacity
+import com.truepineapps.photouploader.core.presentation.design.toEnabled
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
@@ -64,17 +65,17 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * App bar to display from left to right:
  * # NavigationIcon:
- *  - On PhotoUploader Screen: Sign in status:
- *   . not signed in: Launcher icon with sign in dropdown menu
- *   . signing in: Progress indicator with cancel dropdown menu
- *   . signed in: Avatar with sign out dropdown menu
+ *  - On PhotoUploader Screen, Sign-in status:
+ *   . not signed in: Launcher icon with the sign-in dropdown menu
+ *   . signing in: Progress indicator with the cancel dropdown menu
+ *   . signed in: Avatar with the sign-out dropdown menu
  *  - On Album Screen: Back navigation
  * # Path
  * # Custom actions for the screen
  * # Upload button
  *  - Upload status:
- *   . not uploading: Upload button
- *   . uploading: Progress indicator with cancel dropdown menu
+ *   . not uploading: the Upload button
+ *   . uploading: Progress indicator with the cancel dropdown menu
  * # Menu button
  *   . Preferences
  *   . About
@@ -106,25 +107,18 @@ fun PhotoUploaderAppBar(
         uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle() && isEnabled
     val userProfile = uiState.userProfile
 
-
-    // Get the disabled text color
-    val titleTextColor = MaterialTheme.colorScheme.primary
-    val disabledTitleTextColor = titleTextColor.copy(alpha = Opacity.DISABLED.value)
-
     CenterAlignedTopAppBar(
         title = {
             Text(
                 text = title,
-                color = if (isEnabled) titleTextColor else disabledTitleTextColor
+                color = MaterialTheme.colorScheme.primary.toEnabled(isEnabled)
             )
         },
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
             if (isSigningIn) {
-                ProgressMenu(
-                    stringResource(Res.string.waiting_for_browser_sign_in)
-                ) {
+                ProgressMenu(stringResource(Res.string.waiting_for_browser_sign_in)) {
                     viewModel.cancelProcess()
                 }
             } else if (closeDialog != null) {
@@ -159,9 +153,7 @@ fun PhotoUploaderAppBar(
                 onClick = showDirPicker
             )
             if (isUploading) {
-                ProgressMenu(
-                    stringResource(Res.string.uploading)
-                ) {
+                ProgressMenu(stringResource(Res.string.uploading)) {
                     viewModel.cancelProcess()
                 }
             } else {
@@ -172,10 +164,7 @@ fun PhotoUploaderAppBar(
                     onClick = onUploadClick,
                 )
             }
-            MoreMenu(
-                isEnabled,
-                moreMenuNavigator
-            )
+            MoreMenu(isEnabled, moreMenuNavigator)
         },
         colors = colors
     )
@@ -186,7 +175,7 @@ private fun SignInMenu(
     isEnabled: Boolean,
     signIn: () -> Unit,
 ) {
-    // The expanded state of the sign in dropdown menu.
+    // The expanded state of the sign-in dropdown menu.
     var signInExpanded by remember { mutableStateOf(false) }
 
     Box {
@@ -215,7 +204,7 @@ private fun SignInMenu(
 
 @Composable
 private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
-    // The expanded state of the sign in in progress dropdown menu.
+    // The expanded state of the sign-in in progress dropdown menu.
     var progressMenuExpanded by remember { mutableStateOf(false) }
 
     Box {

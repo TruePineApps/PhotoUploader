@@ -1,5 +1,6 @@
 package com.truepineapps.photouploader.feature.uploader.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,20 +15,26 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.albums_to_create
 import com.truepineapps.photouploader.resources.cancel
+import com.truepineapps.photouploader.resources.no_cover_photo_selected
 import com.truepineapps.photouploader.resources.photos_to_upload
 import com.truepineapps.photouploader.resources.proceed
 import com.truepineapps.photouploader.resources.ready_to_upload
 import com.truepineapps.photouploader.resources.summary_care_message
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 // Note that the userProfile may be null when the user canceled the sign-in process.
@@ -39,7 +46,8 @@ fun UploadSummaryScreen(
     log: Logger,
     onCancel: () -> Unit,
     onProceed: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    albumsMissingCoverPhotos: List<String>
 ) {
     log.d("Show pre-upload summary screen: Albums = $totalAlbums Photos = $totalPhotos")
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -68,6 +76,31 @@ fun UploadSummaryScreen(
                     text = stringResource(Res.string.photos_to_upload, totalPhotos),
                     style = MaterialTheme.typography.bodyLarge
                 )
+
+                if (albumsMissingCoverPhotos.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimensions.padding_medium))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        color = LocalExtendedColors.current.warningContainer,
+                        border = BorderStroke(1.dp, LocalExtendedColors.current.warningContainer)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(Dimensions.padding_medium),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = pluralStringResource(
+                                    Res.plurals.no_cover_photo_selected,
+                                    albumsMissingCoverPhotos.size,
+                                    albumsMissingCoverPhotos.joinToString("', '", "'", "'"),
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
@@ -118,6 +151,7 @@ fun PreviewUploadSummaryScreen() {
             log = Logger,
             onCancel = { },
             onProceed = { },
+            albumsMissingCoverPhotos = listOf("Vacation", "Birthdays")
         )
     }
 }

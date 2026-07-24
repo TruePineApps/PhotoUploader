@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import com.truepineapps.photouploader.core.presentation.design.ExtendedColorScheme
 import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
+import com.truepineapps.photouploader.core.presentation.design.toContainer
 import com.truepineapps.photouploader.core.util.ContrastLevel
 import com.truepineapps.photouploader.core.util.getSystemContrastLevel
 
@@ -15,8 +16,10 @@ val myExtendedColors = ExtendedColorScheme(
     statusSuccess = StatusPalette.Success,
     statusWarning = StatusPalette.Warning,
     statusError = StatusPalette.Error,
-    statusDisabled = StatusPalette.Disabled
-
+    statusDisabled = StatusPalette.Disabled,
+    successContainer = StatusPalette.Success.toContainer(),
+    warningContainer = StatusPalette.Warning.toContainer(),
+    errorContainer = StatusPalette.Error.toContainer(),
 )
 
 // Dynamic color is only available on Android 12+, no multiplatform support
