@@ -34,6 +34,7 @@ import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalIntent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
 import com.truepineapps.photouploader.core.presentation.component.MarkDownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.legal_backup_acknowledgement
 import com.truepineapps.photouploader.resources.legal_button_accept
@@ -184,7 +185,7 @@ private fun BackupAcknowledgementRow(
             Checkbox(checked = isChecked, onCheckedChange = onChecked)
             Spacer(Modifier.width(Dimensions.padding_small))
             Text(
-                text = stringResource(Res.string.legal_backup_acknowledgement),
+                text = stringResource(Res.string.legal_backup_acknowledgement).normalizeWhitespace(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer,
             )

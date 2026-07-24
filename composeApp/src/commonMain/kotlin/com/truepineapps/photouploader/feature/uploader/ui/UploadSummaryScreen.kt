@@ -1,33 +1,39 @@
 package com.truepineapps.photouploader.feature.uploader.ui
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
-import coil3.compose.AsyncImage
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.albums_to_create
-import com.truepineapps.photouploader.resources.avatar
 import com.truepineapps.photouploader.resources.cancel
 import com.truepineapps.photouploader.resources.photos_to_upload
 import com.truepineapps.photouploader.resources.proceed
 import com.truepineapps.photouploader.resources.ready_to_upload
 import com.truepineapps.photouploader.resources.summary_care_message
-import com.truepineapps.photouploader.resources.uploading_to
 import org.jetbrains.compose.resources.stringResource
 
+// Note that the userProfile may be null when the user canceled the sign-in process.
 @Composable
-fun PhotoUploaderSummaryScreen(
-    userProfile: UserProfile,
+fun UploadSummaryScreen(
+    userProfile: UserProfile?,
     totalAlbums: Int,
     totalPhotos: Int,
     log: Logger,
@@ -50,27 +56,7 @@ fun PhotoUploaderSummaryScreen(
                     modifier = Modifier.padding(bottom = Dimensions.padding_large)
                 )
 
-                Text(
-                    text = stringResource(Res.string.uploading_to),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(bottom = Dimensions.padding_small)
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = userProfile.avatarUrl,
-                        contentDescription = stringResource(Res.string.avatar),
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.padding_medium))
-                    Column {
-                        Text(text = userProfile.name, style = MaterialTheme.typography.titleMedium)
-                        userProfile.email?.let {
-                            Text(text = it, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
+                UploadUserReportSection(userProfile = userProfile)
 
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
@@ -86,7 +72,7 @@ fun PhotoUploaderSummaryScreen(
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
                 Text(
-                    text = stringResource(Res.string.summary_care_message),
+                    text = stringResource(Res.string.summary_care_message).normalizeWhitespace(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -106,7 +92,8 @@ fun PhotoUploaderSummaryScreen(
                 }
                 Button(
                     onClick = onProceed,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = userProfile != null
                 ) {
                     Text(stringResource(Res.string.proceed))
                 }
@@ -117,9 +104,9 @@ fun PhotoUploaderSummaryScreen(
 
 @Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
 @Composable
-fun PreviewPhotoUploaderSummaryScreen() {
+fun PreviewUploadSummaryScreen() {
     AppTheme {
-        PhotoUploaderSummaryScreen(
+        UploadSummaryScreen(
             userProfile = UserProfile(
                 name = "marcel",
                 email = "marcel@google.com",

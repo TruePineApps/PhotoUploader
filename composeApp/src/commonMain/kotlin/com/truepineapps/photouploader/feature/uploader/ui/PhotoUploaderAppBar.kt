@@ -264,13 +264,14 @@ fun AvatarMenu(
                 model = userProfile.avatarUrl,
                 contentDescription = stringResource(Res.string.sign_out_menu),
                 colorFilter = if (!isEnabled) ColorFilter.colorMatrix(
-                    // A saturation of 0f will remove all color, resulting in a grayscale image.
+                    // Saturation of 0f will remove all color, resulting in a grayscale image.
                     ColorMatrix().apply { setToSaturation(0f) }
                 ) else null,
                 modifier = Modifier
                     .padding(Dimensions.padding_small)
                     .size(Dimensions.medium_icon_size)
                     .clip(CircleShape)
+                    .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value)
                     .clickable { if (isEnabled) avatarExpanded = true }
             )
         } else {

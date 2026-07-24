@@ -56,13 +56,18 @@
     <string name="collapse_album">Collapse album</string>
     <string name="expand_album">Expand album</string>
     <string name="photo_uploader_description">
-        Photo Uploader uploads a photo collection organized in folders into albums on Google Photos. The album name is derived from the folder name.
+        Photo Uploader uploads a photo collection organized in folders into albums on Google Photos.
+        The album name is derived from the folder name.
     </string>
     <string name="ready_to_upload">📤 Ready to upload</string>
     <string name="uploading_to">Uploading to:</string>
     <string name="albums_to_create">Albums to create: %1$s</string>
     <string name="photos_to_upload">Photos to upload: %1$s</string>
-    <string name="summary_care_message">This operation cannot be undone from within the App. Review and removal of uploaded content is available directly in Google Photos. Please verify your uploads in Google Photos before deleting any local copies.</string>
+    <string name="summary_care_message">
+        This operation cannot be undone from within the App. Review and removal of uploaded content
+        is available directly in Google Photos. Please verify your uploads in Google Photos before
+        deleting any local copies.
+    </string>
     <string name="upload_complete">✅ Upload Complete</string>
     <string name="upload_cancelled">⚠️ Upload Cancelled</string>
     <string name="upload_with_errors">❌ Upload Completed with Errors</string>
@@ -74,10 +79,13 @@
     <string name="photos_failed">Photos failed: %1$s</string>
     <string name="no_longer_signed_in">No longer signed in</string>
     <string name="report_cancelled_message">
-        The upload was cancelled before completion. Already uploaded content remains in Google Photos.
+        The upload was cancelled before completion. Already uploaded content remains in Google
+        Photos.
     </string>
     <string name="report_care_message">
-        The App reports what was sent and acknowledged — what Google Photos ultimately stores is beyond the App's visibility. Therefore, please verify your uploads in Google Photos before deleting any local copies.
+        The App reports what was sent and acknowledged — what Google Photos ultimately stores is
+        beyond the App's visibility. Therefore, please verify your uploads in Google Photos before
+        deleting any local copies.
     </string>
     <string name="show_error_details">Show error details (%1$s errors)</string>
     <string name="hide_error_details">Hide error details</string>
@@ -137,11 +145,11 @@
     <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
     <string name="legal_backup_acknowledgement">
         I understand that Photo-Uploader uploads photos to Google Photos but cannot
-    guarantee that all uploads are stored correctly. The App reports what was sent
-    and acknowledged — what Google Photos ultimately stores is beyond the App\'s
-    visibility. I am responsible for maintaining independent backups of my photos
-    at all times, and I will verify my uploads in Google Photos before deleting
-    any local copies.
+        guarantee that all uploads are stored correctly. The App reports what was sent
+        and acknowledged — what Google Photos ultimately stores is beyond the App\'s
+        visibility. I am responsible for maintaining independent backups of my photos
+        at all times, and I will verify my uploads in Google Photos before deleting
+        any local copies.
     </string>
 
     <!-- Accept button -->

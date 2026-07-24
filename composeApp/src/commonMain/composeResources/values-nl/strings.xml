@@ -56,13 +56,18 @@
     <string name="collapse_album">Album inklappen</string>
     <string name="expand_album">Album uitklappen</string>
     <string name="photo_uploader_description">
-        Photo Uploader stuurt foto's georganiseerd in folders naar albums op Google Photos. De naam van het album wordt afgeleid van de naam van de folder.
+        Photo Uploader stuurt foto's georganiseerd in folders naar albums op Google Photos. De naam
+        van het album wordt afgeleid van de naam van de folder.
     </string>
     <string name="ready_to_upload">📤 Klaar voor upload</string>
     <string name="uploading_to">Uploaden naar:</string>
     <string name="albums_to_create">Aantal nieuwe albums: %1$s</string>
     <string name="photos_to_upload">Aantal te uploaden foto's: %1$s</string>
-    <string name="summary_care_message">Het uploaden kan niet ongedaan worden gemaakt in de App. Wat je hebt geüpload kun je controleren en verwijderen in Google Photos zelf. Verifieer de uploads in Google Photos voordat je lokale kopieën verwijdert.</string>
+    <string name="summary_care_message">
+        Het uploaden kan niet ongedaan worden gemaakt in de App. Wat je hebt geüpload kun je
+        controleren en verwijderen in Google Photos zelf. Verifieer de uploads in Google Photos
+        voordat je lokale kopieën verwijdert.
+    </string>
     <string name="upload_complete">✅ Upload compleet</string>
     <string name="upload_cancelled">⚠️ Upload afgebroken</string>
     <string name="upload_with_errors">❌ Upload beëindigd met fouten</string>
@@ -74,10 +79,13 @@
     <string name="photos_failed">Mislukte foto uploads: %1$s</string>
     <string name="no_longer_signed_in">Niet langer ingelogd</string>
     <string name="report_cancelled_message">
-        De upload werd afgebroken voordat deze beëindigd was. Wat al geüpload was, blijft in Google Photos.
+        De upload werd afgebroken voordat deze beëindigd was. Wat al geüpload was, blijft in Google
+        Photos.
     </string>
     <string name="report_care_message">
-        De App rapporteert wat verzonden en bevestigd is — wat Google Photos uiteindelijk opslaat, kan de App niet zien. Verifieer daarom je uploads in Google Photos voordat je lokale kopieën verwijdert.
+        De App rapporteert wat verzonden en bevestigd is — wat Google Photos uiteindelijk opslaat,
+        kan de App niet zien. Verifieer daarom je uploads in Google Photos voordat je lokale kopieën
+        verwijdert.
     </string>
     <string name="show_error_details">Toon details van fouten (%1$s fouten)</string>
     <string name="hide_error_details">Verberg details van fouten</string>

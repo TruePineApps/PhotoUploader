@@ -27,6 +27,7 @@ import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.core.util.PlatformType
+import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about_photo_uploader
 import com.truepineapps.photouploader.resources.app_id
@@ -64,7 +65,7 @@ fun AboutScreen(
         PlatformDetailRow(Res.string.sources, "github.com/truepineapps/photouploader")
         Spacer(modifier = Modifier.height(Dimensions.padding_medium))
         Text(
-            stringResource(Res.string.photo_uploader_description),
+            stringResource(Res.string.photo_uploader_description).normalizeWhitespace(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Dimensions.padding_small)

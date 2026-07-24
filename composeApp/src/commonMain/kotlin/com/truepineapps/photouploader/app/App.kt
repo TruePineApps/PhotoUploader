@@ -40,10 +40,10 @@ import com.truepineapps.photouploader.core.feature.settings.ui.AppEnvironment
 import com.truepineapps.photouploader.core.navigation.MoreMenuNavigatorImpl
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.core.presentation.design.Opacity
-import com.truepineapps.photouploader.feature.uploader.ui.CompletionReportScreen
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderAppBar
 import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderDestination
-import com.truepineapps.photouploader.feature.uploader.ui.PhotoUploaderSummaryScreen
+import com.truepineapps.photouploader.feature.uploader.ui.UploadCompletionReportScreen
+import com.truepineapps.photouploader.feature.uploader.ui.UploadSummaryScreen
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.app_name
@@ -177,9 +177,10 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 viewModel = viewModel,
                 onUploadClick = {
                     log.d("Upload button clicked")
-                    showSummaryScreen = true
-                    if (userProfile == null) {
-                        viewModel.signIn()
+                    scope.launch {
+                        if (viewModel.ensureAuthenticated()) {
+                            showSummaryScreen = true
+                        }
                     }
                 },
             )
@@ -207,8 +208,8 @@ private fun ThemedLocalizedLegalAcceptedApp(
 
             /* The upload summary and report screens are overlays inside the main content area */
 
-            if (showSummaryScreen && userProfile != null) {
-                PhotoUploaderSummaryScreen(
+            if (showSummaryScreen) {
+                UploadSummaryScreen(
                     userProfile = userProfile,
                     totalAlbums = uiState.albumUiStates.count { it.isEnabled },
                     totalPhotos = uiState.albumUiStates.filter { it.isEnabled }
@@ -223,7 +224,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
             }
 
             uiState.uploadReport?.let { report ->
-                CompletionReportScreen(
+                UploadCompletionReportScreen(
                     userProfile = userProfile,
                     report = report,
                     log = log,

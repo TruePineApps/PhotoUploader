@@ -143,7 +143,7 @@ class PhotoUploaderViewModel(
     }
 
     /**
-     * Public entry point for manual Sign In button (if any).
+     * Public entry point for the manual Sign In button (if any).
      */
     fun signIn() {
         if (processJob?.isActive == true) return
@@ -152,12 +152,39 @@ class PhotoUploaderViewModel(
             try {
                 performSignIn()
             } catch (e: CancellationException) {
-                // Job was canceled (e.g. via cancelProcess), stop gracefully
+                // Job was canceled (e.g., via cancelProcess), stop gracefully
                 log.d("signIn: Sign in canceled: ${e.message}")
             } finally {
                 processJob = null
             }
         }
+    }
+
+    /**
+     * Ensures the user is authenticated. If not already signed in, it initiates
+     * the sign-in process and waits for it to complete.
+     * @return true if authenticated, false otherwise.
+     */
+    suspend fun ensureAuthenticated(): Boolean {
+        if (_viewState.value.isAuthenticated) return true
+
+        try {
+            // If a sign-in is already in progress, just wait for it.
+            // Otherwise, start a new one.
+            if (_viewState.value.status != AppStatus.SIGNING_IN) {
+                signIn()
+            }
+
+            // Wait for the sign-in job to complete
+            processJob?.join()
+        } catch (e: Exception) {
+            log.e("ensureAuthenticated failed", e)
+            val uiText =
+                e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
+            _viewState.update { it.copy(globalErrorMessage = uiText) }
+        }
+
+        return _viewState.value.isAuthenticated
     }
 
     /**
@@ -189,7 +216,7 @@ class PhotoUploaderViewModel(
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: AuthException) {
             log.d("performSignIn: AuthException ${e::class.simpleName}: ${e.message}")
-            // Token expired or general sign in failure: Remove credential
+            // Token expired or general sign-in failure: Remove credential
             handleAuthExpiry()
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
@@ -201,6 +228,7 @@ class PhotoUploaderViewModel(
             }
             _viewState.update { it.copy(globalErrorMessage = uiText) }
         } finally {
+            log.d("Set viewState to Idle after sign-in")
             _viewState.update { it.copy(status = AppStatus.IDLE) }
         }
 
@@ -212,7 +240,7 @@ class PhotoUploaderViewModel(
      */
     fun cancelProcess() {
         // This will cancel the job running performSignIn(), triggering the CancellationException there
-        // The finally block in performSignIn() will handle the state update
+        // The finally-block in performSignIn() will handle the state update
         log.d("cancelProcess: Cancel process")
         processJob?.cancel()
         processJob = null
@@ -260,10 +288,10 @@ class PhotoUploaderViewModel(
             photosSkipped = photosSkipped,
             photosFailed = photosFailed,
             errors = allEnabledPhotos.filter { it.uploadStatus is UploadStatus.Error }.map {
-                    UploadError(
-                        it.name, (it.uploadStatus as UploadStatus.Error).message.toString()
-                    )
-                },
+                UploadError(
+                    it.name, (it.uploadStatus as UploadStatus.Error).message.toString()
+                )
+            },
             status = status
         )
     }
@@ -352,7 +380,7 @@ class PhotoUploaderViewModel(
 
     /**
      * Uploads photos based on the current UI state to Google Photos without re-authenticating.
-     * No upload starts if the user is not authenticated, there are no photos or the app is not idle.
+     * No upload starts if the user is not authenticated, there are no photos, or the app is not idle.
      *
      * @return The job that performs the upload, null if no job is created.
      */
@@ -378,14 +406,15 @@ class PhotoUploaderViewModel(
                     log.d("Upload process caught global exception: ${e.message} (${e.status})")
                     resetNonFinalUploadStatuses()
                     if (e.status == HttpStatusCode.Unauthorized
-                        || e.uiText.toString().contains(other = "UNAUTHENTICATED", ignoreCase = true)
+                        || e.uiText.toString()
+                            .contains(other = "UNAUTHENTICATED", ignoreCase = true)
                     ) {
                         handleAuthExpiry()
                     } else {
                         _viewState.update { it.copy(globalErrorMessage = e.uiText) }
                     }
                 } catch (e: CancellationException) {
-                    // Job was canceled (e.g. via cancelProcess), stop gracefully
+                    // Job was canceled (e.g., via cancelProcess), stop gracefully
                     log.d("Upload process canceled: ${e.message}")
                     isCancelled = true
                     // Wait for background thread to finalize already uploaded photos using a timeout
@@ -528,7 +557,7 @@ class PhotoUploaderViewModel(
         }
     }
 
-    /** Signs in to obtain an access token and starts uploading the photo's from the albums list
+    /** Signs in to get an access token and starts uploading the photo's from the album list
      * @param albumUiStates List of albums to process
      */
     private suspend fun uploadPhotosImpl(
@@ -619,7 +648,7 @@ class PhotoUploaderViewModel(
         accessToken: String,
     ) {
         val currentAlbumUiState = _albumUiStates.value.find { it.id == albumId }!!
-        // If no photos were successfully uploaded (e.g. all failed), the only thing to do is set
+        // If no photos were successfully uploaded (e.g., all failed), the only thing to do is set
         // the album to a final status.
         if (uploadedItems.isEmpty()) {
             log.d("createMediaItemsForUpload:     No photos uploaded successfully for album ${currentAlbumUiState.name}, canceled = $isCancelled")
