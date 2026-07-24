@@ -153,6 +153,7 @@
     </string>
 
     <!-- Accept button -->
+    <string name="agree_to_continue">Agree to all conditions above to continue</string>
     <string name="legal_button_accept">I agree — Continue</string>
 
 </resources>

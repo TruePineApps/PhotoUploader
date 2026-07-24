@@ -152,6 +152,7 @@
     </string>
 
     <!-- Accept button -->
+    <string name="agree_to_continue">Accordeer alle bovenstaande voorwaarden om door te gaan</string>
     <string name="legal_button_accept">Ik ga akkoord — Doorgaan</string>
 
 </resources>

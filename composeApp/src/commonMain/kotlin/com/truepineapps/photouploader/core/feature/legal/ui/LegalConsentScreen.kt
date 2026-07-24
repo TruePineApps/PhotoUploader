@@ -36,6 +36,7 @@ import com.truepineapps.photouploader.core.presentation.component.MarkDownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.agree_to_continue
 import com.truepineapps.photouploader.resources.legal_backup_acknowledgement
 import com.truepineapps.photouploader.resources.legal_button_accept
 import com.truepineapps.photouploader.resources.legal_checkbox_privacy
@@ -100,14 +101,15 @@ fun LegalConsentScreen(
             )
 
             // ── Accept button ─────────────────────────────────────────────
+            val isEnabled = state.canAccept
             Button(
                 onClick = { onIntent(LegalIntent.Accept) },
-                enabled = state.canAccept,
+                enabled = isEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = Dimensions.padding_large),
             ) {
-                Text(stringResource(Res.string.legal_button_accept))
+                Text( stringResource(if (isEnabled) Res.string.legal_button_accept else Res.string.agree_to_continue))
             }
         }
     }
