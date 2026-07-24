@@ -44,7 +44,7 @@ private const val CLIENT_SECRETS_JSON = "client_secrets.json"
  * A concrete implementation of [GoogleAuthService] tailored for desktop environments.
  *
  * This service handles the OAuth 2.0 authentication flow specifically for desktop applications,
- * utilizing a local Jetty server to receive authorization callbacks. It manages the lifecycle
+ * using a local Jetty server to receive authorization callbacks. It manages the lifecycle
  * of Google API credentials, including:
  * - Initiating the OAuth flow via the system browser.
  * - Securely storing and retrieving credentials locally in the user's home directory.
@@ -269,7 +269,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
 
                 checkAndThrowTokenExpired(statusCode, error, errorDescription)
 
-                // If not a token expired issue, fallback to a generic network error
+                // If not a 'token expired' issue, fallback to a generic network error
                 val message = errorDescription ?: e.statusMessage ?: Res.string.network_error.toString()
                 throw AuthException.NetworkError(
                     UiTextResource(Res.string.error_sign_in_failed, UiTextString(message)),
@@ -287,7 +287,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
                 // Check if this error indicates token expiry/revocation based on status code and reason
                 checkAndThrowTokenExpired(statusCode, firstErrorReason, errorDescription)
 
-                // If not a token expired issue, fallback to a generic network error
+                // If not a 'token expired' issue, fallback to a generic network error
                 val message = errorDescription ?: Res.string.network_error.toString()
                 throw AuthException.NetworkError(
                     UiTextResource(Res.string.error_sign_in_failed, UiTextString(message)),
@@ -304,7 +304,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
                 // Check for generic 401/403 (unauthorized/forbidden) which strongly imply auth issues
                 checkAndThrowTokenExpired(statusCode, null, message)
 
-                // If not a token expired issue, fallback to a generic network error
+                // If not a 'token expired' issue, fallback to a generic network error
                 throw AuthException.NetworkError(
                     UiTextResource(Res.string.error_sign_in_failed, UiTextString(message)),
                     statusCode

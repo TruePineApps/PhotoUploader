@@ -9,9 +9,8 @@ import java.awt.Toolkit
 @Composable
 actual fun getSystemContrastLevel(): ContrastLevel {
     return remember {
-        // Windows High Contrast check
-        val highContrastOn = Toolkit.getDefaultToolkit()
-            .getDesktopProperty("win.highContrast.on") as? Boolean
+        // Windows and Linux High Contrast check
+        val highContrastOn = isWindowsHighContrast() ?: isLinuxHighContrast()
 
         if (highContrastOn == true) {
             ContrastLevel.High
@@ -20,3 +19,8 @@ actual fun getSystemContrastLevel(): ContrastLevel {
         }
     }
 }
+
+fun isWindowsHighContrast(): Boolean? = Toolkit.getDefaultToolkit()
+    .getDesktopProperty("win.highContrast.on") as? Boolean
+
+fun isLinuxHighContrast(): Boolean? = LinuxHighContrastDetector.isHighContrastEnabled()
