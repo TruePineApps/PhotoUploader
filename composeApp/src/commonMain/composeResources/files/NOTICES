@@ -7,12 +7,12 @@ True Pine Apps (https://www.truepineapps.com/).
 THIRD-PARTY SOFTWARE NOTICES
 ============================================================
 
-Total Unique Packages: 248
+Total Unique Packages: 254
 Note: Where packages are listed under combined license headers (e.g., Apache-2.0 OR LGPL),
 True Pine Apps distributes them under the Apache-2.0 license.
 
 ------------------------------------------------------------
-Apache-2.0 (244 packages)
+Apache-2.0 (245 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 ------------------------------------------------------------
   androidx.annotation:annotation:1.9.1  (https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1)
@@ -93,6 +93,7 @@ https://www.apache.org/licenses/LICENSE-2.0
   com.squareup.okio:okio-jvm:3.18.0  (https://github.com/lysine-dev/okio/)
   commons-codec:commons-codec:1.17.1  (https://commons.apache.org/proper/commons-codec/)
   commons-logging:commons-logging:1.2  (http://commons.apache.org/proper/commons-logging/)
+  de.jangassen:jfa:1.2.0  (https://github.com/0x4a616e/jfa)
   io.coil-kt.coil3:coil:3.5.0  (https://github.com/coil-kt/coil)
   io.coil-kt.coil3:coil-compose:3.5.0  (https://github.com/coil-kt/coil)
   io.coil-kt.coil3:coil-compose-core:3.5.0  (https://github.com/coil-kt/coil)
@@ -269,16 +270,21 @@ https://opensource.org/licenses/BSD-3-Clause
   com.google.auth:google-auth-library-oauth2-http:1.30.0
 
 ------------------------------------------------------------
-Apache-2.0 OR LGPL-2.1-only (1 package)
+Apache-2.0 OR LGPL-2.1-only (2 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 https://www.gnu.org/licenses/lgpl-2.1
 ------------------------------------------------------------
-  net.java.dev.jna:jna:5.18.1  (https://github.com/java-native-access/jna)
+  net.java.dev.jna:jna-jpms:5.18.1  (https://github.com/java-native-access/jna)
+  net.java.dev.jna:jna-platform-jpms:5.18.1  (https://github.com/java-native-access/jna)
 
 ------------------------------------------------------------
-MIT (1 package)
+MIT (5 packages)
 https://opensource.org/licenses/MIT
 ------------------------------------------------------------
+  io.github.kdroidfilter:platformtools.core:0.7.5  (https://github.com/kdroidFilter/)
+  io.github.kdroidfilter:platformtools.core-jvm:0.7.5  (https://github.com/kdroidFilter/)
+  io.github.kdroidfilter:platformtools.darkmodedetector:0.7.5  (https://github.com/kdroidFilter/)
+  io.github.kdroidfilter:platformtools.darkmodedetector-jvm:0.7.5  (https://github.com/kdroidFilter/)
   org.slf4j:slf4j-api:2.0.18  (http://www.slf4j.org)
 
   License text:

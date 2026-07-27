@@ -130,6 +130,8 @@ kotlin {
 
             // Window size calculation, publish calculateWindowSizeClass on the API
             api(libs.compose.material3.window.size)
+            // Multiplatform Dark Mode detection an reactive updates
+            implementation(libs.platformtools.darkmodedetector)
 
             // Extended icons set
             implementation(libs.compose.material.icons.extended)

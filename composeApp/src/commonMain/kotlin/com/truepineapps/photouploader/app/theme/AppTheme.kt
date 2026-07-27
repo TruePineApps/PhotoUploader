@@ -1,6 +1,5 @@
 package com.truepineapps.photouploader.app.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -9,6 +8,7 @@ import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColo
 import com.truepineapps.photouploader.core.presentation.design.toContainer
 import com.truepineapps.photouploader.core.util.ContrastLevel
 import com.truepineapps.photouploader.core.util.getSystemContrastLevel
+import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 
 // app/theme/AppTheme.kt
 val myExtendedColors = ExtendedColorScheme(
@@ -25,7 +25,7 @@ val myExtendedColors = ExtendedColorScheme(
 // Dynamic color is only available on Android 12+, no multiplatform support
 @Composable
 fun AppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isSystemInDarkMode(),
     contrastLevel: ContrastLevel = getSystemContrastLevel(),
     content: @Composable () -> Unit
 ) {
