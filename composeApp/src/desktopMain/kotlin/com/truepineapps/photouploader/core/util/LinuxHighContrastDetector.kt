@@ -3,6 +3,11 @@ package com.truepineapps.photouploader.core.util
 import java.util.concurrent.TimeUnit
 import java.util.Locale
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -66,7 +71,56 @@ object LinuxHighContrastDetector : KoinComponent {
         }
     }
 
-    private fun isLinux(): Boolean {
+    /**
+     * Monitors the high contrast setting on Linux (GNOME).
+     * Emits the current value immediately and then any subsequent changes.
+     */
+    fun monitorHighContrast(): Flow<Boolean> = callbackFlow {
+        if (!isLinux()) {
+            trySend(false)
+            close()
+            return@callbackFlow
+        }
+
+        val monitorProcess = try {
+            // Monitor the unique schemas defined in `queries` for changes
+            val schemas = queries.map { it.schema }.distinct()
+            val monitorCommand = schemas.joinToString(" & ") { "gsettings monitor $it" }
+            ProcessBuilder("sh", "-c", monitorCommand).start()
+        } catch (e: Exception) {
+            log.e("Failed to start gsettings monitor", e)
+            trySend(isHighContrastEnabled() ?: false)
+            close()
+            return@callbackFlow
+        }
+
+        val reader = monitorProcess.inputStream.bufferedReader()
+        
+        // Initial state emission inside the flow
+        trySend(isHighContrastEnabled() ?: false)
+
+        // Monitor loop
+        try {
+            while (true) {
+                val line = reader.readLine() ?: break
+                // If any of the monitored schemas change, we re-evaluate the full state
+                if (line.isNotEmpty()) {
+                    trySend(isHighContrastEnabled() ?: false)
+                }
+            }
+        } catch (e: Exception) {
+            log.e("Error in gsettings monitor loop", e)
+        } finally {
+            monitorProcess.destroy()
+            close()
+        }
+
+        awaitClose {
+            monitorProcess.destroy()
+        }
+    }.flowOn(Dispatchers.IO)
+
+    internal fun isLinux(): Boolean {
         val osName = System.getProperty("os.name")?.lowercase(Locale.ROOT).orEmpty()
         // Deliberately narrow: only "linux" matches. This avoids any chance
         // of matching "windows" or "mac os x" strings.

@@ -1,6 +1,8 @@
 package com.truepineapps.photouploader.core.util
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import java.awt.Toolkit
 
@@ -8,11 +10,19 @@ import java.awt.Toolkit
 // macOS/Linux support via Java is limited, so they usually default to Standard.
 @Composable
 actual fun getSystemContrastLevel(): ContrastLevel {
-    return remember {
-        // Windows and Linux High Contrast check
-        val highContrastOn = isWindowsHighContrast() ?: isLinuxHighContrast()
+    val isLinux = remember { LinuxHighContrastDetector.isLinux() }
+    
+    if (isLinux) {
+        // On Linux, start monitoring high contrast for reactive updates
+        val highContrastOn by LinuxHighContrastDetector.monitorHighContrast().collectAsState(initial = false)
+        return if (highContrastOn) ContrastLevel.High else ContrastLevel.Standard
+    }
 
-        if (highContrastOn == true) {
+    return remember {
+        // Windows High Contrast check
+        val highContrastOn = isWindowsHighContrast() ?: false
+
+        if (highContrastOn) {
             ContrastLevel.High
         } else {
             ContrastLevel.Standard
@@ -22,5 +32,3 @@ actual fun getSystemContrastLevel(): ContrastLevel {
 
 fun isWindowsHighContrast(): Boolean? = Toolkit.getDefaultToolkit()
     .getDesktopProperty("win.highContrast.on") as? Boolean
-
-fun isLinuxHighContrast(): Boolean? = LinuxHighContrastDetector.isHighContrastEnabled()
