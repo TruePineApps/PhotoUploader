@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
@@ -191,7 +190,6 @@ private fun BackupAcknowledgementRow(
             Text(
                 text = stringResource(Res.string.legal_backup_acknowledgement).normalizeWhitespace(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
             )
         }
     }
