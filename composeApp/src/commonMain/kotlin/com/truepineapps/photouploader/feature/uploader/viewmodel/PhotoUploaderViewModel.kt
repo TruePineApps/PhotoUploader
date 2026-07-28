@@ -45,6 +45,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -146,18 +147,8 @@ class PhotoUploaderViewModel(
      * Public entry point for the manual Sign In button (if any).
      */
     fun signIn() {
-        if (processJob?.isActive == true) return
-
-        processJob = viewModelScope.launch {
-            try {
-                performSignIn()
-            } catch (e: CancellationException) {
-                // Job was canceled (e.g., via cancelProcess), stop gracefully
-                log.d("signIn: Sign in canceled: ${e.message}")
-            } finally {
-                processJob = null
-            }
-        }
+        if (_viewState.value.status == AppStatus.SIGNING_IN) return
+        viewModelScope.launch { performSignIn() }
     }
 
     /**
@@ -168,23 +159,22 @@ class PhotoUploaderViewModel(
     suspend fun ensureAuthenticated(): Boolean {
         if (_viewState.value.isAuthenticated) return true
 
-        try {
-            // If a sign-in is already in progress, just wait for it.
-            // Otherwise, start a new one.
-            if (_viewState.value.status != AppStatus.SIGNING_IN) {
-                signIn()
+        return try {
+            // Wait for existing sign-in or start a new one
+            if (_viewState.value.status == AppStatus.SIGNING_IN) {
+                processJob?.join()
+            } else {
+                performSignIn()
             }
-
-            // Wait for the sign-in job to complete
-            processJob?.join()
+            _viewState.value.isAuthenticated
         } catch (e: Exception) {
             log.e("ensureAuthenticated failed", e)
-            val uiText =
-                e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
-            _viewState.update { it.copy(globalErrorMessage = uiText) }
+            if (e !is CancellationException) {
+                val uiText = e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
+                _viewState.update { it.copy(globalErrorMessage = uiText) }
+            }
+            false
         }
-
-        return _viewState.value.isAuthenticated
     }
 
     /**
@@ -193,11 +183,14 @@ class PhotoUploaderViewModel(
      * @return true if the user is successfully authenticated, false otherwise.
      */
     private suspend fun performSignIn(): Boolean {
-        // If we are already authenticated, no need to do anything
+        // If already authenticated, no need to do anything
         if (_viewState.value.isAuthenticated) return true
+        // If there is already a processJob, it can't be assigned
+        if (processJob != null) return false
 
         try {
             _viewState.update { it.copy(status = AppStatus.SIGNING_IN) }
+            processJob = currentCoroutineContext()[Job]
 
             // This blocks until the user signs in or cancels
             val userProfile = authService.signIn()
@@ -221,15 +214,14 @@ class PhotoUploaderViewModel(
             _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
             log.e("performSignIn: Sign in failed", e)
-            val uiText = if (e.message == null) {
-                UiTextResource(Res.string.error_unknown)
-            } else {
-                UiTextString(e.message!!)
-            }
+            val uiText = e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
             _viewState.update { it.copy(globalErrorMessage = uiText) }
         } finally {
             log.d("Set viewState to Idle after sign-in")
             _viewState.update { it.copy(status = AppStatus.IDLE) }
+            if (processJob == currentCoroutineContext()[Job]) {
+                processJob = null
+            }
         }
 
         return false
