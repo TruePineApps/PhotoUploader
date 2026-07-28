@@ -4,6 +4,7 @@ import co.touchlab.kermit.Logger
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp.Browser
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
@@ -29,8 +30,10 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import java.awt.Desktop
 import java.io.File
 import java.io.InputStreamReader
+import java.net.URI
 import kotlin.coroutines.cancellation.CancellationException
 
 // User ID, the library uses this string to name the file where it saves the Access Token
@@ -78,14 +81,51 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
 
     // Directory to store user credentials for this application.
     private val credentialsFolder =
-            File(System.getProperty("user.home"), ".credentials/photouploader")
+        File(System.getProperty("user.home"), ".credentials/photouploader")
     private val dataStoreFactory = FileDataStoreFactory(credentialsFolder)
+
+    /**
+     * Opens [url] in the system's default browser.
+     *
+     * We deliberately do NOT rely on the library's default behavior (or `java.awt.Desktop.browse`),
+     * because on Linux that ends up shelling out (e.g. via `xdg-open`) WITHOUT redirecting the new
+     * process's stdout/stderr. The spawned browser then inherits this JVM's stdio file descriptors,
+     * which, when this app is launched from Gradle, are pipes that Gradle itself is blocked reading
+     * from. If the browser (or any process it hands off to, e.g. an already-running Firefox instance)
+     * outlives this app, Gradle's pipe never sees EOF and the daemon hangs forever waiting for the
+     * exec'd process to be reaped ("Stream Deadlock").
+     *
+     * By starting the process ourselves and explicitly discarding/redirecting all three streams, the
+     * browser process gets its own independent file descriptors and never holds a reference back to
+     * our (or Gradle's) pipes, regardless of what happens to our JVM afterward.
+     */
+    private val browser = Browser { url ->
+        val osName = System.getProperty("os.name").lowercase()
+        val command = when {
+            osName.contains("linux") -> listOf("xdg-open", url)
+            osName.contains("mac") -> listOf("open", url)
+            osName.contains("win") -> listOf("rundll32", "url.dll,FileProtocolHandler", url)
+            else -> null
+        }
+
+        if (command == null) {
+            // Unrecognized OS: Best-effort fallback for unknown platforms (e.g. BSD) to the
+            // library's default behavior. This won't get the stdio-isolation fix, but at least
+            // still opens a browser.
+            Desktop.getDesktop().browse(URI.create(url))
+        } else {
+            ProcessBuilder(command)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start()
+        }
+    }
 
     private fun getFlow(): GoogleAuthorizationCodeFlow {
         // Load client secrets.
         val secretsStream =
-                DesktopGoogleAuthService::class.java.getResourceAsStream("/$CLIENT_SECRETS_JSON")
-                    ?: throw IllegalStateException("$CLIENT_SECRETS_JSON not found in resources")
+            DesktopGoogleAuthService::class.java.getResourceAsStream("/$CLIENT_SECRETS_JSON")
+                ?: throw IllegalStateException("$CLIENT_SECRETS_JSON not found in resources")
 
         val clientSecrets = GoogleClientSecrets.load(jsonFactory, InputStreamReader(secretsStream))
 
@@ -139,7 +179,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
                         try {
                             // Trigger the sign-in flow: Open the browser, wait for the callback,
                             // and shut it down. Use the persisted data store named USER.
-                            val credential = AuthorizationCodeInstalledApp(getFlow(), receiver)
+                            val credential = AuthorizationCodeInstalledApp(getFlow(), receiver, browser)
                                 .authorize(USER)
 
                             if (credential != null && cancellationMonitor.isActive) {
