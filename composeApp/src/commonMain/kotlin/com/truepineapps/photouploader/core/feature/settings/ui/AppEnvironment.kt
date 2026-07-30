@@ -32,10 +32,12 @@ fun AppEnvironment(
     log.d { "Starting AppEnvironment" }
     LoadingScreen(loadingViewModel = localeViewModel, log = log, modifier = modifier) {
 
-        // Collect the effective locale tag (e.g., "en-US") from the ViewModel's StateFlow.
-        // This triggers recomposition whenever effectiveAppLocale emits a new value.
-        val effectiveLocaleTag = localeViewModel.preferredLocaleState.collectAsState().value
-        log.d { "AppEnvironment : effectiveLocaleTag=$effectiveLocaleTag" }
+        // Collect the effective locale state from the ViewModel's StateFlow.
+        // This triggers recomposition whenever the state (tag or selection) changes.
+        val localeState = localeViewModel.preferredLocaleState.collectAsState().value
+        val effectiveLocaleTag = localeState.currentTag
+        
+        log.d { "AppEnvironment : effectiveLocaleTag=$effectiveLocaleTag, selection=${localeState.selectedTag}" }
 
         // Provide this effectiveLocaleTag via the LocalAppLocale CompositionLocal.
         // This allows stringResource, painterResource, etc., from Compose Multiplatform
@@ -43,7 +45,9 @@ fun AppEnvironment(
         CompositionLocalProvider(
             LocalAppLocale provides effectiveLocaleTag
         ) {
-            key(effectiveLocaleTag) {
+            // We use the combined state as key to ensure that even if the tag is the same,
+            // a change in selection (e.g. Dutch -> System) forces a recomposition.
+            key(localeState) {
                 content()
             }
         }

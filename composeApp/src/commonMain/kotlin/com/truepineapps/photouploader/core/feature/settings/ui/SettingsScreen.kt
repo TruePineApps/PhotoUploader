@@ -37,6 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SettingsScreen(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
+    onNavigateBack: () -> Unit,
     log: Logger,
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
@@ -49,7 +50,10 @@ fun SettingsScreen(
         SettingsBody(
             language = AppLanguage.entries.firstOrNull { settingsUiState.localeTag.startsWith(it.code) }
                 ?: AppLanguage.System,
-            setLanguage = settingsViewModel::setLocale,
+            setLanguage = {
+                settingsViewModel.setLocale(it)
+                onNavigateBack()
+            },
             modifier = modifier.padding(Dimensions.padding_small)
         )
     }

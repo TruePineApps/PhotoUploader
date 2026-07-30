@@ -74,7 +74,12 @@ fun PhotoUploaderAppNavHost(
         }
 
         /* Menu screens */
-        settingsGraph(onUpdateTopAppBar, log, settingsViewModel)
+        settingsGraph(
+            onUpdateTopAppBar = onUpdateTopAppBar,
+            onNavigateBack = { navController.popBackStack() },
+            log = log,
+            settingsViewModel = settingsViewModel
+        )
         aboutGraph(onUpdateTopAppBar, navController, log)
     }
 }
