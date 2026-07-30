@@ -106,7 +106,7 @@ private fun coreModule(isPickerDefined: Boolean) = module {
         single<PlatformPicker> { CalfPlatformPicker() }
     }
     single<UserPreferencesRepository> { UserPreferencesSettingsRepository(get()) }
-    single { LocaleViewModel(userPreferencesRepository = get()) }
+    single { LocaleViewModel(userPreferencesRepository = get(), log = get()) }
     single { SettingsViewModel(userPreferencesRepository = get()) }
     single { LicenseViewModel() }
     single<Clock> { Clock.System }

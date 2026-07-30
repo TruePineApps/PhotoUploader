@@ -38,7 +38,7 @@ class UserPreferencesSettingsRepository(
             emit(DataLoadingState.Loading)
             log.d { "Settings loadingState: Loading initial preferences..." }
             loadInitialPreferences()
-            log.d { "Settings loadingState: Emit success..." }
+            log.d { "Settings loadingState: Loaded: ${_preferences.value.localeTag}" }
             emit(DataLoadingState.Success)
             log.d { "Settings loadingState: Done emitting" }
         } catch (e: Exception) {
@@ -69,6 +69,7 @@ class UserPreferencesSettingsRepository(
 
     override suspend fun saveLocalePreference(localeTag: String) {
         try {
+            log.d { "saveLocalePreference: saving tag '$localeTag'" }
             settings[KEY_LOCALE_TAG] = localeTag
             updatePreferences { it.copy(localeTag = localeTag) }
         } catch (e: Exception) {

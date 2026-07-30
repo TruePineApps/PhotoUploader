@@ -21,7 +21,7 @@ interface DateTimeFormatter {
     /**
      * Retrieves the full or abbreviated names of months in the current locale
      */
-    fun localizedMonthNames(style: com.truepineapps.photouploader.core.localization.NameStyle): List<String>
+    fun localizedMonthNames(style: NameStyle): List<String>
 
     /**
      * Checks if the current system/locale preference is for a 24-hour time format.

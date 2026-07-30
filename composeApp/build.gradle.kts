@@ -20,6 +20,8 @@ val appId: String = libs.versions.appId.get()
 // App version from libs.versions.toml
 val versionCode: Int = libs.versions.appVersionCode.get().toInt()
 val versionName: String = libs.versions.appVersionName.get()
+// The target Java version is maintained in libs.versions.toml
+val jvmTargetVersion: String = libs.versions.jvmversion.get()
 
 val generateBuildProperties = tasks.register("generateBuildProperties") {
     description = "gemerate the file build-info.properties with build properties to be used by the app"
@@ -32,10 +34,14 @@ val generateBuildProperties = tasks.register("generateBuildProperties") {
     val vName = versionName
     val vCode = versionCode
     val aId = appId
+    val tSdk = libs.versions.android.targetSdk.get()
+    val jTarget = jvmTargetVersion // Matches jvmTarget.set(...) below
 
     inputs.property("version_name", vName)
     inputs.property("version_code", vCode)
     inputs.property("app_id", aId)
+    inputs.property("target_sdk", tSdk)
+    inputs.property("jvm_target", jTarget)
 
     // 2. Define the output file
     outputs.file(propsFile)
@@ -52,6 +58,8 @@ val generateBuildProperties = tasks.register("generateBuildProperties") {
             version_name=$vName
             version_code=$vCode
             app_id=$aId
+            target_sdk=$tSdk
+            jvm_target=$jTarget
             """.trimIndent()
         )
     }
@@ -67,7 +75,7 @@ kotlin {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.fromTarget(jvmTargetVersion))
         }
 
         androidResources {
@@ -100,7 +108,7 @@ kotlin {
     jvm("desktop") {
         compilerOptions {
             // Bytecode version for desktop
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.fromTarget(jvmTargetVersion))
         }
 
         // Warn if the client_secrets.json file is missing
@@ -110,16 +118,15 @@ kotlin {
             project.logger.warn("⚠️ WARNING: Google Auth 'client_secrets.json' not found at $secretsPath.")
             project.logger.warn("   The app may crash at runtime. Please download the JSON from Google Cloud Console.")
         }
-
-        // Register the output folder as a resource directory for the 'desktop' target
-        compilations.getByName("main").defaultSourceSet.resources.srcDir(
-            generateBuildProperties.map { it.outputs.files.singleFile.parentFile }
-        )
     }
 
     applyDefaultHierarchyTemplate()
 
     sourceSets {
+        commonMain {
+            // Register the generated build properties as a resource for all targets
+            resources.srcDir(generateBuildProperties.map { it.outputs.files.singleFile.parentFile })
+        }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -130,7 +137,7 @@ kotlin {
 
             // Window size calculation, publish calculateWindowSizeClass on the API
             api(libs.compose.material3.window.size)
-            // Multiplatform Dark Mode detection an reactive updates
+            // Multiplatform Dark Mode detection and reactive updates
             implementation(libs.platformtools.darkmodedetector)
 
             // Extended icons set
@@ -303,9 +310,11 @@ tasks.matching { task ->
     dependsOn("kspCommonMainKotlinMetadata")
 }
 
-// Define the task to generate the properties file
+// Define the task to generate the properties file.
+// Enable public resource class so platform-specific modules (like: androidApp) can access common resources
+// (e.g. Res.string.unknown after moving PlatformInfo and AppInfo implementations out of composeApp)
 compose.resources {
-    publicResClass = false
+    publicResClass = true
     // Use a more friendly import name than photouploader.composeapp.generated.resources
     packageOfResClass = "com.truepineapps.photouploader.resources"
     generateResClass = auto

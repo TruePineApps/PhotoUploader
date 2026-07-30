@@ -21,14 +21,14 @@ class DesktopPlatformLocaleManager: PlatformLocaleManager, KoinComponent {
             }
 
             if (newLocale == null) {
-                // If localeTag is invalid, just to reflect the system's current value.
-                log.d { "Desktop: Not changing system locale." }
+                // If localeTag is invalid, just reflect the system's current value.
+                log.d { "Desktop: Not changing system locale (newLocale is null)." }
             } else {
                 Locale.setDefault(newLocale)
-                log.d { "Desktop: JVM default locale set to: ${newLocale.toLanguageTag()}" }
+                log.d { "Desktop: JVM default locale successfully set to: ${newLocale.toLanguageTag()}" }
             }
         } catch (e: Exception) {
-            log.e(e) { "Error setting JVM default locale, not changing system locale." }
+            log.e(e) { "Error setting JVM default locale to '$localeTag'" }
         }
     }
 

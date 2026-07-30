@@ -6,8 +6,10 @@ import co.touchlab.kermit.loggerConfigInit
 import com.truepineapps.photouploader.core.log.TimestampMessageFormatter
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.JvmAppInfo
+import com.truepineapps.photouploader.core.util.JvmEnvironment
 import com.truepineapps.photouploader.core.util.JvmPlatformInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
+import com.truepineapps.photouploader.core.util.RealJvmEnvironment
 import com.truepineapps.photouploader.foundation.auth.data.repository.DesktopGoogleAuthService
 import com.truepineapps.photouploader.foundation.auth.domain.repository.GoogleAuthService
 import org.koin.core.module.Module
@@ -22,7 +24,8 @@ actual fun platformModule(): Module = module {
             tag = "PhotoUploader"
         )
     }
+    single<JvmEnvironment> { RealJvmEnvironment(get()) }
     single<GoogleAuthService> { DesktopGoogleAuthService(get()) } onClose { it?.shutdown() }
     single<AppInfo> { JvmAppInfo }
-    single<PlatformInfo> { JvmPlatformInfo }
+    single<PlatformInfo> { JvmPlatformInfo(get()) }
 }

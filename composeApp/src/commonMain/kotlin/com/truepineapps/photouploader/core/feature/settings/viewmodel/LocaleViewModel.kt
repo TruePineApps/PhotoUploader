@@ -1,6 +1,7 @@
 package com.truepineapps.photouploader.core.feature.settings.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.core.feature.settings.domain.model.DEFAULT_LOCALE
 import com.truepineapps.photouploader.core.feature.settings.domain.model.DEFAULT_LOCALE_FROM_PLATFORM
 import com.truepineapps.photouploader.core.feature.settings.domain.model.UserPreferences
@@ -27,6 +28,7 @@ import org.koin.core.component.inject
  */
 class LocaleViewModel(
     userPreferencesRepository: UserPreferencesRepository,
+    private val log: Logger,
 ) : LoadingViewModel(userPreferencesRepository), KoinComponent {
 
     private val platformLocaleManager: PlatformLocaleManager by inject()
@@ -73,6 +75,7 @@ class LocaleViewModel(
      */
     private fun setPreferredAppLocale(localeTag: String?) {
         viewModelScope.launch {
+            log.d { "setPreferredAppLocale: setting tag to '$localeTag'" }
             // Apply the locale to the platform.
             // If the preference is now "System", then the platform should be told to use its
             // system default, which is represented by "null". Otherwise, apply the specific

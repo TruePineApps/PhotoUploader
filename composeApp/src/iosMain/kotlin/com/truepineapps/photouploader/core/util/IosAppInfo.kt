@@ -13,13 +13,15 @@ object IosAppInfo : AppInfo {
     }
 
     override val appId: String =
-            NSBundle.mainBundle.bundleIdentifier ?: error("Bundle identifier not found in Info.plist.")
+        NSBundle.mainBundle.bundleIdentifier ?: error("Bundle identifier not found in Info.plist.")
 
     override val versionName: String =
-            (infoDictionary!!["CFBundleShortVersionString"] as? String)
-                ?: error("Version name (CFBundleShortVersionString) not found or invalid in Info.plist.")
+        (infoDictionary!!["CFBundleShortVersionString"] as? String)
+            ?: error("Version name (CFBundleShortVersionString) not found or invalid in Info.plist.")
 
     override val versionCode: String =
-            (infoDictionary!!["CFBundleVersion"] as? String)
-                ?: error("Version code (CFBundleVersion) not found or invalid in Info.plist.")
+        (infoDictionary!!["CFBundleVersion"] as? String)
+            ?: error("Version code (CFBundleVersion) not found or invalid in Info.plist.")
+
+    override val targetInfo: UiText = UiTextString("iOS Native")
 }

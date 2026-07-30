@@ -12,12 +12,14 @@ import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsVi
 
 fun NavGraphBuilder.settingsGraph(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
+    onNavigateBack: () -> Unit,
     log: Logger,
     settingsViewModel: SettingsViewModel
 ) {
     composable(route = SettingsDestination.route) {
         SettingsScreen(
             onUpdateTopAppBar = onUpdateTopAppBar,
+            onNavigateBack = onNavigateBack,
             log = log,
             settingsViewModel = settingsViewModel,
             modifier = Modifier.fillMaxSize(),
