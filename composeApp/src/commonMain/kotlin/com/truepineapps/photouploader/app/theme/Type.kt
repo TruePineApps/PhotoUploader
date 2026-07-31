@@ -16,9 +16,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.truepineapps.photouploader.resources.NotoSans_Bold
+import com.truepineapps.photouploader.resources.NotoSans_BoldItalic
+import com.truepineapps.photouploader.resources.NotoSans_Italic
+import com.truepineapps.photouploader.resources.NotoSans_Medium
+import com.truepineapps.photouploader.resources.NotoSans_MediumItalic
+import com.truepineapps.photouploader.resources.NotoSans_Regular
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.noto_sans_italic_variable
-import com.truepineapps.photouploader.resources.noto_sans_variable
 import org.jetbrains.compose.resources.Font
 
 // Set of Material typography styles to start with
@@ -149,23 +153,12 @@ fun getAppTypography(): Typography {
 
 @Composable
 fun getNotoSansFontFamily(): FontFamily {
-    val fontFile = Res.font.noto_sans_variable
-    val italicFontFile = Res.font.noto_sans_italic_variable
-
     return FontFamily(
-        // Map specific weights to the SAME variable font file
-        Font(resource = fontFile, weight = FontWeight.Thin),
-        Font(resource = fontFile, weight = FontWeight.Light),
-        Font(resource = fontFile, weight = FontWeight.Normal),
-        Font(resource = fontFile, weight = FontWeight.Medium),
-        Font(resource = fontFile, weight = FontWeight.Bold),
-        Font(resource = fontFile, weight = FontWeight.Black),
-        // Add Italic fonts
-        Font(resource = italicFontFile, weight = FontWeight.Thin, style = FontStyle.Italic),
-        Font(resource = italicFontFile, weight = FontWeight.Light, style = FontStyle.Italic),
-        Font(resource = italicFontFile, weight = FontWeight.Normal, style = FontStyle.Italic),
-        Font(resource = italicFontFile, weight = FontWeight.Medium, style = FontStyle.Italic),
-        Font(resource = italicFontFile, weight = FontWeight.Bold, style = FontStyle.Italic),
-        Font(resource = italicFontFile, weight = FontWeight.Black, style = FontStyle.Italic),
+        Font(resource = Res.font.NotoSans_Regular, weight = FontWeight.Normal),
+        Font(resource = Res.font.NotoSans_Medium, weight = FontWeight.Medium),
+        Font(resource = Res.font.NotoSans_Bold, weight = FontWeight.Bold),
+        Font(resource = Res.font.NotoSans_Italic, weight = FontWeight.Normal, style = FontStyle.Italic),
+        Font(resource = Res.font.NotoSans_MediumItalic, weight = FontWeight.Medium, style = FontStyle.Italic),
+        Font(resource = Res.font.NotoSans_BoldItalic, weight = FontWeight.Bold, style = FontStyle.Italic),
     )
 }
