@@ -8,6 +8,7 @@ import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColo
 import com.truepineapps.photouploader.core.presentation.design.toContainer
 import com.truepineapps.photouploader.core.util.ContrastLevel
 import com.truepineapps.photouploader.core.util.getSystemContrastLevel
+import com.truepineapps.photouploader.core.util.isHighContrastDark
 import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 
 // app/theme/AppTheme.kt
@@ -25,19 +26,28 @@ val myExtendedColors = ExtendedColorScheme(
 // Dynamic color is only available on Android 12+, no multiplatform support
 @Composable
 fun AppTheme(
-    darkTheme: Boolean = isSystemInDarkMode(),
-    contrastLevel: ContrastLevel = getSystemContrastLevel(),
+    darkTheme: Boolean? = null,
+    contrastLevel: ContrastLevel? = null,
     content: @Composable () -> Unit
 ) {
+    // Use provided parameters or fall back to reactive system detectors
+    val currentContrast = contrastLevel ?: getSystemContrastLevel()
+    val standardDark = darkTheme ?: isSystemInDarkMode()
+
+    // Windows 11 handles Contrast Themes separately from the standard Dark/Light mode.
+    // When High Contrast is on, we use a specialized detector for theme "darkness".
+    // If it returns null, we fall back to the standard dark mode preference.
+    val isDark = isHighContrastDark() ?: standardDark
+
     val colorScheme = when {
         // Handle Dark Mode permutations
-        darkTheme && contrastLevel == ContrastLevel.High -> darkHighContrastColorScheme
-        darkTheme && contrastLevel == ContrastLevel.Medium -> darkMediumContrastColorScheme
-        darkTheme -> darkLowContrastLevelColorScheme
+        isDark && currentContrast == ContrastLevel.High -> darkHighContrastColorScheme
+        isDark && currentContrast == ContrastLevel.Medium -> darkMediumContrastColorScheme
+        isDark -> darkLowContrastLevelColorScheme
 
         // Handle Light Mode permutations
-        contrastLevel == ContrastLevel.High -> lightHighContrastColorScheme
-        contrastLevel == ContrastLevel.Medium -> lightMediumContrastColorScheme
+        currentContrast == ContrastLevel.High -> lightHighContrastColorScheme
+        currentContrast == ContrastLevel.Medium -> lightMediumContrastColorScheme
         else -> lightLowContrastColorScheme
     }
     CompositionLocalProvider(LocalExtendedColors provides myExtendedColors) {

@@ -41,3 +41,10 @@ actual fun getSystemContrastLevel(): ContrastLevel {
         ContrastLevel.Standard
     }
 }
+
+@Composable
+actual fun isHighContrastDark(): Boolean? {
+    // On iOS, the standard isSystemInDarkMode() already respects the system theme
+    // correctly even when high contrast is active.
+    return null
+}

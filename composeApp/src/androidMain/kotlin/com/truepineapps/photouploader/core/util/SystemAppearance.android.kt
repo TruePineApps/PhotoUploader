@@ -32,13 +32,21 @@ actual fun getSystemContrastLevel(): ContrastLevel {
         val isHighTextContrastEnabled = try {
             Settings.Secure.getInt(
                 context.contentResolver,
-                "high_text_contrast_enabled", 0
+                "high_text_contrast_enabled",
+                0,
             ) == 1
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 
         if (isHighTextContrastEnabled) ContrastLevel.High else ContrastLevel.Standard
     }
+}
+
+@Composable
+actual fun isHighContrastDark(): Boolean? {
+    // On Android, the standard isSystemInDarkMode() already respects the system theme
+    // correctly even when high contrast is active.
+    return null
 }
 

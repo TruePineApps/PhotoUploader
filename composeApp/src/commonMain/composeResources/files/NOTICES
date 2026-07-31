@@ -7,12 +7,12 @@ True Pine Apps (https://www.truepineapps.com/).
 THIRD-PARTY SOFTWARE NOTICES
 ============================================================
 
-Total Unique Packages: 254
+Total Unique Packages: 252
 Note: Where packages are listed under combined license headers (e.g., Apache-2.0 OR LGPL),
 True Pine Apps distributes them under the Apache-2.0 license.
 
 ------------------------------------------------------------
-Apache-2.0 (245 packages)
+Apache-2.0 (241 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 ------------------------------------------------------------
   androidx.annotation:annotation:1.9.1  (https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1)
@@ -190,7 +190,6 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.compose.desktop:desktop:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
   org.jetbrains.compose.desktop:desktop-jvm:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
   org.jetbrains.compose.desktop:desktop-jvm-windows-x64:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
-  org.jetbrains.compose.desktop:desktop-jvm-linux-x64:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
   org.jetbrains.compose.foundation:foundation:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
   org.jetbrains.compose.foundation:foundation-desktop:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
   org.jetbrains.compose.foundation:foundation-layout:1.11.1  (https://github.com/JetBrains/compose-multiplatform)
@@ -238,8 +237,6 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.11.0  (https://github.com/Kotlin/kotlinx.coroutines)
   org.jetbrains.kotlinx:kotlinx-datetime:0.8.0  (https://github.com/Kotlin/kotlinx-datetime)
   org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.8.0  (https://github.com/Kotlin/kotlinx-datetime)
-  org.jetbrains.kotlinx:kotlinx-datetime:0.7.1  (https://github.com/Kotlin/kotlinx-datetime)
-  org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1  (https://github.com/Kotlin/kotlinx-datetime)
   org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.0  (https://github.com/Kotlin/kotlinx-io)
   org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm:0.9.0  (https://github.com/Kotlin/kotlinx-io)
   org.jetbrains.kotlinx:kotlinx-io-core:0.9.0  (https://github.com/Kotlin/kotlinx-io)
@@ -255,7 +252,6 @@ https://www.apache.org/licenses/LICENSE-2.0
   org.jetbrains.skiko:skiko:0.144.6  (https://www.github.com/JetBrains/skiko)
   org.jetbrains.skiko:skiko-awt:0.144.6  (https://www.github.com/JetBrains/skiko)
   org.jetbrains.skiko:skiko-awt-runtime-windows-x64:0.144.6  (https://www.github.com/JetBrains/skiko)
-  org.jetbrains.skiko:skiko-awt-runtime-linux-x64:0.144.6  (https://www.github.com/JetBrains/skiko)
   org.jetbrains:annotations:23.0.0  (https://github.com/JetBrains/java-annotations)
   org.jetbrains:markdown:0.7.7  (https://github.com/JetBrains/markdown)
   org.jetbrains:markdown-jvm:0.7.7  (https://github.com/JetBrains/markdown)
@@ -270,11 +266,13 @@ https://opensource.org/licenses/BSD-3-Clause
   com.google.auth:google-auth-library-oauth2-http:1.30.0
 
 ------------------------------------------------------------
-Apache-2.0 OR LGPL-2.1-only (2 packages)
+Apache-2.0 OR LGPL-2.1-only (4 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 https://www.gnu.org/licenses/lgpl-2.1
 ------------------------------------------------------------
+  net.java.dev.jna:jna:5.19.1  (https://github.com/java-native-access/jna)
   net.java.dev.jna:jna-jpms:5.18.1  (https://github.com/java-native-access/jna)
+  net.java.dev.jna:jna-platform:5.19.1  (https://github.com/java-native-access/jna)
   net.java.dev.jna:jna-platform-jpms:5.18.1  (https://github.com/java-native-access/jna)
 
 ------------------------------------------------------------

@@ -73,6 +73,7 @@ kotlin {
         // Namespace must be different from the one in androidApp/build.gradle.kts
         namespace = "com.truepineapps.photouploader.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
         compilerOptions {
             jvmTarget.set(JvmTarget.fromTarget(jvmTargetVersion))
@@ -223,6 +224,8 @@ kotlin {
          named("desktopMain") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.jna)
+                implementation(libs.jna.platform)
 
                 // Networking & Serialization
                 // Choose lightweight CIO engine, if not sufficient move to OkHttp
