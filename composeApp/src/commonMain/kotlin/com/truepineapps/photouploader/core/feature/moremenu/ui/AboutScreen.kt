@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2025. Marcel Van Heerwaarden
- * @Author Marcel van Heerwaarden
+ * Copyright (c) 2026 True Pine Apps
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.truepineapps.photouploader.core.feature.moremenu.ui
@@ -154,13 +161,13 @@ fun AboutScreenAndroidPreview() {
             override val targetInfo = UiTextString("Target SDK 37")
         },
         platformInfo = object : PlatformInfo {
-            override val name = UiTextString("Android 14 (API 34)")
+            override val name = UiTextString("Android 15 (API 35)")
             override val osName: String? = null
             override val osVersion: String? = null
-            override val kernelVersion: String = "6.1.0-generic"
+            override val kernelVersion: String = "6.6.30-android15-8-gdd9c02ccfe27-ab11988101"
             override val cpuArch: UiText = UiTextString("x86_64")
-            override val availableProcessors = UiTextString("8")
-            override val maxMemory = UiTextString("4.0 GB")
+            override val availableProcessors = UiTextString("4")
+            override val maxMemory = UiTextString("192 MB")
             override val runtimeName: String = "ART"
             override val runtimeVersion: UiText = UiTextString("2.1.0")
             override val platformType = PlatformType.NATIVE
