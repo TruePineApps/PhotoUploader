@@ -161,7 +161,7 @@ class PhotoDirectoryRepositoryImpl(
                     kmpFile = currentDir,
                     path = albumPath.toPath(),
                     name = albumName,
-                    group = groupName,
+                    group = if (parentTitle == null) albumName else groupName,
                     photos = photoFiles,
                 )
             )
@@ -169,7 +169,7 @@ class PhotoDirectoryRepositoryImpl(
 
         // 4. Recurse
         for (subDir in subDirectories) {
-            // The name of the direct child dirs of rootDir are the sticky group headers in the UI
+            // The names of the direct child dirs of rootDir are the sticky group headers in the UI
             val group = if (parentTitle == null) platformFileSystem.getDisplayName(subDir, currentContext) else groupName
             processDirectory(
                 currentDir = subDir,
