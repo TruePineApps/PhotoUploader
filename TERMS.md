@@ -31,7 +31,7 @@ Full contact details: https://truepineapps.com/en/imprint
 
 ### 2. What the App Does
 
-Photo-Uploader is an open-source desktop tool that helps you upload photos from your local
+Photo-Uploader is an open-source tool that helps you upload photos from your local
 device to your own Google Photos account and organize them into albums based on your local
 directory structure.
 
