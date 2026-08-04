@@ -33,7 +33,7 @@ import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalViewModel
-import com.truepineapps.photouploader.core.presentation.component.MarkDownText
+import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.loading
@@ -84,7 +84,7 @@ fun LegalDocumentScreen(
                     DocumentType.TERMS -> state.content.termsOfService
                     DocumentType.PRIVACY -> state.content.privacyPolicy
                 }
-                MarkDownText(
+                MarkdownText(
                     markdown = markdownText,
                     modifier = Modifier
                         .fillMaxSize()

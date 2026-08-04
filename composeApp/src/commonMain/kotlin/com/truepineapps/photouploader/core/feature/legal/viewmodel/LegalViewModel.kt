@@ -132,7 +132,7 @@ class LegalViewModel(
 
                 else -> LegalAcceptanceState.UpToDate
             }
-            // Only carry content when the dialog will be shown
+            // Only carry content when the dialog is shown
             val contentOrNull = if (state is LegalAcceptanceState.UpToDate) null else content
             state to contentOrNull
         }

@@ -64,6 +64,7 @@
     </plurals>
 
     <string name="connected_as">Connected to Google Photos as %1$s</string>
+    <string name="open_google_photos">Open Google Photos</string>
     <string name="sign_in_menu">Open sign in menu</string>
     <string name="sign_out_menu">Open sign out menu</string>
     <string name="waiting_for_browser_sign_in">Waiting for browser sign-in...</string>
@@ -101,10 +102,11 @@
         The upload was canceled before completion. Already uploaded content remains in Google
         Photos.
     </string>
-    <string name="report_care_message">
+    <string name="report_care_message_md">
         The App reports what was sent and acknowledged — what Google Photos ultimately stores is
-        beyond the App's visibility. Therefore, please verify your uploads in Google Photos before
-        deleting any local copies.
+        beyond the App's visibility. Therefore, please
+        [verify your uploads in Google Photos](https://photos.google.com/albums)
+        before deleting any local copies.
     </string>
     <string name="show_error_details">Show error details (%1$s errors)</string>
     <string name="hide_error_details">Hide error details</string>

@@ -64,6 +64,7 @@
     </plurals>
 
     <string name="connected_as">Verbonden met Google Photos als %1$s</string>
+    <string name="open_google_photos">Open Google Photos</string>
     <string name="sign_in_menu">Inlogmenu openen</string>
     <string name="sign_out_menu">Uitlogmenu openen</string>
     <string name="waiting_for_browser_sign_in">Wachten op inloggen in browser...</string>
@@ -102,10 +103,11 @@
         De upload werd afgebroken voordat deze beëindigd was. Wat al geüpload was, blijft in Google
         Photos.
     </string>
-    <string name="report_care_message">
+    <string name="report_care_message_md">
         De App rapporteert wat verzonden en bevestigd is — wat Google Photos uiteindelijk opslaat,
-        kan de App niet zien. Verifieer daarom je uploads in Google Photos voordat je lokale kopieën
-        verwijdert.
+        kan de App niet zien.
+        [Verifieer daarom je uploads in Google Photos](https://photos.google.com/albums)
+        voordat je lokale kopieën verwijdert.
     </string>
     <string name="show_error_details">Toon details van fouten (%1$s fouten)</string>
     <string name="hide_error_details">Verberg details van fouten</string>

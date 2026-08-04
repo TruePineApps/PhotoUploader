@@ -48,7 +48,7 @@ import com.truepineapps.photouploader.app.theme.AppTheme
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalIntent
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LegalUiState
-import com.truepineapps.photouploader.core.presentation.component.MarkDownText
+import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.design.LocalExtendedColors
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
@@ -169,7 +169,7 @@ private fun LegalSection(
                     )
                     .padding(Dimensions.padding_small)
             ) {
-                MarkDownText(
+                MarkdownText(
                     markdown = body,
                     modifier = Modifier.verticalScroll(scrollState)
                 )

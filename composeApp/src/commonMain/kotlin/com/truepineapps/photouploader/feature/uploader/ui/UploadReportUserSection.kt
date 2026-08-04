@@ -17,6 +17,7 @@
 package com.truepineapps.photouploader.feature.uploader.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextDecoration
 import coil3.compose.AsyncImage
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
@@ -46,6 +49,8 @@ fun UploadUserReportSection(
     userProfile: UserProfile?,
     modifier: Modifier = Modifier
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.uploading_to),
@@ -81,7 +86,12 @@ fun UploadUserReportSection(
                     userProfile.email?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.clickable {
+                                uriHandler.openUri("https://photos.google.com/albums")
+                            }
                         )
                     }
                 }

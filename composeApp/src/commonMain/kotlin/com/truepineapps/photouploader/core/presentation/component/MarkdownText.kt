@@ -16,16 +16,22 @@
 
 package com.truepineapps.photouploader.core.presentation.component
 
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 
 @OptIn(ExperimentalRichTextApi::class)
 @Composable
-fun MarkDownText(markdown: String, modifier: Modifier = Modifier) {
+fun MarkdownText(
+    markdown: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = LocalTextStyle.current
+) {
     val state = rememberRichTextState()
     state.setMarkdown(markdown)
 
@@ -33,5 +39,6 @@ fun MarkDownText(markdown: String, modifier: Modifier = Modifier) {
         state = state,
         modifier = modifier,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = style
     )
 }

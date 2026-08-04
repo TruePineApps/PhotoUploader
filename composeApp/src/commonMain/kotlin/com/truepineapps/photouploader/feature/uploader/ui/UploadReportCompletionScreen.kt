@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import co.touchlab.kermit.Logger
+import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadCompletionStatus
@@ -58,7 +59,7 @@ import com.truepineapps.photouploader.resources.photos_failed
 import com.truepineapps.photouploader.resources.photos_skipped
 import com.truepineapps.photouploader.resources.photos_uploaded
 import com.truepineapps.photouploader.resources.report_canceled_message
-import com.truepineapps.photouploader.resources.report_care_message
+import com.truepineapps.photouploader.resources.report_care_message_md
 import com.truepineapps.photouploader.resources.show_error_details
 import com.truepineapps.photouploader.resources.upload_canceled
 import com.truepineapps.photouploader.resources.upload_complete
@@ -168,10 +169,9 @@ fun UploadCompletionReportScreen(
                     )
                 }
 
-                Text(
-                    text = stringResource(Res.string.report_care_message).normalizeWhitespace(),
+                MarkdownText(
+                    markdown = stringResource(Res.string.report_care_message_md).normalizeWhitespace(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(Dimensions.padding_large))
