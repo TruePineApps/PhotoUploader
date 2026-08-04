@@ -45,8 +45,9 @@ val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
     // Source: desktopApp build folder
     from(dependencyDir.map { it.file(noticesName) })
     from(rootProject.file("LICENSE"))
-    from(rootProject.file("TERMS.md"))
-    from(rootProject.file("PRIVACY.md"))
+    from(rootProject.projectDir) {
+        include("TERMS*.md", "PRIVACY*.md")
+    }
     // Target: composeApp resources (relative to project root)
     into(sharedResourceFiles)
 }
@@ -188,10 +189,9 @@ fun prepareLicenseFiles(resourceDir: String) = tasks.register<Copy>(
     dependsOn(copyNoticesToResources)
 
     from(rootProject.file("LICENSE"))
-    from(sharedResourceFiles.asFile.resolve("NOTICES"))
-    from(sharedResourceFiles.asFile.resolve("OFL.txt"))
-    from(sharedResourceFiles.asFile.resolve("TERMS.md"))
-    from(sharedResourceFiles.asFile.resolve("PRIVACY.md"))
+    from(sharedResourceFiles) {
+        include("NOTICES", "OFL.txt", "TERMS*.md", "PRIVACY*.md")
+    }
     into(layout.projectDirectory.dir("src/main/resources/$resourceDir"))
 }
 
