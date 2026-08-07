@@ -1,15 +1,28 @@
 [versions]
-agp = "9.3.1"
+# --- Project Build Configuration ---
 android-compileSdk = "37"
 android-minSdk = "26"
 android-targetSdk = "37" # This value must match the tools:targetApi in the AndroidManifest.xml
+cfg-jvmversion = "11"
+# The project uses a "Build-Driven" versioning strategy:
+# 1. 'build-appMajor' and 'build-appMinor' are manually updated here for new features or breaking changes.
+# 2. 'build-appStage' defines the release phase (e.g., "Beta 01"). If empty, it's a final release.
+# 3. The 'buildNumber' is automated. In CI (GitHub Actions), it uses the run number. Locally, it defaults to 1.
+#
+# These parts are combined with 'buildSrc/ProjectVersion.kt' to generate:
+# - Technical Numeric Version (major.minor.build): Used by Windows/macOS installers and Android versionCode.
+# - Application Label: User-facing name including the stage (e.g., "PhotoUploader Beta 1").
+# - Unique Application ID: Suffixed with the stage (lowercase) to allow side-by-side installation.
+cfg-appId = "com.truepineapps.photouploader"
+cfg-appMajor = "1"
+cfg-appMinor = "0"
+cfg-appStage = "Beta 1"
+
+# --- Library Versions ---
+agp = "9.3.1"
 androidx-activity = "1.13.0"
-androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.11.0"
 androidx-test-junit = "1.3.0"
-appId = "com.truepineapps.photouploader"
-appVersionCode = "1"
-appVersionName = "1.0.0"
 calf = "0.13.0"
 coil = "3.5.0"
 composeRichEditor = "1.0.0"
@@ -23,7 +36,6 @@ kermit = "2.1.0"
 koin = "4.2.2"
 koin-annotations = "4.2.2"
 koin-ksp-compiler = "2.3.1"
-jvmversion = "11"
 jna = "5.19.1"
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"

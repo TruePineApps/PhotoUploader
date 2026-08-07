@@ -18,7 +18,25 @@ package com.truepineapps.photouploader.core.util
 
 import platform.Foundation.NSBundle
 
-// Implementation of the shared AppInfo interface for iOS
+/**
+ * Implementation of the shared AppInfo interface for iOS.
+ *
+ * This class retrieves application metadata directly from the `NSBundle.mainBundle.infoDictionary`.
+ * These values are populated by the `iosApp/Configuration/Config.xcconfig` file, which is
+ * automatically kept in sync with the project's Gradle configuration via the `syncIosVersion`
+ * Gradle task.
+ *
+ * Xcode Build Setting Mapping:
+ * When 'Generate Info.plist File' is enabled in Xcode, the following mappings apply:
+ * - MARKETING_VERSION -> CFBundleShortVersionString (versionName)
+ * - CURRENT_PROJECT_VERSION -> CFBundleVersion (buildNumber)
+ * - PRODUCT_NAME -> CFBundleName (appLabel)
+ * - CFG_APP_MAJOR -> AppMajor (appMajor)
+ * - CFG_APP_STAGE -> AppStage (appStage)
+ *
+ * Relationship:
+ * Gradle (`libs.versions.toml`) -> `syncIosVersion` task -> `Config.xcconfig` -> `Info.plist` -> `IosAppInfo`
+ */
 object IosAppInfo : AppInfo {
     private val infoDictionary = NSBundle.mainBundle.infoDictionary
 
@@ -31,13 +49,23 @@ object IosAppInfo : AppInfo {
     override val appId: String =
         NSBundle.mainBundle.bundleIdentifier ?: error("Bundle identifier not found in Info.plist.")
 
-    override val versionName: String =
-        (infoDictionary!!["CFBundleShortVersionString"] as? String)
-            ?: error("Version name (CFBundleShortVersionString) not found or invalid in Info.plist.")
+    override val appName: String =
+        (infoDictionary?.get(AppInfo.IOS_KEY_APP_NAME) as? String) ?: AppInfo.DEFAULT_APP_NAME
 
-    override val versionCode: String =
-        (infoDictionary!!["CFBundleVersion"] as? String)
-            ?: error("Version code (CFBundleVersion) not found or invalid in Info.plist.")
+    override val appLabel: String =
+        (infoDictionary?.get(AppInfo.IOS_KEY_DISPLAY_NAME) as? String)
+            ?: (infoDictionary?.get(AppInfo.IOS_KEY_BUNDLE_NAME) as? String)
+            ?: AppInfo.DEFAULT_APP_NAME
+
+    override val appMajor: String =
+        (infoDictionary?.get(AppInfo.IOS_KEY_APP_MAJOR) as? String) ?: ""
+
+    override val appStage: String =
+        (infoDictionary?.get(AppInfo.IOS_KEY_APP_STAGE) as? String) ?: ""
+
+    override val versionName: String =
+        (infoDictionary?.get(AppInfo.IOS_KEY_VERSION_NAME) as? String)
+            ?: error("Version name (${AppInfo.IOS_KEY_VERSION_NAME}) not found or invalid in Info.plist.")
 
     override val targetInfo: UiText = UiTextString("iOS Native")
 }

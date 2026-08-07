@@ -41,14 +41,20 @@ object JvmAppInfo : AppInfo, KoinComponent {
         }
     }
 
-    override val appId = properties.getProperty("app_id") ?: "com.truepineapps.photouploader"
+    override val appId = properties.getProperty(AppInfo.KEY_APP_ID) ?: AppInfo.DEFAULT_APP_ID
 
-    override val versionName = properties.getProperty("version_name") ?: "0.0.1"
+    override val appName = properties.getProperty(AppInfo.KEY_APP_NAME) ?: AppInfo.DEFAULT_APP_NAME
 
-    override val versionCode = properties.getProperty("version_code") ?: "0"
+    override val appLabel = properties.getProperty(AppInfo.KEY_APP_LABEL) ?: AppInfo.DEFAULT_APP_NAME
+
+    override val appMajor = properties.getProperty(AppInfo.KEY_APP_MAJOR) ?: ""
+
+    override val appStage = properties.getProperty(AppInfo.KEY_APP_STAGE) ?: ""
+
+    override val versionName = properties.getProperty(AppInfo.KEY_VERSION_NAME) ?: AppInfo.DEFAULT_VERSION_NAME
 
     override val targetInfo: UiText = run {
-        val target = properties.getProperty("jvm_target")
+        val target = properties.getProperty(AppInfo.KEY_JVM_TARGET)
         if (target != null) UiTextString("JVM $target")
         else UiTextResource(Res.string.unknown)
     }

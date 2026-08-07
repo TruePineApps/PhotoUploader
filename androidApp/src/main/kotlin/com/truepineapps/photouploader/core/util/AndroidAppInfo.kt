@@ -44,10 +44,13 @@ object AndroidAppInfo : AppInfo, KoinComponent {
     }
 
     override val appId: String = BuildConfig.APPLICATION_ID
+    override val appName: String = properties.getProperty(AppInfo.KEY_APP_NAME) ?: AppInfo.DEFAULT_APP_NAME
+    override val appLabel: String = properties.getProperty(AppInfo.KEY_APP_LABEL) ?: AppInfo.DEFAULT_APP_NAME
+    override val appMajor: String = properties.getProperty(AppInfo.KEY_APP_MAJOR) ?: ""
+    override val appStage: String = properties.getProperty(AppInfo.KEY_APP_STAGE) ?: ""
     override val versionName: String = BuildConfig.VERSION_NAME
-    override val versionCode: String = BuildConfig.VERSION_CODE.toString()
     override val targetInfo: UiText = run {
-        val target = properties.getProperty("target_sdk")
+        val target = properties.getProperty(AppInfo.KEY_TARGET_SDK)
         if (target != null) UiTextString("Target SDK $target")
         else UiTextResource(Res.string.unknown)
     }

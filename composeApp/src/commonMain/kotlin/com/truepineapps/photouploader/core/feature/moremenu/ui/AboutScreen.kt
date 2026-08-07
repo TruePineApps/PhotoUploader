@@ -60,7 +60,7 @@ fun AboutScreen(
             .verticalScroll(rememberScrollState()),
     ) {
         Text(
-            text = stringResource(Res.string.about_photo_uploader) + " (Beta)",
+            text = "${appInfo.appName} ${appInfo.appMajor} ${appInfo.appStage}".trim(),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = Dimensions.padding_medium),
         )
@@ -73,7 +73,7 @@ fun AboutScreen(
 
         // ── Application ───────────────────────────────────────────────
         SectionHeader(Res.string.application_info)
-        DetailRow(Res.string.version, "${appInfo.versionName} (${appInfo.versionCode})")
+        DetailRow(Res.string.version, appInfo.versionName)
         DetailRow(Res.string.app_id, appInfo.appId)
         DetailRow(Res.string.website, "truepineapps.com/photouploader")
         DetailRow(Res.string.sources, "github.com/truepineapps/photouploader")
@@ -156,8 +156,11 @@ fun AboutScreenAndroidPreview() {
     AboutScreen(
         appInfo = object : AppInfo {
             override val appId = "com.truepineapps.photouploader"
-            override val versionName = "1.0.0"
-            override val versionCode = "1"
+            override val appName = "PhotoUploader"
+            override val appLabel = "PhotoUploader Beta"
+            override val appMajor = "1"
+            override val appStage = "Beta 1"
+            override val versionName = "1.0.65535"
             override val targetInfo = UiTextString("Target SDK 37")
         },
         platformInfo = object : PlatformInfo {
@@ -182,8 +185,11 @@ fun AboutScreenJvmPreview() {
     AboutScreen(
         appInfo = object : AppInfo {
             override val appId = "com.truepineapps.photouploader"
-            override val versionName = "1.0.0"
-            override val versionCode = "1"
+            override val appName = "PhotoUploader"
+            override val appLabel = "PhotoUploader Beta"
+            override val appMajor = "1"
+            override val appStage = "Beta 1"
+            override val versionName = "1.0.65535"
             override val targetInfo = UiTextString("Target JVM 11")
         },
         platformInfo = object : PlatformInfo {

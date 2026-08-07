@@ -14,11 +14,16 @@ android {
     namespace = "com.truepineapps.photouploader"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
-        applicationId = libs.versions.appId.get()
+        // Get PlatformVersion object for app name and version based on libs.versions.toml
+        val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
+
+        applicationId = versionInfo.appId
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.appVersionCode.get().toInt()
-        versionName = libs.versions.appVersionName.get()
+        versionCode = versionInfo.buildNumber.toInt()
+        versionName = versionInfo.numericVersion
+
+        manifestPlaceholders["appLabel"] = versionInfo.appLabel
     }
 
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")

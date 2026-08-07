@@ -96,8 +96,10 @@ compose.desktop {
             // stripped in the release version
             modules("jdk.httpserver")
 
-            packageName = "Photo-Uploader"
-            packageVersion = libs.versions.appVersionName.get()
+            // Get PlatformVersion object for app name and version based on libs.versions.toml
+            val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
+            packageName = versionInfo.appLabel
+            packageVersion = versionInfo.numericVersion
             copyright = "© 2026 True Pine Apps. All rights reserved."
             vendor = "True Pine Apps"
             licenseFile.set(project.file("../LICENSE"))
@@ -160,6 +162,9 @@ afterEvaluate {
 
         // Register a unique fix task for this package task
         val fixTask = tasks.register<PatchDebPackage>(fixTaskName) {
+            // Get PlatformVersion object for app name and version based on libs.versions.toml
+            val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
+
             description = "Patch .desktop file, fix metadata and add license files in generated .deb package"
 
             packageFileDir.set(layout.buildDirectory.dir("compose/binaries/$folderName/deb"))
@@ -168,7 +173,7 @@ afterEvaluate {
             licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
             sharedResourceDir.set(project.file(sharedResourceFiles))
             noticesFileName.set(noticesName)
-            appVersion.set(libs.versions.appVersionName.get())
+            appVersion.set(versionInfo.numericVersion)
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }

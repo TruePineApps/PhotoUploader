@@ -16,32 +16,55 @@ ksp {
     arg("KOIN_CONFIG_CHECK", "true")
 }
 
-val appId: String = libs.versions.appId.get()
-// App version from libs.versions.toml
-val versionCode: Int = libs.versions.appVersionCode.get().toInt()
-val versionName: String = libs.versions.appVersionName.get()
-// The target Java version is maintained in libs.versions.toml
-val jvmTargetVersion: String = libs.versions.jvmversion.get()
+// Get PlatformVersion object for app name and version based on libs.versions.toml
+val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
+
+/**
+ * Unique application identifier, suffixed by the release stage (e.g., .beta)
+ * to support side-by-side installation.
+ */
+val appId: String = versionInfo.appId
+
+/**
+ * Technical numeric version name in the format `major.minor.build`.
+ */
+val versionName: String = versionInfo.numericVersion
+
+/**
+ * User-facing application name, including the release stage (e.g., "PhotoUploader Beta").
+ */
+val appLabel: String = versionInfo.appLabel
+
+/**
+ * Target Java version for JVM/Desktop targets.
+ */
+val jvmTargetVersion: String = libs.versions.cfg.jvmversion.get()
 
 val generateBuildProperties = tasks.register("generateBuildProperties") {
-    description = "gemerate the file build-info.properties with build properties to be used by the app"
+    description = "generates the file build-info.properties with build properties to be used by the app"
 
     val outputDir = layout.buildDirectory.dir("generated/resources/custom")
     val propsFile = outputDir.map { it.file("build-info.properties") }
 
     // 1. Define inputs strongly so Gradle can cache them
     // We capture the values into the task's state, breaking the link to the script scope
-    val vName = versionName
-    val vCode = versionCode
-    val aId = appId
-    val tSdk = libs.versions.android.targetSdk.get()
-    val jTarget = jvmTargetVersion // Matches jvmTarget.set(...) below
+    val taskVersionName = versionName
+    val taskAppLabel = appLabel
+    val taskAppName = versionInfo.appName
+    val taskAppId = appId
+    val taskAppMajor = versionInfo.appMajor
+    val taskAppStage = versionInfo.appStage
+    val taskTargetSdk = libs.versions.android.targetSdk.get()
+    val taskJvmTarget = jvmTargetVersion
 
-    inputs.property("version_name", vName)
-    inputs.property("version_code", vCode)
-    inputs.property("app_id", aId)
-    inputs.property("target_sdk", tSdk)
-    inputs.property("jvm_target", jTarget)
+    inputs.property(BuildConstants.KEY_VERSION_NAME, taskVersionName)
+    inputs.property(BuildConstants.KEY_APP_LABEL, taskAppLabel)
+    inputs.property(BuildConstants.KEY_APP_NAME, taskAppName)
+    inputs.property(BuildConstants.KEY_APP_ID, taskAppId)
+    inputs.property(BuildConstants.KEY_APP_MAJOR, taskAppMajor)
+    inputs.property(BuildConstants.KEY_APP_STAGE, taskAppStage)
+    inputs.property(BuildConstants.KEY_TARGET_SDK, taskTargetSdk)
+    inputs.property(BuildConstants.KEY_JVM_TARGET, taskJvmTarget)
 
     // 2. Define the output file
     outputs.file(propsFile)
@@ -55,11 +78,14 @@ val generateBuildProperties = tasks.register("generateBuildProperties") {
         // instead of referencing the script-level properties directly.
         file.writeText(
             """
-            version_name=$vName
-            version_code=$vCode
-            app_id=$aId
-            target_sdk=$tSdk
-            jvm_target=$jTarget
+            ${BuildConstants.KEY_VERSION_NAME}=$taskVersionName
+            ${BuildConstants.KEY_APP_LABEL}=$taskAppLabel
+            ${BuildConstants.KEY_APP_NAME}=$taskAppName
+            ${BuildConstants.KEY_APP_ID}=$taskAppId
+            ${BuildConstants.KEY_APP_MAJOR}=$taskAppMajor
+            ${BuildConstants.KEY_APP_STAGE}=$taskAppStage
+            ${BuildConstants.KEY_TARGET_SDK}=$taskTargetSdk
+            ${BuildConstants.KEY_JVM_TARGET}=$taskJvmTarget
             """.trimIndent()
         )
     }
