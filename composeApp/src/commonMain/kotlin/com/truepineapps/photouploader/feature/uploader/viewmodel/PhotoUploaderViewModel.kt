@@ -227,7 +227,6 @@ class PhotoUploaderViewModel(
             log.d("performSignIn: AuthException ${e::class.simpleName}: ${e.message}")
             // Token expired or general sign-in failure: Remove credential
             handleAuthExpiry()
-            _viewState.update { it.copy(globalErrorMessage = e.uiText) }
         } catch (e: Exception) {
             log.e("performSignIn: Sign in failed", e)
             val uiText = e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
