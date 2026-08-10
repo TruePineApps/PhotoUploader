@@ -28,3 +28,15 @@ tasks.register<SyncIosVersionTask>("syncIosVersion") {
     numericVersion.set(versionInfo.numericVersion)
     buildNumber.set(versionInfo.buildNumber)
 }
+
+tasks.register<SyncInstallDocTask>("syncInstallDoc") {
+    group = "versioning"
+    description = "Syncs the project version to the INSTALL.md documentation."
+    
+    templateFile.set(layout.projectDirectory.file("buildSrc/src/main/resources/INSTALL.template.md"))
+    outputFile.set(layout.projectDirectory.file("INSTALL.md"))
+    appName.set(versionInfo.appName)
+    appLabel.set(versionInfo.appLabel)
+    version.set(versionInfo.numericVersion)
+    majorMinor.set("${versionInfo.appMajor}.${versionInfo.appMinor}")
+}
