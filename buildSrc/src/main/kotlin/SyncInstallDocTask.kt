@@ -42,10 +42,10 @@ abstract class SyncInstallDocTask : DefaultTask() {
         var content = template.readText()
         
         // Perform replacements
-        content = content.replace("\${appName}", appName.get())
-        content = content.replace("\${appLabel}", appLabel.get())
-        content = content.replace("\${version}", version.get())
-        content = content.replace("\${majorMinor}", majorMinor.get())
+        content = content.replace($$"${appName}", appName.get())
+        content = content.replace($$"${appLabel}", appLabel.get())
+        content = content.replace($$"${version}", version.get())
+        content = content.replace($$"${majorMinor}", majorMinor.get())
 
         val output = outputFile.get().asFile
         output.writeText(content)

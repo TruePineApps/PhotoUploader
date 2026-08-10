@@ -167,11 +167,11 @@ object LinuxHighContrastDetector : KoinComponent {
         // query's block.
         val script = buildString {
             queries.forEachIndexed { i, q ->
-                append("__v$i=\$(gsettings get '${q.schema}' '${q.key}' 2>/dev/null); ")
-                append("__ec$i=\$?; ")
+                append($$"__v$$i=$(gsettings get '$${q.schema}' '$${q.key}' 2>/dev/null); ")
+                append($$"__ec$$i=$?; ")
                 append("echo '@@@$i@@@'; ")
-                append("echo \"\$__v$i\"; ")
-                append("echo \"@@@EXIT:$i:\$__ec$i@@@\"; ")
+                append($$"echo \"$__v$$i\"; ")
+                append($$"echo \"@@@EXIT:$$i:$__ec$$i@@@\"; ")
             }
         }
 
