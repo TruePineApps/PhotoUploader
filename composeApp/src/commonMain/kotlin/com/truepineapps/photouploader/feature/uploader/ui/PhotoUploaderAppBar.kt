@@ -62,12 +62,12 @@ import com.truepineapps.photouploader.core.presentation.design.toEnabled
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
 import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.appicon
 import com.truepineapps.photouploader.resources.back_button
 import com.truepineapps.photouploader.resources.cancel
 import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.connected_as
+import com.truepineapps.photouploader.resources.google_icon
 import com.truepineapps.photouploader.resources.sign_in
 import com.truepineapps.photouploader.resources.sign_in_menu
 import com.truepineapps.photouploader.resources.sign_out
@@ -75,7 +75,7 @@ import com.truepineapps.photouploader.resources.sign_out_menu
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
-import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -196,7 +196,7 @@ private fun SignInMenu(
 
     Box {
         Image(
-            bitmap = imageResource(Res.drawable.appicon),
+            painter = painterResource(Res.drawable.google_icon),
             contentDescription = stringResource(Res.string.sign_in_menu),
             modifier = Modifier
                 .size(Dimensions.medium_icon_size)
