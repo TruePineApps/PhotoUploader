@@ -34,6 +34,7 @@ import com.truepineapps.photouploader.core.feature.legal.ui.LegalHubScreen
 import com.truepineapps.photouploader.core.feature.legal.ui.LicenseScreen
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.AboutDestination
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.DebugActionDestination
+import com.truepineapps.photouploader.core.feature.moremenu.navigation.PrivacyDestination
 import com.truepineapps.photouploader.core.feature.moremenu.ui.AboutScreen
 import com.truepineapps.photouploader.core.feature.moremenu.ui.DebugActionScreen
 
@@ -45,6 +46,15 @@ fun NavGraphBuilder.aboutGraph(
     composable(route = AboutDestination.route) {
         AboutScreen(
             onUpdateTopAppBar = onUpdateTopAppBar,
+            scrollToAccountPrivacy = false,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+    composable(route = PrivacyDestination.route) {
+        log.d("Navigate to Privacy")
+        AboutScreen(
+            onUpdateTopAppBar = onUpdateTopAppBar,
+            scrollToAccountPrivacy = true,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -52,15 +62,14 @@ fun NavGraphBuilder.aboutGraph(
         DebugActionScreen(modifier = Modifier.fillMaxSize())
     }
     composable(route = LicenseDestination.route) {
-        LicenseScreen(
-            onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize()
-        )
+        LicenseScreen(onUpdateTopAppBar = onUpdateTopAppBar, modifier = Modifier.fillMaxSize())
     }
     composable(route = LegalDestination.route) {
         LegalHubScreen(
             onNavigateToLicense = { navController.navigate(LicenseDestination.route) },
             onNavigateToTerms = { navController.navigate(TermsOfServiceDestination.route) },
             onNavigateToPrivacy = { navController.navigate(PrivacyPolicyDestination.route) },
+            onNavigateToManageData = { navController.navigate(PrivacyDestination.route) },
             onUpdateTopAppBar = onUpdateTopAppBar,
             modifier = Modifier.fillMaxSize()
         )

@@ -72,7 +72,7 @@
     <string name="collapse_album">Collapse album</string>
     <string name="expand_album">Expand album</string>
     <string name="photo_uploader_description">
-        Photo Uploader uploads a photo collection organized in folders into albums on Google Photos.
+        Photo Uploader is a personal utility tool designed to upload a photo collection organized in folders into albums on Google Photos.
         The album name is derived from the folder name.
     </string>
     <string name="ready_to_upload">📤 Ready to upload</string>
@@ -143,8 +143,33 @@
     <string name="status_canceled">Cancelled</string>
     <string name="status_error">Error</string>
 
-    <!-- Legal gate — generic -->
+    <!-- Legal Hub & Account/Privacy Management -->
     <string name="legal">Legal</string>
+    <string name="account_privacy">Account and privacy</string>
+    <string name="manage_data_description">
+        Photo-Uploader does not store your photos or credentials on its own servers.
+        You can manage your data as follows:
+    </string>
+    <string name="manage_data_photos_title">Uploaded Photos</string>
+    <string name="manage_data_photos_body">
+        Photos and albums are stored in your Google Photos account. You can view or delete them
+        at [photos.google.com](https://photos.google.com).
+    </string>
+    <string name="manage_data_access_title">Revoking Access</string>
+    <string name="manage_data_access_body">
+        You can revoke the App\'s access to your Google account in your
+        [Google Security Settings](https://myaccount.google.com/permissions).
+    </string>
+    <string name="manage_data_contact_title">Support &amp; Privacy</string>
+    <string name="manage_data_contact_body">
+        For data requests or whitelist removal, contact Marcel van Heerwaarden at
+        [marcel@truepineapps.com](mailto:marcel@truepineapps.com).
+    </string>
+    <string name="disclosure_summary">
+        Photo-Uploader accesses your Google account to upload photos and create albums. It reads
+        only content it has created. Your email is used solely to manage access.
+        No data is shared or used for other purposes.
+    </string>
     <string name="legal_loading">Loading legal documents…</string>
     <string name="legal_error_title">Could not load legal documents</string>
     <string name="legal_error_retry">Try again</string>

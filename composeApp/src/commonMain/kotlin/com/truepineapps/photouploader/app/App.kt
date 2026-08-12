@@ -109,6 +109,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
 ) {
     val filePicker: PlatformPicker = koinInject()
     val viewModel: PhotoUploaderViewModel = koinViewModel()
+    val uiState by viewModel.uiState.collectAsState()
 
     val appName = stringResource(resource = Res.string.app_name)
     var title by rememberSaveable { mutableStateOf(appName) }
@@ -124,7 +125,8 @@ private fun ThemedLocalizedLegalAcceptedApp(
     // The scroll state of the overview must not be applied to the other screens
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
-    val scrollBehavior = if (currentRoute == PhotoUploaderDestination.route) {
+    val isStartScreenState = uiState.albumUiStates.isEmpty() && uiState.path.isEmpty()
+    val scrollBehavior = if (currentRoute == PhotoUploaderDestination.route && !isStartScreenState) {
         TopAppBarDefaults.enterAlwaysScrollBehavior()
     } else {
         null
@@ -132,7 +134,6 @@ private fun ThemedLocalizedLegalAcceptedApp(
 
     // File Picker is a global state in the app
     val context = LocalPlatformContext.current
-    val uiState by viewModel.uiState.collectAsState()
     filePicker.PlatformDirectoryPicker(uiState.isShowDirPicker) { kmpFile ->
         if (kmpFile != null) {
             viewModel.updatePath(kmpFile, context)

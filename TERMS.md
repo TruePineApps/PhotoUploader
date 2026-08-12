@@ -14,7 +14,7 @@ The App is currently in a **testing phase** and should be treated as beta softwa
 You acknowledge that the App may contain bugs, errors, or inaccuracies that could
 cause failures, data corruption, or loss of data, including photos or metadata.
 You are strongly advised to maintain independent backups of all your photos before
-using the App, and to verify the results of any operation before deleting local
+using the App and to verify the results of any operation before deleting local
 copies.
 
 By installing or using the App, you confirm that you have read and agree to these Terms.
@@ -85,6 +85,7 @@ To keep things fair and legal for everyone, please make sure that you:
 
 - Only use the App with a Google account that you own or are authorized to use.
 - Only upload photos that you own or have the right to upload and organize.
+- Only use the App for photos and videos of a personal nature. The App is not intended for storing or serving commercial, enterprise, or non-personal media.
 - Comply with [Google's Terms of Service](https://policies.google.com/terms) and
   [Google Photos policies](https://policies.google.com/privacy).
 - Do not use the App to upload content that infringes someone else's copyright or other
@@ -177,7 +178,7 @@ It does not apply where the Developer is at fault.
 The App uses the Google Photos API. Your use of Google Photos is governed by
 [Google's Terms of Service](https://policies.google.com/terms) and
 [Google's Privacy Policy](https://policies.google.com/privacy). The Developer has no
-control over Google's services or policies, and is not responsible for any changes Google
+control over Google's services or policies and is not responsible for any changes Google
 makes to its APIs or services that affect how the App works.
 
 ---
@@ -250,7 +251,7 @@ residence.
 ### 15. Severability
 
 If any part of these Terms turns out to be invalid or unenforceable under applicable law,
-that part will be adjusted to the minimum extent needed to make it enforceable, or removed
+that part will be adjusted to the minimum extent needed to make it enforceable or removed
 if adjustment is not possible. The rest of the Terms remain in effect.
 
 ---

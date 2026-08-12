@@ -29,10 +29,18 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.AboutDestination
+import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
@@ -40,7 +48,35 @@ import com.truepineapps.photouploader.core.util.PlatformType
 import com.truepineapps.photouploader.core.util.UiText
 import com.truepineapps.photouploader.core.util.UiTextString
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
-import com.truepineapps.photouploader.resources.*
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.account_privacy
+import com.truepineapps.photouploader.resources.app_id
+import com.truepineapps.photouploader.resources.application_info
+import com.truepineapps.photouploader.resources.build_configuration
+import com.truepineapps.photouploader.resources.build_target
+import com.truepineapps.photouploader.resources.build_type
+import com.truepineapps.photouploader.resources.cpu_architecture
+import com.truepineapps.photouploader.resources.debug
+import com.truepineapps.photouploader.resources.kernel_version
+import com.truepineapps.photouploader.resources.manage_data_access_body
+import com.truepineapps.photouploader.resources.manage_data_access_title
+import com.truepineapps.photouploader.resources.manage_data_contact_body
+import com.truepineapps.photouploader.resources.manage_data_contact_title
+import com.truepineapps.photouploader.resources.manage_data_description
+import com.truepineapps.photouploader.resources.manage_data_photos_body
+import com.truepineapps.photouploader.resources.manage_data_photos_title
+import com.truepineapps.photouploader.resources.memory
+import com.truepineapps.photouploader.resources.os_name
+import com.truepineapps.photouploader.resources.os_version
+import com.truepineapps.photouploader.resources.photo_uploader_description
+import com.truepineapps.photouploader.resources.platform
+import com.truepineapps.photouploader.resources.processors
+import com.truepineapps.photouploader.resources.release
+import com.truepineapps.photouploader.resources.runtime
+import com.truepineapps.photouploader.resources.sources
+import com.truepineapps.photouploader.resources.system_environment
+import com.truepineapps.photouploader.resources.version
+import com.truepineapps.photouploader.resources.website
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -49,15 +85,30 @@ import org.koin.compose.koinInject
 fun AboutScreen(
     modifier: Modifier = Modifier,
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit = { _, _, _ -> },
+    scrollToAccountPrivacy: Boolean = false,
     appInfo: AppInfo = koinInject(),
     platformInfo: PlatformInfo = koinInject(),
 ) {
     onUpdateTopAppBar(stringResource(AboutDestination.titleRes), null) {}
 
+    val scrollState = rememberScrollState()
+    var accountPrivacyOffset by remember { mutableStateOf<Float?>(null) }
+    var didPerformInitialScroll by remember { mutableStateOf(false) }
+
+    // Auto-scroll when the target offset is first determined
+    LaunchedEffect(scrollToAccountPrivacy, accountPrivacyOffset) {
+        if (scrollToAccountPrivacy && !didPerformInitialScroll) {
+            accountPrivacyOffset?.let {
+                scrollState.scrollTo(it.toInt())
+                didPerformInitialScroll = true
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .padding(Dimensions.padding_medium)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState),
     ) {
         Text(
             text = "${appInfo.appName} ${appInfo.appMajor} ${appInfo.appStage}".trim(),
@@ -70,6 +121,27 @@ fun AboutScreen(
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = Dimensions.padding_large)
         )
+
+        // ── Account and Privacy ───────────────────────────────────────
+        SectionHeader(
+            labelResId = Res.string.account_privacy,
+            modifier = Modifier.onGloballyPositioned { coordinates ->
+                if (accountPrivacyOffset == null) {
+                    accountPrivacyOffset = coordinates.positionInParent().y
+                }
+            }
+        )
+        Text(
+            text = stringResource(Res.string.manage_data_description).normalizeWhitespace(),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = Dimensions.padding_small)
+        )
+
+        HelpItem(Res.string.manage_data_photos_title, Res.string.manage_data_photos_body)
+        HelpItem(Res.string.manage_data_access_title, Res.string.manage_data_access_body)
+        HelpItem(Res.string.manage_data_contact_title, Res.string.manage_data_contact_body)
+
+        Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
         // ── Application ───────────────────────────────────────────────
         SectionHeader(Res.string.application_info)
@@ -107,8 +179,23 @@ fun AboutScreen(
 }
 
 @Composable
-private fun SectionHeader(labelResId: StringResource) {
-    Column {
+private fun HelpItem(titleRes: StringResource, bodyRes: StringResource) {
+    Column(modifier = Modifier.padding(vertical = Dimensions.padding_small)) {
+        Text(
+            text = stringResource(titleRes),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
+        MarkdownText(
+            markdown = stringResource(bodyRes).normalizeWhitespace(),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun SectionHeader(labelResId: StringResource, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(
             text = stringResource(labelResId),
             style = MaterialTheme.typography.titleMedium,

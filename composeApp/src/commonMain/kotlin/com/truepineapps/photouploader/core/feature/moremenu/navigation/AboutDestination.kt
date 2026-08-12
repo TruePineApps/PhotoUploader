@@ -19,9 +19,16 @@ package com.truepineapps.photouploader.core.feature.moremenu.navigation
 import com.truepineapps.photouploader.core.presentation.navigation.NavigationDestination
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.about
+import com.truepineapps.photouploader.resources.account_privacy
 
 object AboutDestination : NavigationDestination {
     override val route = "about"
 
     override val titleRes = Res.string.about
+}
+
+object PrivacyDestination : NavigationDestination {
+    override val route = AboutDestination.route + "/privacy"
+
+    override val titleRes = Res.string.account_privacy
 }

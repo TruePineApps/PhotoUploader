@@ -8,7 +8,7 @@
 
 This Privacy Policy describes how **Marcel van Heerwaarden**, trading as **True Pine Apps**
 ("the Developer"), handles personal data within the application **Photo-Uploader** ("the
-App"). The App is a tool designed to upload photos to Google Photos and organize them into
+App"). The App is a personal utility tool designed to upload photos to Google Photos and organize them into
 albums based on local directory structures.
 
 As a developer based in the Netherlands, I am committed to protecting your privacy in
@@ -35,7 +35,7 @@ Your email address is collected for the following purposes:
 - To contact you about the status of your access (for example, if your access is withdrawn
   or for notifications on changes in data usage).
 
-**Legal basis:** Processing your email address is necessary to provide you access to the App
+**Legal basis:** Processing your email address is necessary to provide you with access to the App
 and manage the testing service. The legal basis is [Article 6(1)(b) GDPR](https://gdpr-info.eu/art-6-gdpr/)
 — processing necessary for the performance of a service at your request.
 
@@ -53,12 +53,13 @@ personal information.
 
 When you use the App, your photos are processed locally on your device. The App reads your
 photo files from your local storage, processes them in memory, and uploads them directly to
-your own Google Photos account via the Google Photos API. At no point are your photos stored
-on, or transmitted to, any server controlled by the Developer.
+your own Google Photos account via the Google Photos API. This includes the transmission of
+all embedded metadata, such as EXIF data and location information, to Google Photos. At no point
+are your photos stored on, or transmitted to, any server controlled by the Developer.
 
 You remain the sole owner of your photos. You maintain full control over your photos and
 data within Google Photos. You can manage, view, and delete your photos directly through
-Google Photos according to Google's policies. The Developer never has access to your photo
+Google Photos, according to Google's policies. The Developer never has access to your photo
 content.
 
 ---
@@ -101,7 +102,7 @@ of your activity within the App.
 services, including OAuth authentication, the Google Photos API, and Google Cloud Platform.
 This means Google determines the purposes and means of processing your data within its own
 infrastructure, independently of the Developer. The Developer has no control over what data
-Google collects during authentication or API interactions, and cannot make representations
+Google collects during authentication or API interactions and cannot make representations
 about Google's processing on Google's behalf.
 
 Additional data — such as authentication metadata — may be processed by Google as part of
@@ -239,7 +240,7 @@ the updated policy.
 
 ### 13. Contact Information
 
-For questions about this policy, or to exercise your rights, contact:
+For questions about this policy or to exercise your rights, contact:
 
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  

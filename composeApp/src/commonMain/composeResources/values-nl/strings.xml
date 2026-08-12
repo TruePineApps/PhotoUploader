@@ -144,7 +144,33 @@
     <string name="status_canceled">Afgebroken</string>
     <string name="status_error">Fout</string>
 
-    <!-- Legal gate — generic -->
+    <!-- Legal Hub & Account/Privacy Management -->
+    <string name="account_privacy">Account en privacy</string>
+    <string name="manage_data_description">
+        Photo-Uploader bewaart geen foto\'s of inloggegevens op eigen servers.
+        Je kunt je gegevens als volgt beheren:
+    </string>
+    <string name="manage_data_photos_title">Geüploade foto\'s</string>
+    <string name="manage_data_photos_body">
+        Foto\'s en albums worden opgeslagen in je Google Photos account. Je kunt ze bekijken of
+        verwijderen op [photos.google.com](https://photos.google.com).
+    </string>
+    <string name="manage_data_access_title">Toegang intrekken</string>
+    <string name="manage_data_access_body">
+        Je kunt de toegang van de app tot je Google-account intrekken via je
+        [Google-beveiligingsinstellingen](https://myaccount.google.com/permissions).
+    </string>
+    <string name="manage_data_contact_title">Ondersteuning en privacy</string>
+    <string name="manage_data_contact_body">
+        Neem voor gegevensverzoeken of verwijdering van de whitelist contact op met
+        Marcel van Heerwaarden via [marcel@truepineapps.com](mailto:marcel@truepineapps.com).
+    </string>
+    <string name="disclosure_summary">
+        Photo-Uploader heeft toegang tot je Google-account om foto's te uploaden en albums te maken.
+        De app leest alleen gegevens die door de app zelf zijn gemaakt. Je e-mailadres wordt
+        uitsluitend gebruikt voor toegangsbeheer. Er worden geen gegevens gedeeld of voor
+        andere doeleinden gebruikt.
+    </string>
     <string name="legal">Juridisch</string>
     <string name="legal_loading">Juridische documenten worden geladen…</string>
     <string name="legal_error_title">Juridische documenten konden niet worden geladen</string>

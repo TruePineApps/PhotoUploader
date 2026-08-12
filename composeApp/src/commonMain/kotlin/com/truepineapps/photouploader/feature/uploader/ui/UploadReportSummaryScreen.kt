@@ -44,6 +44,7 @@ import com.truepineapps.photouploader.foundation.auth.domain.model.UserProfile
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.albums_to_create
 import com.truepineapps.photouploader.resources.cancel
+import com.truepineapps.photouploader.resources.disclosure_summary
 import com.truepineapps.photouploader.resources.no_cover_photo_selected
 import com.truepineapps.photouploader.resources.photos_to_upload
 import com.truepineapps.photouploader.resources.proceed
@@ -120,6 +121,14 @@ fun UploadSummaryScreen(
 
                 Text(
                     text = stringResource(Res.string.summary_care_message).normalizeWhitespace(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(Dimensions.padding_medium))
+
+                Text(
+                    text = stringResource(Res.string.disclosure_summary).normalizeWhitespace(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
