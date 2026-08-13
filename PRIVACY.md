@@ -142,8 +142,8 @@ Because the App currently has "Testing" status in Google Cloud Console, the foll
 conditions apply:
 
 - **User Limit:** Google restricts the testing phase to a maximum of 100 concurrent users.
-- **Access Rotation:** To allow as many people as possible to use the App, the authorized
-  list is managed manually. If the 100-user limit is reached, access may be withdrawn to
+- **User List Management:** To allow as many people as possible to use the App, the list of authorized
+  users is managed manually. If the 100-user limit is reached, access may be withdrawn to
   accommodate new requests.
 - **Notification:** If your access is withdrawn, you will receive a short notification to
   your Google email address.

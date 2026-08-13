@@ -71,7 +71,7 @@ to the source code, the Apache License takes precedence.
 
 The App is currently in a testing phase. Access requires prior registration with the
 Developer. The conditions governing testing access — including the maximum number of users,
-access rotation, and how you will be notified — are described in the
+User List Management, and how you will be notified — are described in the
 [Privacy Policy](https://truepineapps.com/photouploader/privacy).
 
 The Developer makes no commitment regarding the duration of the testing phase or the
@@ -85,7 +85,8 @@ To keep things fair and legal for everyone, please make sure that you:
 
 - Only use the App with a Google account that you own or are authorized to use.
 - Only upload photos that you own or have the right to upload and organize.
-- Only use the App for photos and videos of a personal nature. The App is not intended for storing or serving commercial, enterprise, or non-personal media.
+- Only use the App for photos and videos of a personal nature. The App is not intended for storing
+  or serving commercial, enterprise, or non-personal media.
 - Comply with [Google's Terms of Service](https://policies.google.com/terms) and
   [Google Photos policies](https://policies.google.com/privacy).
 - Do not use the App to upload content that infringes someone else's copyright or other
@@ -123,7 +124,7 @@ guarantee that Google's services will never affect pre-existing content in unfor
 The App is not intended for use with data that is irreplaceable or where data loss could
 result in significant personal or financial harm. You use the App entirely at your own risk.
 
-This is consistent with, and in addition to, the disclaimer of warranties in the Apache
+This is consistent with, and in addition to, the Disclaimer of Warranty in the Apache
 License, Version 2.0.
 
 ---
@@ -207,9 +208,9 @@ Continued use of the App after the effective date means you accept the updated T
 ### 13. Suspension and Termination
 
 The Developer may suspend or withdraw your access to the App at any time — including if you
-do not comply with Section 5, or as part of the testing phase access rotation described in
-the Privacy Policy. If your access is withdrawn for non-compliance, you will be notified by
-email.
+do not comply with Section 5, or as part of the User List Management during the testing phase 
+described in the Privacy Policy. If your access is withdrawn for non-compliance, you will be 
+notified by email.
 
 You can stop using the App at any time. You can also revoke the App's access to your Google
 account at any time via your

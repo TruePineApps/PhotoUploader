@@ -74,7 +74,7 @@ uw rechten op de broncode, heeft de Apache-licentie voorrang.
 
 De App bevindt zich momenteel in een testfase. Toegang vereist voorafgaande registratie bij
 de Ontwikkelaar. De voorwaarden voor testtoegang — waaronder het maximale aantal gebruikers,
-de toegangsroulatie en de wijze van melding — zijn beschreven in het
+het Beheer van de testerslijst en de wijze van melding — zijn beschreven in het
 [Privacybeleid](https://truepineapps.com/photouploader/privacy).
 
 De Ontwikkelaar doet geen toezeggingen over de duur van de testfase of de voortdurende
@@ -91,6 +91,8 @@ volgende in acht te nemen:
   bent.
 - Upload uitsluitend foto's die u zelf bezit of het recht heeft te uploaden en te
   organiseren.
+- Gebruik de App uitsluitend voor foto's en video's van persoonlijke aard. De App is niet bedoeld
+  voor de opslag of het aanbieden van commerciële, zakelijke of niet-persoonlijke media.
 - Houd u aan de [Servicevoorwaarden van Google](https://policies.google.com/terms) en het
   [Beleid voor Google Photos](https://policies.google.com/privacy).
 - Gebruik de App niet om inhoud te uploaden die inbreuk maakt op auteursrechten of andere
@@ -132,8 +134,8 @@ De App is niet bedoeld voor gebruik met gegevens die onvervangbaar zijn of waarb
 gegevensverlies kan leiden tot aanzienlijke persoonlijke of financiële schade. U gebruikt
 de App volledig op eigen risico.
 
-Dit is in overeenstemming met, en een aanvulling op, de garantiedisclaimer in de
-Apache-licentie, versie 2.0.
+Dit is in overeenstemming met, en een aanvulling op, de uitsluiting van garantie (de 
+'Disclaimer of Warranty') in de Apache-licentie, versie 2.0.
 
 ---
 
@@ -221,9 +223,9 @@ Voorwaarden.
 ### 13. Opschorting en beëindiging
 
 De Ontwikkelaar kan uw toegang tot de App op elk moment opschorten of intrekken —
-ook als u paragraaf 5 niet naleeft, of als onderdeel van de toegangsroulatie tijdens de
-testfase zoals beschreven in het Privacybeleid. Als uw toegang wordt ingetrokken wegens
-niet-naleving, wordt u hiervan per e-mail op de hoogte gesteld.
+waaronder wegens het niet naleven van paragraaf 5, of als onderdeel van het Beheer van de 
+testerslijst tijdens de testfase zoals beschreven in het Privacybeleid. Als uw toegang wordt 
+ingetrokken wegens niet-naleving, wordt u hiervan per e-mail op de hoogte gesteld.
 
 U kunt op elk moment stoppen met het gebruik van de App. U kunt de toegang van de App tot
 uw Google-account ook op elk moment intrekken via uw

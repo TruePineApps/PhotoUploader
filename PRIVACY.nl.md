@@ -8,7 +8,7 @@
 
 Dit privacybeleid beschrijft hoe **Marcel van Heerwaarden**, handelend onder de naam
 **True Pine Apps** ("de Ontwikkelaar"), omgaat met persoonsgegevens binnen de applicatie
-**Photo-Uploader** ("de App"). De App is een hulpmiddel om foto's te uploaden naar Google
+**Photo-Uploader** ("de App"). De App is een persoonlijk hulpmiddel om foto's te uploaden naar Google
 Foto's en ze te organiseren in albums op basis van de lokale mappenstructuur.
 
 Als ontwikkelaar gevestigd in Nederland zet ik mij in voor de bescherming van uw privacy,
@@ -32,7 +32,7 @@ De enige persoonsgegevens die de Ontwikkelaar rechtstreeks verzamelt, zijn uw
 
 Uw e-mailadres wordt verzameld voor de volgende doeleinden:
 
-- Om u toe te voegen aan de geautoriseerde testlijst in Google Cloud Console, wat vereist
+- Om u toe te voegen aan de geautoriseerde testerslijst in Google Cloud Console, wat vereist
   is om u te kunnen authenticeren en de App te gebruiken.
 - Om contact met u op te nemen over de status van uw toegang (bijvoorbeeld als uw toegang
   wordt ingetrokken of bij meldingen over wijzigingen in het gegevensgebruik).
@@ -57,8 +57,10 @@ andere persoonsgegevens.
 
 Wanneer u de App gebruikt, worden uw foto's lokaal op uw apparaat verwerkt. De App leest
 uw fotobestanden uit uw lokale opslag, verwerkt ze in het geheugen en uploadt ze rechtstreeks
-naar uw eigen Google Photos-account via de Google Photos API. Uw foto's worden op geen enkel
-moment opgeslagen op of doorgestuurd naar servers die onder beheer van de Ontwikkelaar staan.
+naar uw eigen Google Photos-account via de Google Photos API. Hierbij wordt ook alle ingesloten 
+metadata, zoals EXIF-data en locatie-informatie, naar Google Photos overgedragen. Uw foto's worden 
+op geen enkel moment opgeslagen op of doorgestuurd naar servers die onder beheer van de 
+Ontwikkelaar staan.
 
 U blijft de enige eigenaar van uw foto's. U behoudt volledige controle over uw foto's en
 gegevens in Google Photos. U kunt uw foto's rechtstreeks beheren, bekijken en verwijderen
@@ -133,11 +135,11 @@ Europese Commissie. Raadpleeg voor meer informatie het
 
 ### 7. Bewaartermijnen
 
-| Gegevens | Bewaartermijn |
-|---|---|
-| E-mailadres (actieve testlijst) | Bewaard gedurende uw actieve testperiode |
-| E-mailadres (na verwijdering van testlijst) | Verwijderd binnen **6 maanden** na verwijdering |
-| OAuth-tokens | Alleen lokaal opgeslagen op uw apparaat; de Ontwikkelaar heeft geen toegang |
+| Gegevens                                          | Bewaartermijn                                                               |
+|---------------------------------------------------|-----------------------------------------------------------------------------|
+| E-mailadres (actieve testerslijst)                | Bewaard gedurende uw actieve testperiode                                    |
+| E-mailadres (na verwijdering van de testerslijst) | Verwijderd binnen **6 maanden** na verwijdering                             |
+| OAuth-tokens                                      | Alleen lokaal opgeslagen op uw apparaat; de Ontwikkelaar heeft geen toegang |
 
 Wanneer uw e-mailadres is verwijderd, worden er geen verdere gegevens bewaard door de
 Ontwikkelaar.
@@ -151,10 +153,10 @@ volgende voorwaarden:
 
 - **Gebruikerslimiet:** Google beperkt de testfase tot maximaal 100 gelijktijdige
   gebruikers.
-- **Toegangsroulatie:** Om zoveel mogelijk mensen de kans te geven de App te gebruiken,
-  wordt de geautoriseerde lijst handmatig beheerd. Als de limiet van 100 gebruikers is
-  bereikt, kan de toegang van een gebruiker worden ingetrokken om ruimte te maken voor
-  nieuwe aanvragen.
+- **Beheer van de testerslijst:** Om zoveel mogelijk mensen de kans te geven de App te gebruiken,
+  wordt de lijst met geautoriseerde gebruikers handmatig beheerd. Als de limiet van 100 
+  gebruikers is bereikt, kan de toegang van een gebruiker worden ingetrokken om ruimte te 
+  maken voor nieuwe aanvragen.
 - **Melding:** Als uw toegang wordt ingetrokken, ontvangt u een korte melding op uw
   Google-e-mailadres.
 - **Nieuwe aanvraag:** U bent van harte welkom om op elk gewenst moment opnieuw toegang
@@ -171,7 +173,7 @@ volgende voorwaarden:
   inlogtokens.
 - **Communicatie en opslag:** Uw e-mailadres wordt gebruikt om uw testtoegang te beheren,
   u op de hoogte te stellen van wijzigingen in uw toegangsstatus, en wordt opgeslagen in
-  Google Cloud Console als onderdeel van de testlijst. Het wordt niet gebruikt voor
+  Google Cloud Console als onderdeel van de testerslijst. Het wordt niet gebruikt voor
   marketingdoeleinden. Zie paragraaf 5 voor de rol van Google bij de opslag van deze
   gegevens.
 - **Geautomatiseerde besluitvorming:** De App maakt geen gebruik van geautomatiseerde
@@ -193,8 +195,8 @@ Gezien het feit dat:
 - de enige rechtstreeks verzamelde persoonsgegevens uw e-mailadres betreft, uitsluitend
   gebruikt voor het beheer van uw testtoegang,
 
-wordt de verwerking niet beschouwd als waarschijnlijk een hoog risico voor uw rechten en
-vrijheden met zich mee te brengen. Er is dan ook geen formele DPIA uitgevoerd. Deze
+wordt het niet waarschijnlijk geacht dat de verwerking een hoog risico voor uw rechten en
+vrijheden met zich meebrengt. Er is dan ook geen formele DPIA uitgevoerd. Deze
 beoordeling wordt herzien als de functionaliteit van de App wezenlijk wijzigt.
 
 ---
@@ -210,7 +212,7 @@ uit te oefenen.
   e-mailadres en de datum waarop het is geregistreerd.
 
 - **Recht op verwijdering ([artikel 17](https://gdpr-info.eu/art-17-gdpr/)):** U kunt
-  verzoeken uw e-mailadres te verwijderen van de testlijst. Houd er rekening mee dat
+  verzoeken uw e-mailadres te verwijderen van de testerslijst. Houd er rekening mee dat
   verwijdering ook betekent dat u de App niet langer kunt gebruiken, omdat uw e-mailadres
   vereist is voor authenticatie.
 
