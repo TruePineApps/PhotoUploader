@@ -25,7 +25,12 @@ your agreement the first time you launch the App.
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
 Email: marcel@truepineapps.com  
-Full contact details: https://truepineapps.com/en/imprint  
+Full contact details: https://truepineapps.com/en/imprint
+
+---
+
+*Disclaimer: This application is not officially affiliated with or endorsed by Google LLC. Google Photos is a trademark of Google LLC.*
+  
 
 ---
 

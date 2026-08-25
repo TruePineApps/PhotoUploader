@@ -134,7 +134,7 @@ kotlin {
 
     jvm("desktop") {
         compilerOptions {
-            // Bytecode version for desktop
+            // Bytecode version for desktop, keep in sync with Android
             jvmTarget.set(JvmTarget.fromTarget(jvmTargetVersion))
         }
 

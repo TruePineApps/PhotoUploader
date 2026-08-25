@@ -24,7 +24,7 @@ terminal).
 
 ### Hardware Recommendations
 *   **RAM:** 2 GB minimum (4 GB recommended).
-*   **Disk Space:** ~150 MB for installation, plus additional space for photo caching.
+*   **Disk Space:** ~150 MB for installation.
 *   **Internet:** Required for signing in to Google Photos and uploading content.
 
 ---
@@ -53,7 +53,7 @@ terminal).
 2.  Open a terminal in the download folder.
 3.  Install using `apt` (this will also resolve any system dependencies):
     ```bash
-    sudo apt install ./PhotoUploader Beta-1.0.65535.deb
+    sudo apt install "./PhotoUploader Beta-1.0.65535.deb"
     ```
 4.  Launch the app from your application menu or by typing `PhotoUploader` in the terminal.
 
@@ -63,3 +63,7 @@ terminal).
 PhotoUploader Beta requires permission to access your local file system (to read your photos) and the 
 internet (to upload to Google Photos). It uses secure OAuth 2.0 to connect to your Google account; 
 your password is never seen or stored by this application.
+
+---
+
+*Disclaimer: This application is not officially affiliated with or endorsed by Google LLC. Google Photos is a trademark of Google LLC.*

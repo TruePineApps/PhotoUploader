@@ -50,7 +50,7 @@ will be blocked by an automated check.
 - Copyright header required on every new `.kt` file:
 ```
 /*
- * Copyright (c) <year>> True Pine Apps
+ * Copyright (c) <year> True Pine Apps
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

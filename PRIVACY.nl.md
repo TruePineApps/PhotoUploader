@@ -25,6 +25,10 @@ Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
 ---
 
+*Disclaimer: Deze applicatie is niet officieel verbonden met of goedgekeurd door Google LLC. Google Photos is een handelsmerk van Google LLC.*
+
+---
+
 ### 2. Welke persoonsgegevens worden verzameld en waarom
 
 De enige persoonsgegevens die de Ontwikkelaar rechtstreeks verzamelt, zijn uw

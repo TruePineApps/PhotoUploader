@@ -24,6 +24,10 @@ Full contact details: https://truepineapps.com/en/imprint
 
 ---
 
+*Disclaimer: This application is not officially affiliated with or endorsed by Google LLC. Google Photos is a trademark of Google LLC.*
+
+---
+
 ### 2. What Personal Data Is Collected and Why
 
 The only personal data the Developer directly collects is your **Google email address**.

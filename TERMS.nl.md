@@ -29,6 +29,10 @@ Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
 ---
 
+*Disclaimer: Deze applicatie is niet officieel verbonden met of goedgekeurd door Google LLC. Google Photos is een handelsmerk van Google LLC.*
+
+---
+
 ### 2. Wat de App doet
 
 Photo-Uploader is een open-source applicatie waarmee u foto's van uw lokale apparaat
