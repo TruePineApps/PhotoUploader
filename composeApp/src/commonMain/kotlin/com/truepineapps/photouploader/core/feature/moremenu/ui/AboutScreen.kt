@@ -57,6 +57,7 @@ import com.truepineapps.photouploader.resources.build_target
 import com.truepineapps.photouploader.resources.build_type
 import com.truepineapps.photouploader.resources.cpu_architecture
 import com.truepineapps.photouploader.resources.debug
+import com.truepineapps.photouploader.resources.google_disclaimer
 import com.truepineapps.photouploader.resources.kernel_version
 import com.truepineapps.photouploader.resources.manage_data_access_body
 import com.truepineapps.photouploader.resources.manage_data_access_title
@@ -175,6 +176,15 @@ fun AboutScreen(
         )
         DetailRow(Res.string.processors, platformInfo.availableProcessors.asString())
         DetailRow(Res.string.memory, platformInfo.maxMemory?.asString())
+
+        Spacer(modifier = Modifier.height(Dimensions.padding_large))
+
+        Text(
+            text = stringResource(Res.string.google_disclaimer).normalizeWhitespace(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = Dimensions.padding_medium)
+        )
     }
 }
 

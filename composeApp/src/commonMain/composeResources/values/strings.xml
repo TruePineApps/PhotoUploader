@@ -202,4 +202,9 @@
     <string name="agree_to_continue">Agree to all conditions above to continue</string>
     <string name="legal_button_accept">I agree — Continue</string>
 
+    <string name="google_disclaimer">
+        Disclaimer: This application is not officially affiliated with or endorsed by Google LLC.
+        Google Photos is a trademark of Google LLC.
+    </string>
+
 </resources>
