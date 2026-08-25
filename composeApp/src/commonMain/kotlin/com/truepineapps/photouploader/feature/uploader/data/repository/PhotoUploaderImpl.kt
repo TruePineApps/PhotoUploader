@@ -77,7 +77,7 @@ class PhotoUploaderImpl(
     /**
      * Verifies if an album with the given ID exists on Google Photos.
      * @return `true` if the album exists, `false` if it was not found (404).
-     * @throws com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException.GlobalException for other HTTP errors.
+     * @throws [UploadException.GlobalException] for other HTTP errors.
      */
     override suspend fun verifyAlbumExists(
         albumId: String,
@@ -117,8 +117,8 @@ class PhotoUploaderImpl(
     /**
      * Creates an album in Google Photos
      * @return Album ID if successful
-     * @throws com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException.GlobalException for auth errors
-     * @throws com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException.AlbumException for other API errors
+     * @throws [UploadException.GlobalException] for auth errors
+     * @throws [UploadException.AlbumException] for other API errors
      */
     override suspend fun createAlbum(
         albumTitle: String,
@@ -160,8 +160,8 @@ class PhotoUploaderImpl(
     /**
      * Uploads a photo file and returns the upload token
      * @return Upload token if successful
-     * @throws com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException.GlobalException for auth errors
-     * @throws com.truepineapps.photouploader.feature.uploader.domain.repository.UploadException.PhotoException for other API errors
+     * @throws [UploadException.GlobalException] for auth errors
+     * @throws [UploadException.AlbumException] for other API errors
      */
     override suspend fun uploadPhoto(
         photoName: String,
@@ -343,7 +343,7 @@ class PhotoUploaderImpl(
 
         /* First test for status codes that allow a retry.
            Status codes marked for exponential backoff in Google Photos API docs https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes:
-           408 (Timeout), 429 (Rate Limit)  HttpStatusCode.RequestTimeout and HttpStatusCode.TooManyRequests,
+           408 (Timeout), 429 (Rate Limit) HttpStatusCode.RequestTimeout and HttpStatusCode.TooManyRequests,
            and in the 5xx range HttpStatusCode.InternalServerError, HttpStatusCode.BadGateway,
            HttpStatusCode.ServiceUnavailable and HttpStatusCode.GatewayTimeout.
            However, Google occasionally uses non-standard 5xx codes for internal load balancing.

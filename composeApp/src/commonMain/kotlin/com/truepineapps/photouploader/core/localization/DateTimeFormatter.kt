@@ -27,7 +27,7 @@ enum class NameStyle {
 
 /**
  * Interface for locale-aware date and time formatting services.
- * Implementations should use the locale provided by [com.truepineapps.photouploader.core.localization.PlatformLocaleProvider].
+ * Implementations should use the locale provided by [PlatformLocaleProvider].
  */
 interface DateTimeFormatter {
     fun formatDateTime(dateTime: LocalDateTime): String

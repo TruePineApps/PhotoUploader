@@ -25,7 +25,7 @@ import org.koin.core.component.inject
 import java.util.Properties
 
 // Implementation of the shared AppInfo interface for Android
-// Note: com.truepineapps.photouploader.BuildConfig is a generated class
+// Note: [BuildConfig] is a generated class
 object AndroidAppInfo : AppInfo, KoinComponent {
     private val log: Logger by inject()
     private val properties = Properties()

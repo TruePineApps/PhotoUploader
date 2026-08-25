@@ -18,7 +18,7 @@ package com.truepineapps.photouploader.core.localization
 
 /**
  * Interface for locale-aware number formatting services.
- * Implementations should use the locale provided by [com.truepineapps.photouploader.core.localization.PlatformLocaleProvider].
+ * Implementations should use the locale provided by [PlatformLocaleProvider].
  */
 interface NumberFormatter {
     /**

@@ -26,7 +26,7 @@ interface PhotoUploader {
     /**
      * Verifies if an album with the given ID exists on Google Photos.
      * @return `true` if the album exists, `false` if it was not found (404).
-     * @throws UploadException.GlobalException for other HTTP errors.
+     * @throws [UploadException.GlobalException] for other HTTP errors.
      */
     suspend fun verifyAlbumExists(
         albumId: String,
@@ -37,8 +37,8 @@ interface PhotoUploader {
     /**
      * Creates an album in Google Photos
      * @return Album ID if successful
-     * @throws UploadException.GlobalException for auth errors
-     * @throws UploadException.AlbumException for other API errors
+     * @throws [UploadException.GlobalException] for auth errors
+     * @throws [UploadException.AlbumException] for other API errors
      */
     suspend fun createAlbum(
         albumTitle: String,
@@ -49,8 +49,8 @@ interface PhotoUploader {
     /**
      * Uploads a photo file and returns the upload token
      * @return Upload token if successful
-     * @throws UploadException.GlobalException for auth errors
-     * @throws UploadException.PhotoException for other API errors
+     * @throws [UploadException.GlobalException] for auth errors
+     * @throws [UploadException.PhotoException] for other API errors
      */
     suspend fun uploadPhoto(
         photoName: String,
