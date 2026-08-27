@@ -18,8 +18,10 @@ package com.truepineapps.photouploader.core.presentation.component
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -32,13 +34,23 @@ fun MarkdownText(
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current
 ) {
-    val state = rememberRichTextState()
-    state.setMarkdown(markdown)
+    if (LocalInspectionMode.current) {
+        // Fallback for IDE Preview to avoid rendering crashes with RichText library
+        Text(
+            text = markdown,
+            modifier = modifier,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = style
+        )
+    } else {
+        val state = rememberRichTextState()
+        state.setMarkdown(markdown)
 
-    RichText(
-        state = state,
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        style = style
-    )
+        RichText(
+            state = state,
+            modifier = modifier,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = style
+        )
+    }
 }
