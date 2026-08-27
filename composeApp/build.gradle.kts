@@ -349,6 +349,26 @@ compose.resources {
     generateResClass = auto
 }
 
+// Prints the report link for any task that produces a "test" related HTML report
+tasks.configureEach {
+    if (this.name.contains("test", ignoreCase = true)) {
+        doLast {
+            // Use manual casting to the base Reporting interface to avoid DSL resolution issues
+            val reportingTask = this as? Reporting<*>
+            val htmlReport = reportingTask?.reports?.findByName("html") as? DirectoryReport
+
+            htmlReport?.entryPoint?.let { file ->
+                if (file.exists()) {
+                    val label = if (this.name == "allTests")
+                        "Aggregated test report" else "Test report [${this.name}]"
+                    // Using logger.quiet ensures it shows up in the console clearly
+                    logger.quiet("$label is available at: file://${file.absolutePath}")
+                }
+            }
+        }
+    }
+}
+
 // For debugging the build configuration: `./gradlew printKotlinDetails` shows the details of the
 // configuration defined here.
 tasks.register("printKotlinDetails") {
