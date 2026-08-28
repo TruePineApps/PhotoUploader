@@ -334,9 +334,13 @@ tasks.matching { task ->
     //    The most common pattern is ksp<SourceSetName> or ksp<Variant>Kotlin<Target>.
     task.name.matches(Regex("ksp(Debug|Release)?(Kotlin)?(Android|Jvm|Ios.*|Desktop|Windows|Macos.*|Linux)?(Main)?"))
 }.configureEach {
-    // For all KSP tasks that match our criteria, add the dependency.
-    project.logger.info("Configuring task '${this.name}' (name match) to depend on 'kspCommonMainKotlinMetadata'")
-    dependsOn("kspCommonMainKotlinMetadata")
+    // Safely depend on the task only if it actually exists in this project configuration
+    val metadataTask = project.tasks.findByName("kspCommonMainKotlinMetadata")
+    if (metadataTask != null) {
+        // For all KSP tasks that match our criteria, add the dependency.
+        project.logger.info("Configuring task '${this.name}' (name match) to depend on 'kspCommonMainKotlinMetadata'")
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
 }
 
 // Define the task to generate the properties file.
