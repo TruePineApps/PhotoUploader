@@ -63,8 +63,8 @@
         <item quantity="other">%1$d foto's</item>
     </plurals>
 
-    <string name="connected_as">Verbonden met Google Photos als %1$s</string>
-    <string name="open_google_photos">Open Google Photos</string>
+    <string name="connected_as">Verbonden met Google Foto's als %1$s</string>
+    <string name="open_google_photos">Open Google Foto's</string>
     <string name="sign_in_menu">Inlogmenu openen</string>
     <string name="sign_out_menu">Uitlogmenu openen</string>
     <string name="waiting_for_browser_sign_in">Wachten op inloggen in browser...</string>
@@ -72,8 +72,8 @@
     <string name="collapse_album">Album inklappen</string>
     <string name="expand_album">Album uitklappen</string>
     <string name="photo_uploader_description">
-        Photo Uploader stuurt foto's georganiseerd in folders naar albums op Google Photos. De naam
-        van het album wordt afgeleid van de naam van de folder.
+        Photo Uploader stuurt foto's georganiseerd in mappen naar albums op Google Foto's. De naam
+        van het album wordt afgeleid van de naam van de map.
     </string>
     <string name="ready_to_upload">📤 Klaar voor upload</string>
     <string name="uploading_to">Uploaden naar:</string>
@@ -86,7 +86,7 @@
 
     <string name="summary_care_message">
         Het uploaden kan niet ongedaan worden gemaakt in de App. Wat je hebt geüpload kun je
-        controleren en verwijderen in Google Photos zelf. Verifieer de uploads in Google Photos
+        controleren en verwijderen in Google Foto's zelf. Verifieer de uploads in Google Foto's
         voordat je lokale kopieën verwijdert.
     </string>
     <string name="upload_complete">✅ Upload compleet</string>
@@ -104,9 +104,9 @@
         Photos.
     </string>
     <string name="report_care_message_md">
-        De App rapporteert wat verzonden en bevestigd is — wat Google Photos uiteindelijk opslaat,
+        De App rapporteert wat verzonden en bevestigd is — wat Google Foto's uiteindelijk opslaat,
         kan de App niet zien.
-        [Verifieer daarom je uploads in Google Photos](https://photos.google.com/albums)
+        [Verifieer daarom je uploads in Google Foto's](https://photos.google.com/albums)
         voordat je lokale kopieën verwijdert.
     </string>
     <string name="show_error_details">Toon details van fouten (%1$s fouten)</string>
@@ -152,7 +152,7 @@
     </string>
     <string name="manage_data_photos_title">Geüploade foto\'s</string>
     <string name="manage_data_photos_body">
-        Foto\'s en albums worden opgeslagen in je Google Photos account. Je kunt ze bekijken of
+        Foto's en albums worden opgeslagen in je Google Foto's account. Je kunt ze bekijken of
         verwijderen op [photos.google.com](https://photos.google.com).
     </string>
     <string name="manage_data_access_title">Toegang intrekken</string>
@@ -205,7 +205,7 @@
 
     <string name="google_disclaimer">
         Disclaimer: Deze applicatie is niet officieel verbonden met of goedgekeurd door Google LLC.
-        Google Photos is een handelsmerk van Google LLC.
+        Google Foto's is een handelsmerk van Google LLC.
     </string>
 
 </resources>
