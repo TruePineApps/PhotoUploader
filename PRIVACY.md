@@ -158,8 +158,14 @@ conditions apply:
 
 ### 9. Data Security
 
-- **No Third-Party Sharing:** Your data is never sold, shared with third parties, used for
-  advertising, or used for AI training.
+- **Data Usage and AI:** The App is an automation tool that moves your photos
+  directly from your device to Google Photos. Because the Developer has no
+  access to your photo content, no data is used for advertising, profiling,
+  or to train artificial intelligence (AI) models. Please be aware that once
+  your photos are stored at Google, their use is governed by
+  [Google’s Privacy Policy](https://policies.google.com/privacy). This
+  includes any potential use of data by Google for its own AI training,
+  which the Developer cannot control or change.
 - **Authentication Tokens:** OAuth refresh tokens are stored securely on your local device.
   The Developer never has access to your Google password or your login tokens.
 - **Communication and Storage:** Your email address is used to manage your testing access,

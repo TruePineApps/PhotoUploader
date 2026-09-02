@@ -31,7 +31,7 @@ Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
 ### 2. Welke persoonsgegevens worden verzameld en waarom
 
-De enige persoonsgegevens die de Ontwikkelaar rechtstreeks verzamelt, zijn uw
+De Ontwikkelaar verzamelt rechtstreeks geen andere persoonsgegevens dan uw
 **Google-e-mailadres**.
 
 Uw e-mailadres wordt verzameld voor de volgende doeleinden:
@@ -43,14 +43,14 @@ Uw e-mailadres wordt verzameld voor de volgende doeleinden:
 
 **Rechtsgrondslag:** De verwerking van uw e-mailadres is noodzakelijk om u toegang te
 verlenen tot de App en de testdienst te beheren. De rechtsgrondslag is
-[artikel 6, lid 1, onder b, AVG](https://gdpr-info.eu/art-6-gdpr/) — verwerking die
+[artikel 6, lid 1, onder b, AVG](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-ii-beginselen-artikel-6) — verwerking die
 noodzakelijk is voor de uitvoering van een dienst op uw verzoek.
 
 Wanneer de verwerking niet strikt noodzakelijk is voor de uitvoering van de dienst — zoals
 het verzenden van meldingen over toegangswijzigingen — is de rechtsgrondslag het
 gerechtvaardigd belang van de Ontwikkelaar bij het beheer van de toegang tot de App en het
 waarborgen van de goede werking ervan
-([artikel 6, lid 1, onder f, AVG](https://gdpr-info.eu/art-6-gdpr/)).
+([artikel 6, lid 1, onder f, AVG](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-ii-beginselen-artikel-6)).
 
 De Ontwikkelaar verzamelt **geen** wachtwoorden, betalingsgegevens, locatiegegevens of
 andere persoonsgegevens.
@@ -170,8 +170,15 @@ volgende voorwaarden:
 
 ### 9. Gegevensbeveiliging
 
-- **Geen delen met derden:** Uw gegevens worden nooit verkocht, gedeeld met derden,
-  gebruikt voor advertentiedoeleinden of gebruikt voor het trainen van AI-modellen.
+- **Gegevensgebruik en AI:** De App is een automatiseringstool die uw foto's
+  rechtstreeks van uw apparaat naar Google Photos verplaatst. Omdat de
+  Ontwikkelaar geen toegang heeft tot uw foto-inhoud, worden er geen gegevens
+  gebruikt voor reclame, profilering of voor het trainen van kunstmatige
+  intelligentie (AI)-modellen. Houd er rekening mee dat zodra uw foto's bij
+  Google zijn opgeslagen, het gebruik ervan wordt beheerst door het
+  [Privacybeleid van Google](https://policies.google.com/privacy). Dit omvat
+  elk potentieel gebruik van gegevens door Google voor zijn eigen AI-training,
+  waarover de Ontwikkelaar geen controle heeft.
 - **Authenticatietokens:** OAuth-vernieuwingstokens worden veilig opgeslagen op uw lokale
   apparaat. De Ontwikkelaar heeft nooit toegang tot uw Google-wachtwoord of uw
   inlogtokens.
@@ -182,7 +189,7 @@ volgende voorwaarden:
   gegevens.
 - **Geautomatiseerde besluitvorming:** De App maakt geen gebruik van geautomatiseerde
   besluitvorming of profilering zoals gedefinieerd in
-  [artikel 22 AVG](https://gdpr-info.eu/art-22-gdpr/).
+  [artikel 22 AVG](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-22).
 
 ---
 
@@ -190,7 +197,7 @@ volgende voorwaarden:
 
 De Ontwikkelaar heeft beoordeeld of een gegevensbeschermingseffectbeoordeling (GEB, of 
 'data protection impact assessment', DPIA) vereist is op grond van 
-[artikel 35 AVG](https://gdpr-info.eu/art-35-gdpr/).
+[artikel 35 AVG](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iv-verwerkingsverantwoordelijke-en-verwerker-artikel-35).
 
 Gezien het feit dat:
 
@@ -211,22 +218,22 @@ Op grond van de AVG heeft u de volgende rechten met betrekking tot uw persoonsge
 Neem contact op met de Ontwikkelaar via **marcel@truepineapps.com** om een van deze rechten
 uit te oefenen.
 
-- **Recht op inzage ([artikel 15](https://gdpr-info.eu/art-15-gdpr/)):** U kunt een kopie
+- **Recht op inzage ([artikel 15](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-15)):** U kunt een kopie
   opvragen van de persoonsgegevens die over u worden bewaard. De Ontwikkelaar verstrekt uw
   e-mailadres en de datum waarop het is geregistreerd.
 
-- **Recht op verwijdering ([artikel 17](https://gdpr-info.eu/art-17-gdpr/)):** U kunt
+- **Recht op verwijdering ([artikel 17](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-17)):** U kunt
   verzoeken uw e-mailadres te verwijderen van de testerslijst. Houd er rekening mee dat
   verwijdering ook betekent dat u de App niet langer kunt gebruiken, omdat uw e-mailadres
   vereist is voor authenticatie.
 
-- **Recht op beperking van de verwerking ([artikel 18](https://gdpr-info.eu/art-18-gdpr/)):**
+- **Recht op beperking van de verwerking ([artikel 18](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-18)):**
   U kunt verzoeken de verwerking van uw gegevens te beperken. Omdat uw e-mailadres de
   enige bewaarde gegevens zijn en noodzakelijk is voor toegang tot de App, betekent
   beperking van de verwerking dat uw toegang tot de App wordt opgeschort voor de duur van
   de beperking.
 
-- **Recht van bezwaar ([artikel 21](https://gdpr-info.eu/art-21-gdpr/)):** U kunt bezwaar
+- **Recht van bezwaar ([artikel 21](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-21)):** U kunt bezwaar
   maken tegen de verwerking van uw persoonsgegevens. Omdat uw e-mailadres noodzakelijk is
   voor de levering van de door u gevraagde dienst, leidt bezwaar tot beëindiging van uw
   toegang tot de App.
@@ -241,7 +248,7 @@ uit te oefenen.
 
 De Ontwikkelaar reageert op elk verzoek tot uitoefening van rechten binnen **één maand**
 na ontvangst, zoals vereist door
-[artikel 12, lid 3, AVG](https://gdpr-info.eu/art-12-gdpr/).
+[artikel 12, lid 3, AVG](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-12).
 
 ---
 
