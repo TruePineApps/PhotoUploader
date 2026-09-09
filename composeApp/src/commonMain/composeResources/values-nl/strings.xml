@@ -25,7 +25,7 @@
     <string name="version">Versie</string>
     <string name="platform">Platform</string>
     <string name="website">Website</string>
-    <string name="sources">Bronbestanden</string>
+    <string name="sources">Broncode</string>
     <string name="avatar">Avatar</string>
     <string name="app_id">Applicatie-ID</string>
     <string name="os_name">Besturingssysteem</string>
@@ -171,6 +171,11 @@
         andere doeleinden gebruikt.
     </string>
     <string name="legal">Juridisch</string>
+    <string name="support_feedback">Ondersteuning en feedback</string>
+    <string name="report_issue_body">
+        Een bug gevonden of een suggestie? Je kunt problemen melden of functies aanvragen via
+        [%1$s](%2$s).
+    </string>
     <string name="legal_loading">Juridische documenten worden geladen…</string>
     <string name="legal_error_title">Juridische documenten konden niet worden geladen</string>
     <string name="legal_error_retry">Opnieuw proberen</string>

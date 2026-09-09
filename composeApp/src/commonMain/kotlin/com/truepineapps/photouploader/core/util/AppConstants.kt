@@ -36,6 +36,7 @@ object AppConstants {
     const val GITHUB_APP_REPO_URL = "https://github.com/TruePineApps/PhotoUploader"
     const val GITHUB_APP_ISSUES_URL = "https://github.com/TruePineApps/PhotoUploader/issues"
     const val GITHUB_DISPLAY_URL = "github.com/truepineapps/photouploader"
+    const val GITHUB_ISSUES_LABEL = "GitHub Issues"
     
     const val APACHE_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0"
     const val GOOGLE_PHOTOS_URL = "https://photos.google.com"

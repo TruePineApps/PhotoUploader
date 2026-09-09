@@ -25,7 +25,7 @@
     <string name="version">Version</string>
     <string name="platform">Platform</string>
     <string name="website">Website</string>
-    <string name="sources">Sources</string>
+    <string name="sources">Source Code</string>
     <string name="avatar">Avatar</string>
     <string name="app_id">Application ID</string>
     <string name="os_name">OS Name</string>
@@ -144,6 +144,11 @@
 
     <!-- Legal Hub & Account/Privacy Management -->
     <string name="legal">Legal</string>
+    <string name="support_feedback">Support &amp; Feedback</string>
+    <string name="report_issue_body">
+        Encountered a bug or have a suggestion? You can report issues or request features
+        directly on [%1$s](%2$s).
+    </string>
     <string name="account_privacy">Account and privacy</string>
     <string name="manage_data_description">
         Photo-Uploader does not store your photos or credentials on its own servers.

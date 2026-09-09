@@ -16,6 +16,7 @@
 
 package com.truepineapps.photouploader.core.feature.moremenu.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -37,7 +38,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.AboutDestination
 import com.truepineapps.photouploader.core.presentation.component.MarkdownText
@@ -74,8 +77,10 @@ import com.truepineapps.photouploader.resources.photo_uploader_description
 import com.truepineapps.photouploader.resources.platform
 import com.truepineapps.photouploader.resources.processors
 import com.truepineapps.photouploader.resources.release
+import com.truepineapps.photouploader.resources.report_issue_body
 import com.truepineapps.photouploader.resources.runtime
 import com.truepineapps.photouploader.resources.sources
+import com.truepineapps.photouploader.resources.support_feedback
 import com.truepineapps.photouploader.resources.system_environment
 import com.truepineapps.photouploader.resources.version
 import com.truepineapps.photouploader.resources.website
@@ -169,8 +174,16 @@ fun AboutScreen(
         SectionHeader(Res.string.application_info)
         DetailRow(Res.string.version, appInfo.versionName)
         DetailRow(Res.string.app_id, appInfo.appId)
-        DetailRow(Res.string.website, AppConstants.WEBSITE_DISPLAY_URL)
-        DetailRow(Res.string.sources, AppConstants.GITHUB_DISPLAY_URL)
+        DetailRow(
+            Res.string.website,
+            AppConstants.WEBSITE_DISPLAY_URL,
+            AppConstants.WEBSITE_URL
+        )
+        DetailRow(
+            Res.string.sources,
+            AppConstants.GITHUB_DISPLAY_URL,
+            AppConstants.GITHUB_APP_REPO_URL
+        )
 
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
@@ -250,9 +263,11 @@ private fun SectionHeader(labelResId: StringResource, modifier: Modifier = Modif
 private fun DetailRow(
     labelResId: StringResource,
     detail: String?,
+    url: String? = null,
     modifier: Modifier = Modifier,
 ) {
     if (detail.isNullOrBlank()) return
+    val uriHandler = LocalUriHandler.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -264,10 +279,23 @@ private fun DetailRow(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
+        val textStyle = if (url != null) {
+            MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+        } else {
+            MaterialTheme.typography.bodyMedium
+        }
         Text(
             text = detail,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1.5f)
+            style = textStyle,
+            modifier = Modifier
+                .weight(1.5f)
+                .then(
+                    if (url != null) Modifier.clickable { uriHandler.openUri(url) }
+                    else Modifier
+                )
         )
     }
 }
