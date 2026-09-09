@@ -59,6 +59,7 @@ import com.truepineapps.photouploader.core.feature.legal.viewmodel.LicenseViewMo
 import com.truepineapps.photouploader.core.feature.legal.viewmodel.LoadLicenseResult
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.util.AppConstants
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.collapse_album
 import com.truepineapps.photouploader.resources.error_loading_license
@@ -67,7 +68,6 @@ import com.truepineapps.photouploader.resources.font_licenses
 import com.truepineapps.photouploader.resources.license_text
 import com.truepineapps.photouploader.resources.licenses
 import com.truepineapps.photouploader.resources.loading
-import com.truepineapps.photouploader.resources.noto_sans
 import com.truepineapps.photouploader.resources.third_party_notices
 import com.truepineapps.photouploader.resources.unknown_error
 import org.jetbrains.compose.resources.stringResource
@@ -107,7 +107,7 @@ fun LicenseScreen(
                 Res.string.loading,
                 stringResource(Res.string.license_text)
             ),
-            licenseHeaderText = stringResource(Res.string.noto_sans)
+            licenseHeaderText = AppConstants.FONT_NOTO_SANS
         )
 
         // Third Party Section
@@ -124,10 +124,10 @@ fun LicenseScreen(
 
 @Composable
 fun PhotoUploaderCopyright(modifier: Modifier = Modifier) {
-    val apacheUrl = "https://www.apache.org/licenses/LICENSE-2.0"
+    val apacheUrl = AppConstants.APACHE_LICENSE_URL
     val annotatedString = buildAnnotatedString {
-        append("PhotoUploader – © Copyright 2026 True Pine Apps\n")
-        append("Licensed under the Apache License, Version 2.0\n")
+        append("${AppConstants.COPYRIGHT_NOTICE}\n")
+        append("${AppConstants.LICENSE_NOTICE}\n")
 
         // Make only the URL clickable and styled
         withLink(

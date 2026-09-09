@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import co.touchlab.kermit.Logger
 import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.util.AppConstants
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadCompletionStatus
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UploadReport
@@ -170,7 +171,10 @@ fun UploadCompletionReportScreen(
                 }
 
                 MarkdownText(
-                    markdown = stringResource(Res.string.report_care_message_md).normalizeWhitespace(),
+                    markdown = stringResource(
+                    Res.string.report_care_message_md,
+                    AppConstants.GOOGLE_PHOTOS_ALBUMS_URL
+                ).normalizeWhitespace(),
                     style = MaterialTheme.typography.bodySmall,
                 )
 

@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.truepineapps.photouploader.core.feature.moremenu.navigation.AboutDestination
 import com.truepineapps.photouploader.core.presentation.component.MarkdownText
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.util.AppConstants
 import com.truepineapps.photouploader.core.util.AppInfo
 import com.truepineapps.photouploader.core.util.PlatformInfo
 import com.truepineapps.photouploader.core.util.PlatformType
@@ -141,9 +142,26 @@ fun AboutScreen(
             modifier = Modifier.padding(bottom = Dimensions.padding_small)
         )
 
-        HelpItem(Res.string.manage_data_photos_title, Res.string.manage_data_photos_body)
-        HelpItem(Res.string.manage_data_access_title, Res.string.manage_data_access_body)
-        HelpItem(Res.string.manage_data_contact_title, Res.string.manage_data_contact_body)
+        HelpItem(
+            Res.string.manage_data_photos_title,
+            stringResource(
+                Res.string.manage_data_photos_body,
+                AppConstants.GOOGLE_PHOTOS_URL.removePrefix("https://"),
+                AppConstants.GOOGLE_PHOTOS_URL
+            )
+        )
+        HelpItem(
+            Res.string.manage_data_access_title,
+            stringResource(Res.string.manage_data_access_body, AppConstants.GOOGLE_PERMISSIONS_URL)
+        )
+        HelpItem(
+            Res.string.manage_data_contact_title,
+            stringResource(
+                Res.string.manage_data_contact_body,
+                AppConstants.DEVELOPER_NAME,
+                AppConstants.DEVELOPER_EMAIL
+            )
+        )
 
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
@@ -151,8 +169,8 @@ fun AboutScreen(
         SectionHeader(Res.string.application_info)
         DetailRow(Res.string.version, appInfo.versionName)
         DetailRow(Res.string.app_id, appInfo.appId)
-        DetailRow(Res.string.website, "truepineapps.com/photouploader")
-        DetailRow(Res.string.sources, "github.com/truepineapps/photouploader")
+        DetailRow(Res.string.website, AppConstants.WEBSITE_DISPLAY_URL)
+        DetailRow(Res.string.sources, AppConstants.GITHUB_DISPLAY_URL)
 
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
@@ -183,7 +201,11 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
         Text(
-            text = stringResource(Res.string.google_disclaimer).normalizeWhitespace(),
+            text = stringResource(
+                Res.string.google_disclaimer,
+                AppConstants.GOOGLE_LLC,
+                AppConstants.GOOGLE_PHOTOS
+            ).normalizeWhitespace(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = Dimensions.padding_medium)
@@ -192,7 +214,7 @@ fun AboutScreen(
 }
 
 @Composable
-private fun HelpItem(titleRes: StringResource, bodyRes: StringResource) {
+private fun HelpItem(titleRes: StringResource, body: String) {
     Column(modifier = Modifier.padding(vertical = Dimensions.padding_small)) {
         Text(
             text = stringResource(titleRes),
@@ -200,7 +222,7 @@ private fun HelpItem(titleRes: StringResource, bodyRes: StringResource) {
             fontWeight = FontWeight.Bold
         )
         MarkdownText(
-            markdown = stringResource(bodyRes).normalizeWhitespace(),
+            markdown = body.normalizeWhitespace(),
             modifier = Modifier.fillMaxWidth()
         )
     }

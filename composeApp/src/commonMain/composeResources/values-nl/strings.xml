@@ -42,7 +42,6 @@
     <string name="licenses">Licenties</string>
     <string name="license_text">Licentietekst</string>
     <string name="font_licenses">Fontlicenties</string>
-    <string name="noto_sans">Noto Sans</string>
     <string name="third_party_notices">Licenties van derden</string>
     <string name="sign_in">Inloggen</string>
     <string name="sign_out">Uitloggen</string>
@@ -106,7 +105,7 @@
     <string name="report_care_message_md">
         De App rapporteert wat verzonden en bevestigd is — wat Google Foto's uiteindelijk opslaat,
         kan de App niet zien.
-        [Verifieer daarom je uploads in Google Foto's](https://photos.google.com/albums)
+        [Verifieer daarom je uploads in Google Foto's](%1$s)
         voordat je lokale kopieën verwijdert.
     </string>
     <string name="show_error_details">Toon details van fouten (%1$s fouten)</string>
@@ -153,17 +152,17 @@
     <string name="manage_data_photos_title">Geüploade foto\'s</string>
     <string name="manage_data_photos_body">
         Foto's en albums worden opgeslagen in je Google Foto's account. Je kunt ze bekijken of
-        verwijderen op [photos.google.com](https://photos.google.com).
+        verwijderen op [%1$s](%2$s).
     </string>
     <string name="manage_data_access_title">Toegang intrekken</string>
     <string name="manage_data_access_body">
         Je kunt de toegang van de app tot je Google-account intrekken via je
-        [Google-beveiligingsinstellingen](https://myaccount.google.com/permissions).
+        [Google-beveiligingsinstellingen](%1$s).
     </string>
     <string name="manage_data_contact_title">Ondersteuning en privacy</string>
     <string name="manage_data_contact_body">
         Neem voor gegevensverzoeken of verwijdering van de whitelist contact op met
-        Marcel van Heerwaarden via [marcel@truepineapps.com](mailto:marcel@truepineapps.com).
+        %1$s via [%2$s](mailto:%2$s).
     </string>
     <string name="disclosure_summary">
         Photo-Uploader heeft toegang tot je Google-account om foto's te uploaden en albums te maken.
@@ -204,8 +203,8 @@
     <string name="legal_button_accept">Ik ga akkoord — Doorgaan</string>
 
     <string name="google_disclaimer">
-        Disclaimer: Deze applicatie is niet officieel verbonden met of goedgekeurd door Google LLC.
-        Google Foto's is een handelsmerk van Google LLC.
+        Disclaimer: Deze applicatie is niet officieel verbonden met of goedgekeurd door %1$s.
+        %2$s is een handelsmerk van %1$s.
     </string>
 
 </resources>

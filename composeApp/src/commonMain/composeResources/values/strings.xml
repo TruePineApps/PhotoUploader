@@ -42,7 +42,6 @@
     <string name="licenses">Licenses</string>
     <string name="license_text">License text</string>
     <string name="font_licenses">Font Licenses</string>
-    <string name="noto_sans">Noto Sans</string>
     <string name="third_party_notices">Third Party License Notices</string>
     <string name="sign_in">Sign in</string>
     <string name="sign_out">Sign out</string>
@@ -104,8 +103,8 @@
     </string>
     <string name="report_care_message_md">
         The App reports what was sent and acknowledged — what Google Photos ultimately stores is
-        beyond the App's visibility. Therefore, please
-        [verify your uploads in Google Photos](https://photos.google.com/albums)
+        beyond the App\'s visibility. Therefore, please
+        [verify your uploads in Google Photos](%1$s)
         before deleting any local copies.
     </string>
     <string name="show_error_details">Show error details (%1$s errors)</string>
@@ -153,17 +152,17 @@
     <string name="manage_data_photos_title">Uploaded Photos</string>
     <string name="manage_data_photos_body">
         Photos and albums are stored in your Google Photos account. You can view or delete them
-        at [photos.google.com](https://photos.google.com).
+        at [%1$s](%2$s).
     </string>
     <string name="manage_data_access_title">Revoking Access</string>
     <string name="manage_data_access_body">
         You can revoke the App\'s access to your Google account in your
-        [Google Security Settings](https://myaccount.google.com/permissions).
+        [Google Security Settings](%1$s).
     </string>
     <string name="manage_data_contact_title">Support &amp; Privacy</string>
     <string name="manage_data_contact_body">
-        For data requests or whitelist removal, contact Marcel van Heerwaarden at
-        [marcel@truepineapps.com](mailto:marcel@truepineapps.com).
+        For data requests or whitelist removal, contact %1$s at
+        [%2$s](mailto:%2$s).
     </string>
     <string name="disclosure_summary">
         Photo-Uploader accesses your Google account to upload photos and create albums. It reads
@@ -203,8 +202,8 @@
     <string name="legal_button_accept">I agree — Continue</string>
 
     <string name="google_disclaimer">
-        Disclaimer: This application is not officially affiliated with or endorsed by Google LLC.
-        Google Photos is a trademark of Google LLC.
+        Disclaimer: This application is not officially affiliated with or endorsed by %1$s.
+        %2$s is a trademark of %1$s.
     </string>
 
 </resources>
