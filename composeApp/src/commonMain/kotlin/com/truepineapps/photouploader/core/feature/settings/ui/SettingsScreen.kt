@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -49,7 +50,10 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
 ) {
-    onUpdateTopAppBar(stringResource(SettingsDestination.titleRes), null) {}
+    val title = stringResource(SettingsDestination.titleRes)
+    LaunchedEffect(title) {
+        onUpdateTopAppBar(title, null) {}
+    }
 
     LoadingScreen(loadingViewModel = settingsViewModel, log = log) {
         val settingsUiState by settingsViewModel.settingsUiState.collectAsState()

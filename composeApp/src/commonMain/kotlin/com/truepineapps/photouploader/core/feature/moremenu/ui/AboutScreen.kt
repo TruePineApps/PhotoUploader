@@ -90,7 +90,10 @@ fun AboutScreen(
     appInfo: AppInfo = koinInject(),
     platformInfo: PlatformInfo = koinInject(),
 ) {
-    onUpdateTopAppBar(stringResource(AboutDestination.titleRes), null) {}
+    val title = stringResource(AboutDestination.titleRes)
+    LaunchedEffect(title) {
+        onUpdateTopAppBar(title, null) {}
+    }
 
     val scrollState = rememberScrollState()
     var accountPrivacyOffset by remember { mutableStateOf<Float?>(null) }

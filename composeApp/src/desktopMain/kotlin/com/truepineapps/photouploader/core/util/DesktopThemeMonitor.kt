@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.Locale
@@ -43,7 +44,7 @@ object DesktopThemeMonitor {
                 }
             }
             else -> {
-                kotlinx.coroutines.flow.flowOf(DesktopThemeState())
+                flowOf(DesktopThemeState())
             }
         }.stateIn(
             scope = scope,

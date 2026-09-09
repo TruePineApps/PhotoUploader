@@ -59,7 +59,10 @@ fun LegalDocumentScreen(
     val context = LocalPlatformContext.current
     val uiState by viewModel.state.collectAsState()
 
-    onUpdateTopAppBar(stringResource(type.titleRes), null) {}
+    val title = stringResource(type.titleRes)
+    LaunchedEffect(title) {
+        onUpdateTopAppBar(title, null) {}
+    }
 
     LaunchedEffect(type) {
         viewModel.loadDocument(context)

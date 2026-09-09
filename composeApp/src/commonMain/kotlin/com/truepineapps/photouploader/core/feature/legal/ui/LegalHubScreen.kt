@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.truepineapps.photouploader.core.feature.legal.navigation.LegalDestination
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
@@ -44,7 +45,10 @@ fun LegalHubScreen(
     onUpdateTopAppBar: (String, (() -> Unit)?, @Composable (RowScope.() -> Unit)) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    onUpdateTopAppBar(stringResource(LegalDestination.titleRes), null) {}
+    val title = stringResource(LegalDestination.titleRes)
+    LaunchedEffect(title) {
+        onUpdateTopAppBar(title, null) {}
+    }
 
     Column(
         modifier = modifier
