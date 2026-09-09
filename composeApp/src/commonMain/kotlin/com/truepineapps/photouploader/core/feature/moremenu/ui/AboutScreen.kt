@@ -170,6 +170,19 @@ fun AboutScreen(
 
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
 
+        // ── Support and Feedback ──────────────────────────────────────
+        SectionHeader(Res.string.support_feedback)
+        MarkdownText(
+            markdown = stringResource(
+                Res.string.report_issue_body,
+                AppConstants.GITHUB_ISSUES_LABEL,
+                AppConstants.GITHUB_APP_ISSUES_URL
+            ).normalizeWhitespace(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(Dimensions.padding_large))
+
         // ── Application ───────────────────────────────────────────────
         SectionHeader(Res.string.application_info)
         DetailRow(Res.string.version, appInfo.versionName)
