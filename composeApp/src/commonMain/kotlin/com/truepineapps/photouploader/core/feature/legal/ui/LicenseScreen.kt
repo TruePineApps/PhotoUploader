@@ -61,9 +61,9 @@ import com.truepineapps.photouploader.core.presentation.component.ThemedIconButt
 import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.AppConstants
 import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.collapse_album
+import com.truepineapps.photouploader.resources.collapse_section
 import com.truepineapps.photouploader.resources.error_loading_license
-import com.truepineapps.photouploader.resources.expand_album
+import com.truepineapps.photouploader.resources.expand_section
 import com.truepineapps.photouploader.resources.font_licenses
 import com.truepineapps.photouploader.resources.license_text
 import com.truepineapps.photouploader.resources.licenses
@@ -178,7 +178,7 @@ private fun ExpandableLicenseSection(
             ThemedIconButton(
                 onClick = { expanded = !expanded },
                 imageVector = if (expanded) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,
-                contentDescriptionResource = if (expanded) Res.string.collapse_album else Res.string.expand_album,
+                contentDescriptionResource = if (expanded) Res.string.collapse_section else Res.string.expand_section,
                 enabled = true
             )
         }

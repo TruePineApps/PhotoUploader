@@ -70,6 +70,8 @@
     <string name="uploading">Uploading...</string>
     <string name="collapse_album">Collapse album</string>
     <string name="expand_album">Expand album</string>
+    <string name="collapse_section">Collapse section</string>
+    <string name="expand_section">Expand section</string>
     <string name="photo_uploader_description">
         Photo Uploader is a personal utility tool designed to upload a photo collection organized in folders into albums on Google Photos.
         The album name is derived from the folder name.
