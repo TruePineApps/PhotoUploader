@@ -1,9 +1,21 @@
 /**
  * Centralized constant keys used for generating build properties and iOS configurations.
- * 
- * These constants form the "contract" between the Gradle build system and the 
- * application code. In the application, they are defined in AppInfo.
+ *
+ * These constants form the critical bridge ("contract") between the Gradle build system 
+ * (such as [composeApp/build.gradle.kts](file:///home/marcel/MultiPlatformProjects/Projects/PhotoUploader/composeApp/build.gradle.kts)) 
+ * and the multiplatform application code.
+ *
+ * ### How it works across platforms:
+ * 1. **Build Generation:** Gradle build scripts use these keys to write build metadata 
+ *    (e.g., version name, app id, targets) into generated assets like `build-info.properties` 
+ *    or iOS `.xcconfig` configuration files.
+ * 2. **Platform Provisioning:** [composeApp/build.gradle.kts](file:///home/marcel/MultiPlatformProjects/Projects/PhotoUploader/composeApp/build.gradle.kts) 
+ *    ensures these generated property files are correctly bundled into each platform's resources.
+ * 3. **Runtime Consumption:** Platform-specific runtime classes (e.g., `AndroidAppInfo`, `JvmAppInfo`) 
+ *    load these properties at startup (mirroring these keys in `AppInfo`) to populate UI screens 
+ *    like [AboutScreen.kt](file:///home/marcel/MultiPlatformProjects/Projects/PhotoUploader/composeApp/src/commonMain/kotlin/com/truepineapps/photouploader/core/feature/moremenu/ui/AboutScreen.kt).
  */
+@Suppress("unused") // Android Studio cannot detect usages in Gradle build scripts (.gradle.kts)
 object BuildConstants {
     // Property Keys (used in build-info.properties)
     const val KEY_APP_ID = "app_id"
