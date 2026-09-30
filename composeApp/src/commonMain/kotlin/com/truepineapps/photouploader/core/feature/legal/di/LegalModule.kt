@@ -26,8 +26,8 @@ import org.koin.dsl.module
 
 val legalModule = module {
     // Data; LegalConfig is configured in [AppModule]
-    single { LegalLocalDataSource(fileSystem = get(), userPreferencesRepository = get(), localeProvider = get(), log = get()) }
-    single { LegalRemoteDataSource(httpClient = get(), legalConfig = get(), log = get()) }
+    single { LegalLocalDataSource(fileSystem = get(), localeResolver = get(), log = get()) }
+    single { LegalRemoteDataSource(httpClient = get(), legalConfig = get(), localeResolver = get(), log = get()) }
     single<LegalRepository> {
         LegalSettingsRepository(
             settings = get(),

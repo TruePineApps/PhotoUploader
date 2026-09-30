@@ -30,8 +30,8 @@ object AppConstants {
     const val DEVELOPER_EMAIL = "marcel@truepineapps.com"
     const val DEVELOPER_NAME = "Marcel van Heerwaarden"
     
-    const val WEBSITE_URL = "https://truepineapps.com/photouploader"
-    const val WEBSITE_DISPLAY_URL = "truepineapps.com/photouploader"
+    const val WEBSITE_URL = "https://photouploader.truepineapps.com"
+    const val WEBSITE_DISPLAY_URL = "photouploader.truepineapps.com"
     
     const val GITHUB_APP_REPO_URL = "https://github.com/TruePineApps/PhotoUploader"
     const val GITHUB_APP_ISSUES_URL = "https://github.com/TruePineApps/PhotoUploader/issues"

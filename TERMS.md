@@ -43,7 +43,7 @@ directory structure.
 The App runs entirely on your local device. Your photos are uploaded directly to your own
 Google Photos account. No data is transmitted to the Developer or any server controlled by
 the Developer. For full details on how personal data is handled, please see the
-[Privacy Policy](https://truepineapps.com/photouploader/privacy).
+[Privacy Policy](https://photouploader.truepineapps.com/#privacy_policy).
 
 The Developer is only responsible for the App as distributed through the following official
 channels:
@@ -77,7 +77,7 @@ to the source code, the Apache License takes precedence.
 The App is currently in a testing phase. Access requires prior registration with the
 Developer. The conditions governing testing access — including the maximum number of users,
 User List Management, and how you will be notified — are described in the
-[Privacy Policy](https://truepineapps.com/photouploader/privacy).
+[Privacy Policy](https://photouploader.truepineapps.com/#privacy_policy).
 
 The Developer makes no commitment regarding the duration of the testing phase or the
 continued availability of the App in its current form.
@@ -203,7 +203,7 @@ promotional purposes. If you would like to do so, please get in touch first.
 If these Terms are updated in a material way, you will be notified in the App and by email
 at least **14 days before** the changes take effect — the same way the App handles Privacy
 Policy updates. The updated Terms will also be published at
-[truepineapps.com/photouploader](https://truepineapps.com/photouploader) with a revised
+[photouploader.truepineapps.com](https://photouploader.truepineapps.com) with a revised
 effective date.
 
 Continued use of the App after the effective date means you accept the updated Terms.

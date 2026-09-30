@@ -242,7 +242,7 @@ network issue, the App will proceed normally and retry on the next launch. No pe
 is transmitted in this request.
 
 The updated policy will also be published at
-[truepineapps.com/photouploader](https://truepineapps.com/photouploader) with a revised
+[photouploader.truepineapps.com](https://photouploader.truepineapps.com) with a revised
 effective date. Continued use of the App after the effective date constitutes acceptance of
 the updated policy.
 

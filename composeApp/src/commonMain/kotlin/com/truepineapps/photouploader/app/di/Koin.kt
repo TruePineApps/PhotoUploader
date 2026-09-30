@@ -30,6 +30,7 @@ import com.truepineapps.photouploader.core.localization.DateTimeFormatter
 import com.truepineapps.photouploader.core.localization.NumberFormatter
 import com.truepineapps.photouploader.core.localization.PlatformLocaleManager
 import com.truepineapps.photouploader.core.localization.PlatformLocaleProvider
+import com.truepineapps.photouploader.core.localization.LocaleResolver
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.CalfPlatformPicker
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
@@ -38,6 +39,7 @@ import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 import kotlin.time.Clock
@@ -122,6 +124,7 @@ private fun coreModule(isPickerDefined: Boolean) = module {
         single<PlatformPicker> { CalfPlatformPicker() }
     }
     single<UserPreferencesRepository> { UserPreferencesSettingsRepository(get()) }
+    singleOf(::LocaleResolver)
     single { LocaleViewModel(userPreferencesRepository = get(), platformLocaleManager = get(), log = get()) }
     single { SettingsViewModel(userPreferencesRepository = get()) }
     single { LicenseViewModel() }

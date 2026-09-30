@@ -263,7 +263,7 @@ verder en probeert het opnieuw bij de volgende keer opstarten. Bij dit verzoek w
 persoonsgegevens verzonden.
 
 Het bijgewerkte beleid wordt ook gepubliceerd op
-[truepineapps.com/photouploader](https://truepineapps.com/photouploader) met een herziene
+[photouploader.truepineapps.com](https://photouploader.truepineapps.com) met een herziene
 ingangsdatum. Voortgezet gebruik van de App na de ingangsdatum geldt als aanvaarding van
 het bijgewerkte beleid.
 

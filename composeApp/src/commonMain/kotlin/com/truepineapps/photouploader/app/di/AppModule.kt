@@ -36,11 +36,12 @@ val appModule: Module = module {
     singleOf(::KmpPlatformFileSystem) { bind<PlatformFileSystem>() }
 
     // core/feature/legal
+    // Note that for terms and privacy the default URL is given. The current locale is inserted in code.
     single {
         LegalConfig(
-            versionUrl = "https://truepineapps.com/photouploader/legal_version.txt",
-            termsUrl = "https://truepineapps.com/photouploader/terms_of_service.txt",
-            privacyPolicyUrl = "https://truepineapps.com/photouploader/privacy_policy.txt",
+            versionUrl = "https://photouploader.truepineapps.com/legal_version.txt",
+            termsUrl = "https://photouploader.truepineapps.com/composeResources/com.truepineapps.photouploaderweb.resources/files/TERMS.md",
+            privacyPolicyUrl = "https://photouploader.truepineapps.com/composeResources/com.truepineapps.photouploaderweb.resources/files/PRIVACY.md",
         )
     }
 

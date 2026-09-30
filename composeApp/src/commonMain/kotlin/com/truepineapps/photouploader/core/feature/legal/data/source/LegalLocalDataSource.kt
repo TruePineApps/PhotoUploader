@@ -19,12 +19,9 @@ package com.truepineapps.photouploader.core.feature.legal.data.source
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
 import com.truepineapps.photouploader.core.feature.legal.domain.model.LegalContent
-import com.truepineapps.photouploader.core.feature.settings.domain.model.DEFAULT_LOCALE_FROM_PLATFORM
-import com.truepineapps.photouploader.core.feature.settings.domain.repository.UserPreferencesRepository
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
-import com.truepineapps.photouploader.core.localization.PlatformLocaleProvider
+import com.truepineapps.photouploader.core.localization.LocaleResolver
 import com.truepineapps.photouploader.core.util.loadResourceFile
-import kotlinx.coroutines.flow.first
 
 private const val LEGAL_VERSION = "LEGAL_VERSION"
 private const val TERMS_OF_SERVICE = "TERMS"
@@ -33,18 +30,17 @@ private const val MARKDOWN_EXT = ".md"
 
 class LegalLocalDataSource(
     private val fileSystem: PlatformFileSystem,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val localeProvider: PlatformLocaleProvider,
+    private val localeResolver: LocaleResolver,
     private val log: Logger,
 ) {
     suspend fun readVersion(context: PlatformContext): Result<String> =
         readDownloadedOrBundled(context, LEGAL_VERSION)
 
     suspend fun readTerms(context: PlatformContext): Result<String> =
-        readLocalizedOrBundled(context, "TERMS")
+        readLocalizedOrBundled(context, TERMS_OF_SERVICE)
 
     suspend fun readPrivacyPolicy(context: PlatformContext): Result<String> =
-        readLocalizedOrBundled(context, "PRIVACY")
+        readLocalizedOrBundled(context, PRIVACY_POLICY)
 
     suspend fun readContent(context: PlatformContext): Result<LegalContent> {
         val version = readVersion(context).getOrElse { return Result.failure(it) }
@@ -53,15 +49,18 @@ class LegalLocalDataSource(
         return Result.success(LegalContent(version, terms, privacy))
     }
 
-    fun saveContent(
+    suspend fun saveContent(
         context: PlatformContext,
         version: String,
         terms: String,
         privacy: String
     ) {
+        val termsFileName = localeResolver.getLocalizedName(TERMS_OF_SERVICE, MARKDOWN_EXT)
+        val privacyFileName = localeResolver.getLocalizedName(PRIVACY_POLICY, MARKDOWN_EXT)
+
         fileSystem.writeText(LEGAL_VERSION, version, context)
-        fileSystem.writeText(TERMS_OF_SERVICE + MARKDOWN_EXT, terms, context)
-        fileSystem.writeText(PRIVACY_POLICY + MARKDOWN_EXT, privacy, context)
+        fileSystem.writeText(termsFileName, terms, context)
+        fileSystem.writeText(privacyFileName, privacy, context)
         log.d { "Legal files updated:\n" +
                 "version=$version\n" +
                 "terms=${terms.substringBefore("---")}\n" +
@@ -70,7 +69,7 @@ class LegalLocalDataSource(
     }
 
     private suspend fun readLocalizedOrBundled(context: PlatformContext, baseName: String): Result<String> {
-        val locale = resolveLocale()
+        val locale = localeResolver.current()
         val isEnglish = locale == null || locale == "en"
 
         val localizedFileName = "$baseName.$locale$MARKDOWN_EXT"
@@ -102,20 +101,6 @@ class LegalLocalDataSource(
         val downloaded = attemptReadDownloaded(fileName, context)
         if (downloaded.isSuccess) return downloaded
         return attemptReadBundled(fileName)
-    }
-
-    /**
-     * Resolves the current locale tag based on user preferences and platform settings.
-     * @return The language code (e.g., "nl") or null if not resolvable.
-     */
-    private suspend fun resolveLocale(): String? {
-        val preferences = userPreferencesRepository.preferences.first()
-        val tag = if (preferences.localeTag == DEFAULT_LOCALE_FROM_PLATFORM) {
-            localeProvider.getPlatformLocaleTag()
-        } else {
-            preferences.localeTag
-        }
-        return tag?.substringBefore("-")?.lowercase()
     }
 
     private fun attemptReadDownloaded(fileName: String, context: PlatformContext): Result<String> {

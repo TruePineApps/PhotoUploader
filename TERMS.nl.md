@@ -43,7 +43,7 @@ De App werkt volledig op uw lokale apparaat. Uw foto's worden rechtstreeks geüp
 uw eigen Google Photos-account. Er worden geen gegevens verzonden naar de Ontwikkelaar of
 naar servers onder beheer van de Ontwikkelaar. Raadpleeg voor volledige informatie over de
 verwerking van persoonsgegevens het
-[Privacybeleid](https://truepineapps.com/photouploader/privacy).
+[Privacybeleid](https://photouploader.truepineapps.com/#privacy_policy).
 
 De Ontwikkelaar is uitsluitend verantwoordelijk voor de App zoals verspreid via de volgende
 officiële kanalen:
@@ -79,7 +79,7 @@ uw rechten op de broncode, heeft de Apache-licentie voorrang.
 De App bevindt zich momenteel in een testfase. Toegang vereist voorafgaande registratie bij
 de Ontwikkelaar. De voorwaarden voor testtoegang — waaronder het maximale aantal gebruikers,
 het Beheer van de testerslijst en de wijze van melding — zijn beschreven in het
-[Privacybeleid](https://truepineapps.com/photouploader/privacy).
+[Privacybeleid](https://photouploader.truepineapps.com/#privacy_policy).
 
 De Ontwikkelaar doet geen toezeggingen over de duur van de testfase of de voortdurende
 beschikbaarheid van de App in de huidige vorm.
@@ -216,7 +216,7 @@ voor promotionele doeleinden te gebruiken. Neem gerust contact op als u dit toch
 Als deze Voorwaarden op een wezenlijke manier worden gewijzigd, wordt u minimaal **14 dagen
 voor** de inwerkingtreding op de hoogte gesteld via de App en per e-mail — op dezelfde
 wijze als bij updates van het privacybeleid. De bijgewerkte Voorwaarden worden ook
-gepubliceerd op [truepineapps.com/photouploader](https://truepineapps.com/photouploader)
+gepubliceerd op [photouploader.truepineapps.com](https://photouploader.truepineapps.com)
 met een herziene ingangsdatum.
 
 Voortgezet gebruik van de App na de ingangsdatum geldt als aanvaarding van de bijgewerkte

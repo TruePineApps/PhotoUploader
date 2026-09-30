@@ -40,7 +40,7 @@ Photo Uploader is a utility application designed to bridge the gap between your 
 
 Releases are currently available for **Desktop (Windows, macOS, and Linux)**. Mobile versions for Android and iOS are currently in development.
 
-*   **Official Website:** [truepineapps.com/photouploader](https://truepineapps.com/photouploader)
+*   **Official Website:** [photouploader.truepineapps.com](https://photouploader.truepineapps.com)
 *   **GitHub Releases:** [Download the latest artifacts here](https://github.com/truepineapps/photouploader/releases)
 
 ### Desktop Requirements

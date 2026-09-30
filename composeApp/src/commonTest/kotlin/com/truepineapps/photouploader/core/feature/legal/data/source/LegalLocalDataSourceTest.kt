@@ -25,6 +25,7 @@ import com.truepineapps.photouploader.core.feature.settings.domain.model.DEFAULT
 import com.truepineapps.photouploader.core.feature.settings.domain.model.UserPreferences
 import com.truepineapps.photouploader.core.feature.settings.domain.repository.UserPreferencesRepository
 import com.truepineapps.photouploader.core.io.PlatformFileSystem
+import com.truepineapps.photouploader.core.localization.LocaleResolver
 import com.truepineapps.photouploader.core.localization.PlatformLocaleProvider
 import com.truepineapps.photouploader.ui.util.createTestPlatformContext
 import kotlinx.coroutines.flow.Flow
@@ -104,10 +105,10 @@ class LegalLocalDataSourceTest {
         mockFileSystem = MockFileSystem()
         mockLocaleProvider = MockLocaleProvider(LOCALE_EN)
         mockUserPreferencesRepository = MockUserPreferencesRepository()
+        val localeResolver = LocaleResolver(mockUserPreferencesRepository, mockLocaleProvider)
         dataSource = LegalLocalDataSource(
             mockFileSystem,
-            mockUserPreferencesRepository,
-            mockLocaleProvider,
+            localeResolver,
             logger
         )
     }
@@ -170,5 +171,25 @@ class LegalLocalDataSourceTest {
         assertEquals(1, mockFileSystem.readRequests.size)
         assertEquals(TERMS_MD, mockFileSystem.readRequests[0])
         assertEquals(termsContent, result.getOrNull())
+    }
+
+    @Test
+    fun `saveContent saves terms and privacy with Dutch names when locale is Dutch`() = runTest {
+        mockUserPreferencesRepository.setLocale(LOCALE_NL_NL)
+        dataSource.saveContent(context, "2026-01-01", "Dutch Terms", "Dutch Privacy")
+
+        assertEquals("Dutch Terms", mockFileSystem.files["TERMS.nl.md"])
+        assertEquals("Dutch Privacy", mockFileSystem.files["PRIVACY.nl.md"])
+        assertEquals("2026-01-01", mockFileSystem.files["LEGAL_VERSION"])
+    }
+
+    @Test
+    fun `saveContent saves terms and privacy with default names when locale is English`() = runTest {
+        mockUserPreferencesRepository.setLocale(LOCALE_EN_US)
+        dataSource.saveContent(context, "2026-01-01", "English Terms", "English Privacy")
+
+        assertEquals("English Terms", mockFileSystem.files["TERMS.md"])
+        assertEquals("English Privacy", mockFileSystem.files["PRIVACY.md"])
+        assertEquals("2026-01-01", mockFileSystem.files["LEGAL_VERSION"])
     }
 }
