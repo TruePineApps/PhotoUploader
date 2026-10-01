@@ -39,7 +39,7 @@ val appModule: Module = module {
     // Note that for terms and privacy the default URL is given. The current locale is inserted in code.
     single {
         LegalConfig(
-            versionUrl = "https://photouploader.truepineapps.com/legal_version.txt",
+            versionUrl = "https://photouploader.truepineapps.com/LEGAL_VERSION",
             termsUrl = "https://photouploader.truepineapps.com/composeResources/com.truepineapps.photouploaderweb.resources/files/TERMS.md",
             privacyPolicyUrl = "https://photouploader.truepineapps.com/composeResources/com.truepineapps.photouploaderweb.resources/files/PRIVACY.md",
         )
