@@ -1,6 +1,6 @@
 # Terms of Service for Photo-Uploader
 
-**Effective Date:** April 17, 2026
+**Effective Date:** October 1, 2026
 
 ---
 

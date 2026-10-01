@@ -1,6 +1,6 @@
 # Privacy Policy for Photo-Uploader
 
-**Effective Date:** April 3, 2026
+**Effective Date:** October 1, 2026
 
 ---
 
