@@ -84,11 +84,9 @@ Google heeft passende waarborgen getroffen voor dergelijke overdrachten in overe
 
 ### 7. Bewaartermijnen
 
-| Gegevens                                          | Bewaartermijn                                                               |
-|---------------------------------------------------|-----------------------------------------------------------------------------|
-| E-mailadres (actieve testerslijst)                | Bewaard gedurende uw actieve testperiode                                    |
-| E-mailadres (na verwijdering van de testerslijst) | Verwijderd binnen **6 maanden** na verwijdering                             |
-| OAuth-tokens                                      | Alleen lokaal opgeslagen op uw apparaat; de Ontwikkelaar heeft geen toegang |
+- **E-mailadres (actieve testerslijst):** Bewaard gedurende uw actieve testperiode.
+- **E-mailadres (na verwijdering van de testerslijst):** Verwijderd binnen **6 maanden** na verwijdering.
+- **OAuth-tokens:** Alleen lokaal opgeslagen op uw apparaat; de Ontwikkelaar heeft geen toegang.
 
 Wanneer uw e-mailadres is verwijderd, worden er geen verdere gegevens bewaard door de Ontwikkelaar.
 

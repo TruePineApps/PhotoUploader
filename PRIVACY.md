@@ -84,11 +84,9 @@ Google has implemented appropriate safeguards for such transfers in accordance w
 
 ### 7. Data Retention
 
-| Data                                         | Retention Period                                                |
-|----------------------------------------------|-----------------------------------------------------------------|
-| Email address (active whitelist)             | Retained for the duration of your active testing access         |
-| Email address (after removal from whitelist) | Deleted within **6 months** of removal                          |
-| OAuth tokens                                 | Stored locally on your device only; the Developer has no access |
+- **Email address (active whitelist):** Retained for the duration of your active testing access.
+- **Email address (after removal from whitelist):** Deleted within **6 months** of removal.
+- **OAuth tokens:** Stored locally on your device only; the Developer has no access.
 
 When your email address is deleted, no further record is kept by the Developer.
 
