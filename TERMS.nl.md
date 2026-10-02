@@ -1,6 +1,6 @@
 # Gebruiksvoorwaarden voor Photo-Uploader
 
-**Ingangsdatum:** 1 oktober 2026
+**Ingangsdatum:** 2 oktober 2026
 
 ---
 
