@@ -27,7 +27,7 @@ object AppConstants {
     const val PLATFORM_LINUX = "Linux"
 
     // Technical Constants (Standardized URLs)
-    const val DEVELOPER_EMAIL = "marcel@truepineapps.com"
+    const val DEVELOPER_EMAIL = "photouploader@truepineapps.com"
     const val DEVELOPER_NAME = "Marcel van Heerwaarden"
     
     const val WEBSITE_URL = "https://photouploader.truepineapps.com"

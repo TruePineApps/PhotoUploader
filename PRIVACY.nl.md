@@ -1,6 +1,6 @@
 # Privacybeleid voor Photo-Uploader
 
-**Ingangsdatum:** 2 oktober 2026
+**Ingangsdatum:** 13 oktober 2026
 
 ---
 
@@ -13,7 +13,7 @@ Als ontwikkelaar gevestigd in Nederland zet ik mij in voor de bescherming van uw
 **Contact:**  
 **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps**  
 KvK: 98723316  
-E-mail: marcel@truepineapps.com  
+E-mail: photouploader@truepine.com  
 Project: https://github.com/truepineapps/photouploader  
 Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
@@ -128,7 +128,7 @@ wordt het niet waarschijnlijk geacht dat de verwerking een hoog risico voor uw r
 
 ### 11. Uw rechten onder de AVG
 
-Op grond van de AVG heeft u de volgende rechten met betrekking tot uw persoonsgegevens. Neem contact op met de Ontwikkelaar via **marcel@truepineapps.com** om een van deze rechten uit te oefenen.
+Op grond van de AVG heeft u de volgende rechten met betrekking tot uw persoonsgegevens. Neem contact op met de Ontwikkelaar via **photouploader@truepine.com** om een van deze rechten uit te oefenen.
 
 - **Recht op inzage ([artikel 15](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-15)):** U kunt een kopie opvragen van de persoonsgegevens die over u worden bewaard. De Ontwikkelaar verstrekt uw e-mailadres en de datum waarop het is geregistreerd.
 - **Recht op verwijdering ([artikel 17](https://autoriteitpersoonsgegevens.nl/algemene-verordening-gegevensbescherming-avg#hoofdstuk-iii-rechten-van-de-betrokkene-artikel-17)):** U kunt verzoeken uw e-mailadres te verwijderen van de testerslijst. Houd er rekening mee dat verwijdering ook betekent dat u de App niet langer kunt gebruiken, omdat uw e-mailadres vereist is voor authenticatie.
@@ -155,6 +155,6 @@ Voor vragen over dit beleid of om uw rechten uit te oefenen, kunt u contact opne
 
 **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps**  
 KvK: 98723316  
-E-mail: marcel@truepineapps.com  
+E-mail: photouploader@truepine.com  
 Project: https://github.com/truepineapps/photouploader  
 Volledige contactgegevens: https://truepineapps.com/nl/imprint

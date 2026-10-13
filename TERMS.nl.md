@@ -1,6 +1,6 @@
 # Gebruiksvoorwaarden voor Photo-Uploader
 
-**Ingangsdatum:** 2 oktober 2026
+**Ingangsdatum:** 13 oktober 2026
 
 ---
 
@@ -15,7 +15,7 @@ Door de App te installeren of te gebruiken, bevestigt u dat u deze Voorwaarden h
 **Contact:**  
 **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps**  
 KvK: 98723316  
-E-mail: marcel@truepineapps.com  
+E-mail: photouploader@truepine.com  
 Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
 ---
@@ -160,7 +160,7 @@ Als u een consument bent, heeft u het recht een procedure aan te spannen bij de 
 
 ### 14a. Geschillenbeslechting en afstand van collectieve actie
 
-Voordat u formele juridische stappen onderneemt, gaat u ermee akkoord contact op te nemen met de Ontwikkelaar via marcel@truepineapps.com om het geschil in der minne te schikken. De Ontwikkelaar zal redelijke inspanningen leveren om binnen 30 dagen op een klacht te reageren.
+Voordat u formele juridische stappen onderneemt, gaat u ermee akkoord contact op te nemen met de Ontwikkelaar via photouploader@truepine.com om het geschil in der minne te schikken. De Ontwikkelaar zal redelijke inspanningen leveren om binnen 30 dagen op een klacht te reageren.
 
 Voor zover toegestaan door het toepasselijke recht, stemt u ermee in dat elke vordering die voortvloeit uit uw gebruik van de App uitsluitend op individuele basis moet worden ingesteld. U doet afstand van het recht om deel te nemen aan een collectieve actie, groepsvordering of vertegenwoordigende procedure tegen de Ontwikkelaar.
 
@@ -180,5 +180,5 @@ Voor vragen over deze Voorwaarden kunt u contact opnemen met:
 
 **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps**  
 KvK: 98723316  
-E-mail: marcel@truepineapps.com  
+E-mail: photouploader@truepine.com  
 Volledige contactgegevens: https://truepineapps.com/nl/imprint

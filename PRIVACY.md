@@ -1,6 +1,6 @@
 # Privacy Policy for Photo-Uploader
 
-**Effective Date:** October 2, 2026
+**Effective Date:** October 13, 2026
 
 ---
 
@@ -13,7 +13,7 @@ As a developer based in the Netherlands, I am committed to protecting your priva
 **Contact:**  
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
-Email: marcel@truepineapps.com  
+Email: photouploader@truepineapps.com  
 Project: https://github.com/truepineapps/photouploader  
 Full contact details: https://truepineapps.com/en/imprint
 
@@ -128,7 +128,7 @@ the processing is not considered likely to result in a high risk to your rights 
 
 ### 11. Your Rights Under the GDPR
 
-Under the GDPR, you have the following rights regarding your personal data. To exercise any of these rights, contact the Developer at **marcel@truepineapps.com**.
+Under the GDPR, you have the following rights regarding your personal data. To exercise any of these rights, contact the Developer at **photouploader@truepineapps.com**.
 
 - **Right to Access ([Article 15](https://gdpr-info.eu/art-15-gdpr/)):** You may request a copy of the personal data held about you. The Developer will provide your email address and the date it was registered.
 - **Right to Erasure ([Article 17](https://gdpr-info.eu/art-17-gdpr/)):** You may request that your email address be removed from the testing whitelist. Note that removal also means you will no longer be able to use the App, as your email address is required for authentication.
@@ -155,6 +155,6 @@ For questions about this policy or to exercise your rights, contact:
 
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
-Email: marcel@truepineapps.com  
+Email: photouploader@truepineapps.com  
 Project: https://github.com/truepineapps/photouploader  
 Full contact details: https://truepineapps.com/en/imprint

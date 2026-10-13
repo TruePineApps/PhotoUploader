@@ -1,6 +1,6 @@
 # Terms of Service for Photo-Uploader
 
-**Effective Date:** October 2, 2026
+**Effective Date:** October 13, 2026
 
 ---
 
@@ -15,7 +15,7 @@ By installing or using the App, you confirm that you have read and agree to thes
 **Contact:**
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
-Email: marcel@truepineapps.com  
+Email: photouploader@truepine.com  
 Full contact details: https://truepineapps.com/en/imprint
 
 ---
@@ -160,7 +160,7 @@ If you are a consumer, you have the right to bring proceedings either before the
 
 ### 14a. Dispute Resolution and Class Action Waiver
 
-Before initiating any formal legal proceedings, you agree to contact the Developer at marcel@truepineapps.com to attempt to resolve the dispute informally. The Developer will make reasonable efforts to respond to any complaint within 30 days.
+Before initiating any formal legal proceedings, you agree to contact the Developer at photouploader@truepine.com to attempt to resolve the dispute informally. The Developer will make reasonable efforts to respond to any complaint within 30 days.
 
 To the fullest extent permitted by applicable law, you agree that any claim arising from your use of the App must be brought on an individual basis only. You waive any right to bring or participate in a class action, collective action, or representative proceeding against the Developer.
 
@@ -180,5 +180,5 @@ For questions about these Terms, please contact:
 
 **Marcel van Heerwaarden**, trading as **True Pine Apps**  
 KvK: 98723316  
-Email: marcel@truepineapps.com  
+Email: photouploader@truepine.com  
 Full contact details: https://truepineapps.com/en/imprint
