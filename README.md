@@ -81,6 +81,23 @@ Disclaimer: This application is not officially affiliated with or endorsed by Go
 
 ---
 
+## 🔏 Code Signing Policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+Windows installers (.msi) of PhotoUploader are signed through SignPath Foundation. Every release is built by an automated GitHub Actions workflow from the source code in this repository, and each signing request is approved manually before it is signed.
+
+**Team roles**
+
+- Committers and reviewers: True Pine Apps
+- Approvers: True Pine Apps
+
+**Privacy policy**
+
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+
+---
+
 ## 🤝 Contributing & Development
 
 We welcome feedback and contributions!

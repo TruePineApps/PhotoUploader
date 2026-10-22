@@ -1,0 +1,45 @@
+name: Setup build
+description: JDK 21 (Temurin), Gradle, and the per-OS prerequisites for jpackage.
+
+inputs:
+  cache-disabled:
+    description: "Set to 'true' for release builds so no cache from other runs can influence the artifacts."
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 21
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: "21"   # also exports JAVA_HOME, which desktopApp/build.gradle.kts uses on CI
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v5
+      with:
+        cache-disabled: ${{ inputs.cache-disabled }}
+
+    # jpackage needs fakeroot to build .deb files.
+    - name: Linux prerequisites
+      if: runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fakeroot
+
+    # JDK 21's jpackage needs WiX Toolset 3.x to build .msi files.
+    # Install it only if the runner image does not already provide it.
+    - name: Windows prerequisites (WiX 3)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
+          $existing = Get-ChildItem "${env:ProgramFiles(x86)}\WiX Toolset v3*\bin" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $existing) {
+            choco install wixtoolset --no-progress -y
+            $existing = Get-ChildItem "${env:ProgramFiles(x86)}\WiX Toolset v3*\bin" | Select-Object -First 1
+          }
+          $existing.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          $env:PATH = "$($existing.FullName);$env:PATH"   # GITHUB_PATH only applies to later steps
+        }
+        # Fails the step early (instead of deep inside jpackage) if WiX is still missing.
+        candle.exe -? | Select-Object -First 1

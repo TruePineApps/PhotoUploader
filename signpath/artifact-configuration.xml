@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Paste this into SignPath: Project -> Artifact configurations -> New -> (XML view).
+  It matches the artifact uploaded by the release workflow: a ZIP that contains one .msi.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <msi-file path="*.msi" subject="PhotoUploader" author="True Pine Apps">
+      <authenticode-sign/>
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

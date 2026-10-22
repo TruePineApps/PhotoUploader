@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least privilege: CI only reads the repo. No secrets are used anywhere in this file.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g
+
+jobs:
+  # Test and package on every OS so that jpackage/ProGuard/patch-task breakage is found
+  # in the PR, not on release day. Packages are unsigned and kept for 7 days.
+  build:
+    name: Test & package (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Linux,   os: ubuntu-24.04,   task: ":desktopApp:packageReleaseDeb", glob: "desktopApp/build/compose/binaries/main-release/deb/*.deb" }
+          - { name: Windows, os: windows-2025,   task: ":desktopApp:packageReleaseMsi", glob: "desktopApp/build/compose/binaries/main-release/msi/*.msi" }
+          - { name: macOS,   os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg" }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-build
+      # Tests run on every OS: the app handles file paths and folders, so OS-specific bugs matter.
+      - name: Run all tests
+        run: ./gradlew allTests --stacktrace
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-reports-${{ matrix.name }}
+          path: "**/build/reports/tests/"
+          retention-days: 7
+      - name: Package
+        run: ./gradlew ${{ matrix.task }} --no-parallel --stacktrace
+      - name: Upload unsigned package
+        uses: actions/upload-artifact@v5
+        with:
+          name: unsigned-${{ matrix.name }}
+          path: ${{ matrix.glob }}
+          if-no-files-found: error
+          retention-days: 7

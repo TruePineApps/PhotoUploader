@@ -65,9 +65,17 @@ compose.desktop {
         mainClass = "com.truepineapps.photouploader.MainKt"
 
         // javaHome must be set here at the application level to be recognized.
-        // We use an OS check so the correct path is taken depending on the platform
+        // On CI (GitHub Actions), setup-java provides JAVA_HOME.
+        // On local development machines, use explicit local JDK paths.
+        val isCi = System.getenv("GITHUB_ACTIONS") == "true"
+        val envJavaHome = System.getenv("JAVA_HOME")
         val osName = System.getProperty("os.name").lowercase()
+
         when {
+            isCi && !envJavaHome.isNullOrEmpty() && File(envJavaHome).exists() -> {
+                javaHome = envJavaHome
+            }
+
             osName.contains("linux") -> {
                 javaHome = "/usr/lib/jvm/java-21-openjdk-amd64"
             }
@@ -114,6 +122,7 @@ compose.desktop {
                 debMaintainer = "True Pine Apps <photouploader@truepineapps.com>"
             }
             macOS {
+                bundleID = "com.truepineapps.photouploader"
                 iconFile.set(project.file("src/main/resources/desktopicon.icns"))
                 appCategory = "public.app-category.utilities"
             }
