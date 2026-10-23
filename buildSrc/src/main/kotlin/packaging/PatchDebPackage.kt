@@ -225,8 +225,9 @@ abstract class PatchDebPackage : PackageTask() {
         // Strip ELF binaries (executables and shared libraries).
         // Use find to locate ELF binaries and pass them to 'strip'.
         // Exclude .jar files explicitly via -not -name "*.jar".
+        // Note: xargs -d '\n' ensures filenames containing spaces (e.g. "PhotoUploader Beta") are preserved as single arguments.
         execOperations.exec {
-            commandLine("bash", "-c", "find ${extractDir.absolutePath} -type f -not -name \"*.jar\" -not -name \"*.so.*\" -exec file {} + | grep ELF | cut -d: -f1 | xargs -r strip --strip-unneeded")
+            commandLine("bash", "-c", "find ${extractDir.absolutePath} -type f -not -name \"*.jar\" -not -name \"*.so.*\" -exec file {} + | grep ELF | cut -d: -f1 | xargs -r -d '\\n' strip --strip-unneeded")
         }
 
         // Make the main executable and launcher executable

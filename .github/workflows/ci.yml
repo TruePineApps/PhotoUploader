@@ -1,10 +1,32 @@
 name: CI
 
+# Docs-only changes do not need a build. Only list files that can NOT affect the build:
+# LICENSE, COPYRIGHT, TERMS*.md and PRIVACY*.md are copied into the app and packages,
+# so they must keep triggering CI. If you make CI a *required* status check, switch to a
+# job-level changed-files filter instead: skipped workflows leave required checks pending.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "Architecture.md"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+      - "INSTALL.md"
+      - "DEVELOPMENT.md"
+      - "README.md"
+      - "TESTING.md"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "Architecture.md"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+      - "INSTALL.md"
+      - "DEVELOPMENT.md"
+      - "README.md"
+      - "TESTING.md"
 
 # Least privilege: CI only reads the repo. No secrets are used anywhere in this file.
 permissions:
@@ -39,7 +61,7 @@ jobs:
         run: ./gradlew allTests --stacktrace
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-${{ matrix.name }}
           path: "**/build/reports/tests/"
@@ -47,7 +69,7 @@ jobs:
       - name: Package
         run: ./gradlew ${{ matrix.task }} --no-parallel --stacktrace
       - name: Upload unsigned package
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: unsigned-${{ matrix.name }}
           path: ${{ matrix.glob }}

@@ -101,9 +101,12 @@ jobs:
       - name: Write Google OAuth client config
         shell: bash
         env: { GOOGLE_CLIENT_SECRETS_JSON: "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" }
-        run: printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+        run: |
+          printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+          [ -s composeApp/src/desktopMain/resources/client_secrets.json ] \
+            || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
       - run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: unsigned-linux
           path: desktopApp/build/compose/binaries/main-release/deb/*.deb
@@ -127,10 +130,13 @@ jobs:
       - name: Write Google OAuth client config
         shell: bash
         env: { GOOGLE_CLIENT_SECRETS_JSON: "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" }
-        run: printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+        run: |
+          printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+          [ -s composeApp/src/desktopMain/resources/client_secrets.json ] \
+            || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
       - run: ./gradlew :desktopApp:packageReleaseMsi --no-parallel --stacktrace
       - id: upload
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: unsigned-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
@@ -155,7 +161,10 @@ jobs:
 
       - name: Write Google OAuth client config
         env: { GOOGLE_CLIENT_SECRETS_JSON: "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" }
-        run: printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+        run: |
+          printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
+          [ -s composeApp/src/desktopMain/resources/client_secrets.json ] \
+            || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
 
       - name: Import Developer ID certificate into a temporary keychain
         env:
@@ -223,7 +232,7 @@ jobs:
         if: always()
         run: security delete-keychain "$KEYCHAIN" || true
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: signed-macos
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -274,10 +283,10 @@ jobs:
       # Fallback while WINDOWS_SIGNING is not enabled: pass the unsigned MSI through.
       - name: Pass through unsigned MSI (signing not enabled)
         if: vars.WINDOWS_SIGNING != 'signpath'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with: { name: unsigned-windows, path: out }
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: signed-windows
           path: out/*.msi
@@ -290,7 +299,7 @@ jobs:
     runs-on: ubuntu-24.04
     environment: release
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with: { name: unsigned-linux, path: out }
 
       - name: GPG detached signature
@@ -309,7 +318,7 @@ jobs:
           done
           rm -rf "$GNUPGHOME"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: signed-linux
           path: out/*
@@ -327,7 +336,7 @@ jobs:
     env:
       VERSION: ${{ needs.verify.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with: { path: incoming, pattern: "signed-*" }
 
       - name: Collect files under stable, space-free names
@@ -358,7 +367,7 @@ jobs:
           gpg --verify dist/SHA256SUMS.txt.asc dist/SHA256SUMS.txt
           rm -rf "$GNUPGHOME"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: release-dist
           path: dist/*
@@ -378,7 +387,7 @@ jobs:
       VERSION: ${{ needs.verify.outputs.version }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with: { name: release-dist, path: dist }
 
       - name: Attest build provenance

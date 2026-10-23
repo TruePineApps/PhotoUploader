@@ -353,6 +353,15 @@ compose.resources {
     generateResClass = auto
 }
 
+// Avoid implicit task dependency validation errors between composeApp resource processing
+// and desktopApp license report copying
+tasks.matching {
+    it.name.startsWith("copyNonXmlValueResources") ||
+    it.name.startsWith("prepareComposeResources")
+}.configureEach {
+    mustRunAfter(":desktopApp:copyNoticesToResources")
+}
+
 // Prints the report link for any task that produces a "test" related HTML report
 tasks.configureEach {
     if (this.name.contains("test", ignoreCase = true)) {
