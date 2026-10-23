@@ -48,10 +48,10 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
             || { echo "::error::Tagged commit is not on main"; exit 1; }
 
-          # 2. Tag major.minor must match gradle/libs.versions.toml, so the tag and the app agree.
+          # 2. Tag major.minor.patch must match gradle/libs.versions.toml, so the tag and the app agree.
           toml() { sed -nE "s/^$1 *= *\"([^\"]*)\".*/\1/p" gradle/libs.versions.toml; }
-          [[ "$(toml cfg-appMajor)" == "$MAJOR" && "$(toml cfg-appMinor)" == "$MINOR" ]] \
-            || { echo "::error::Tag $TAG does not match cfg-appMajor/cfg-appMinor in libs.versions.toml"; exit 1; }
+          [[ "$(toml cfg-appMajor)" == "$MAJOR" && "$(toml cfg-appMinor)" == "$MINOR" && "$(toml cfg-appPatch)" == "$PATCH" ]] \
+            || { echo "::error::Tag $TAG does not match cfg-appMajor/cfg-appMinor/cfg-appPatch in libs.versions.toml"; exit 1; }
 
           # jpackage on macOS rejects versions whose first number is 0.
           (( MAJOR >= 1 )) || { echo "::error::MAJOR must be >= 1 (macOS packaging)"; exit 1; }

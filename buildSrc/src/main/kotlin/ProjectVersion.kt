@@ -45,15 +45,19 @@ open class ProjectVersion(project: Project) {
     val appMinor: String = catalog.findVersion("cfg-appMinor").get().requiredVersion
 
     /**
+     * The human-maintained patch version number.
+     */
+    val appPatch: String = catalog.findVersion("cfg-appPatch").get().requiredVersion
+
+    /**
      * The human-maintained release stage (e.g., "Beta 1").
      */
     val appStage: String = catalog.findVersion("cfg-appStage").get().requiredVersion
 
     /**
-     * The technical version name, typically in the format `major.minor.build`.
-     * Provides full traceability back to the automated build.
+     * The technical version name, in the format `major.minor.patch`.
      */
-    val numericVersion: String = "$appMajor.$appMinor.$buildNumber"
+    val numericVersion: String = "$appMajor.$appMinor.$appPatch"
 
     /**
      * Concise label for the OS (Launcher, Taskbar).
