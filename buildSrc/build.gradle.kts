@@ -14,5 +14,5 @@ repositories {
 dependencies {
     // Can't use the library catalog here
     //noinspection UseTomlInstead
-    implementation("com.github.jk1:gradle-license-report:3.1.1")
+    implementation("com.github.jk1:gradle-license-report:3.1.4")
 }
