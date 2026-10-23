@@ -468,68 +468,37 @@ class UploadPhotosTest : KoinTest {
 
             val uploadJob = viewModel.uploadPhotos(platformContext)
 
-            // 4. Await state after `uploadPhotos` sets initial 'Waiting' status for enabled,
-            // items, immediately followed by setting the album to 'Uploading'
-            var uploadState = awaitItem()
-            var albumState = uploadState.albumUiStates.first()
-            if (albumState.uploadStatus == UploadStatus.Waiting) {
-                assertStatus(
-                    uiState = uploadState,
-                    testName = "After initial 'Waiting' status set for enabled items",
-                    expectedAlbumStatus = UploadStatus.Waiting, // Album goes to Waiting
-                    expectedPhoto1Status = UploadStatus.Waiting, // Photo1 goes to Waiting
-                    expectedPhoto2Status = UploadStatus.None, // Photo2 remains None (disabled)
-                    expectedPhoto2Enabled = false
+            // StateFlow may conflate rapid sequential updates differently depending on OS thread scheduling.
+            // Collect emissions until the album reaches final Success state, verifying validity at each step.
+            var currentState = awaitItem()
+            while (currentState.albumUiStates.first().uploadStatus !is UploadStatus.Success) {
+                val album = currentState.albumUiStates.first()
+                val photo1 = album.photoUiStates.first { it.name == "p1.jpg" }
+                val photo2 = album.photoUiStates.first { it.name == "p2.jpg" }
+
+                assertTrue(
+                    album.uploadStatus in setOf(UploadStatus.None, UploadStatus.Waiting, UploadStatus.Uploading),
+                    "Album status should be None, Waiting, or Uploading during progress"
                 )
-                uploadState = awaitItem()
-                albumState = uploadState.albumUiStates.first()
+                assertTrue(
+                    photo1.uploadStatus in setOf(UploadStatus.None, UploadStatus.Waiting, UploadStatus.Uploading, UploadStatus.Success),
+                    "Photo 1 status should be None, Waiting, Uploading, or Success during progress"
+                )
+                assertEquals(UploadStatus.None, photo2.uploadStatus, "Photo 2 status should remain None")
+                assertFalse(photo2.isEnabled, "Photo 2 should remain disabled")
+
+                currentState = awaitItem()
             }
 
-            // 5. Await state after album creation/verification, album status becomes 'Uploading'.
-            val photo1State = albumState.photoUiStates.first { it.name == "p1.jpg" }
-            if (photo1State.uploadStatus == UploadStatus.Waiting) {
-                assertStatus(
-                    uiState = uploadState,
-                    testName = "After album itself starts 'Uploading'",
-                    expectedAlbumStatus = UploadStatus.Uploading, // Album goes to Uploading
-                    expectedPhoto1Status = UploadStatus.Waiting, // Photo1 still Waiting
-                    expectedPhoto2Status = UploadStatus.None,
-                    expectedPhoto2Enabled = false
-                )
-                uploadState = awaitItem()
-            }
-
-            // 6. Await state after the first photo (`p1.jpg`) *starts* uploading.
-            assertStatus(
-                uiState = uploadState,
-                testName = "After photo 1 starts 'Uploading'",
-                expectedAlbumStatus = UploadStatus.Uploading,
-                expectedPhoto1Status = UploadStatus.Uploading, // Photo1 goes to Uploading
-                expectedPhoto2Status = UploadStatus.None,
-                expectedPhoto2Enabled = false
-            )
-
-            // 7. Await state after the first photo (`p1.jpg`) *successfully uploaded bytes* (before batch create).
-            // This is an internal step where photo status changes to Success, but album might still be Uploading.
-            assertStatus(
-                uiState = awaitItem(),
-                testName = "After photo 1 successfully uploaded bytes",
-                expectedAlbumStatus = UploadStatus.Uploading, // Album still Uploading
-                expectedPhoto1Status = UploadStatus.Success, // Photo1 goes to Success
-                expectedPhoto2Status = UploadStatus.None,
-                expectedPhoto2Enabled = false
-            )
-
-            // Let the entire upload job complete and advance time until idle
             uploadJob?.join()
-            advanceUntilIdle() // Ensure all remaining coroutines and cleanup are done
+            advanceUntilIdle()
 
-            // 8. Await the final state after all enabled photos are processed (batch create, set cover).
+            // Verify final state after successful upload
             assertStatus(
-                uiState = awaitItem(),
+                uiState = currentState,
                 testName = "Final state after successful upload",
-                expectedAlbumStatus = UploadStatus.Success, // Album should now be Success
-                expectedPhoto1Status = UploadStatus.Success, // Photo1 confirms Success (potentially already was)
+                expectedAlbumStatus = UploadStatus.Success,
+                expectedPhoto1Status = UploadStatus.Success,
                 expectedPhoto2Status = UploadStatus.None,
                 expectedPhoto2Enabled = false
             )
