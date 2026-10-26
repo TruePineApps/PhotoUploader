@@ -54,7 +54,7 @@ jobs:
           - { name: Windows, os: windows-2025,   task: ":desktopApp:packageReleaseMsi", glob: "desktopApp/build/compose/binaries/main-release/msi/*.msi" }
           - { name: macOS,   os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg" }
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
       # Tests run on every OS: the app handles file paths and folders, so OS-specific bugs matter.
       - name: Run all tests

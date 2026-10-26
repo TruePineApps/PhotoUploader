@@ -30,7 +30,7 @@ jobs:
       build_number: ${{ steps.meta.outputs.build_number }}
       prerelease: ${{ steps.meta.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2025, macos-15]
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - run: ./gradlew allTests --stacktrace
@@ -95,7 +95,7 @@ jobs:
     env:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - name: Write Google OAuth client config
@@ -124,7 +124,7 @@ jobs:
     env:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - name: Write Google OAuth client config
@@ -155,7 +155,7 @@ jobs:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
       KEYCHAIN: ${{ github.workspace }}/../build.keychain-db
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
 
