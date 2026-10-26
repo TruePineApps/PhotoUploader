@@ -30,7 +30,7 @@ jobs:
       build_number: ${{ steps.meta.outputs.build_number }}
       prerelease: ${{ steps.meta.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2025, macos-15]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - run: ./gradlew allTests --stacktrace
@@ -95,7 +95,7 @@ jobs:
     env:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - name: Write Google OAuth client config
@@ -106,7 +106,7 @@ jobs:
           [ -s composeApp/src/desktopMain/resources/client_secrets.json ] \
             || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
       - run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-linux
           path: desktopApp/build/compose/binaries/main-release/deb/*.deb
@@ -124,7 +124,7 @@ jobs:
     env:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
       - name: Write Google OAuth client config
@@ -136,7 +136,7 @@ jobs:
             || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
       - run: ./gradlew :desktopApp:packageReleaseMsi --no-parallel --stacktrace
       - id: upload
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
@@ -155,7 +155,7 @@ jobs:
       BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
       KEYCHAIN: ${{ github.workspace }}/../build.keychain-db
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: ./.github/actions/setup-build
         with: { cache-disabled: "true" }
 
@@ -232,7 +232,7 @@ jobs:
         if: always()
         run: security delete-keychain "$KEYCHAIN" || true
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signed-macos
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -256,7 +256,7 @@ jobs:
       - name: Submit to SignPath and wait for your approval
         if: vars.WINDOWS_SIGNING == 'signpath'
         # Pin to a full commit SHA before the first release (see docs/RELEASING.md).
-        uses: signpath/github-action-submit-signing-request@v3
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
@@ -283,10 +283,10 @@ jobs:
       # Fallback while WINDOWS_SIGNING is not enabled: pass the unsigned MSI through.
       - name: Pass through unsigned MSI (signing not enabled)
         if: vars.WINDOWS_SIGNING != 'signpath'
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with: { name: unsigned-windows, path: out }
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signed-windows
           path: out/*.msi
@@ -299,7 +299,7 @@ jobs:
     runs-on: ubuntu-24.04
     environment: release
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with: { name: unsigned-linux, path: out }
 
       - name: GPG detached signature
@@ -318,7 +318,7 @@ jobs:
           done
           rm -rf "$GNUPGHOME"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signed-linux
           path: out/*
@@ -336,7 +336,7 @@ jobs:
     env:
       VERSION: ${{ needs.verify.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with: { path: incoming, pattern: "signed-*" }
 
       - name: Collect files under stable, space-free names
@@ -367,7 +367,7 @@ jobs:
           gpg --verify dist/SHA256SUMS.txt.asc dist/SHA256SUMS.txt
           rm -rf "$GNUPGHOME"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-dist
           path: dist/*
@@ -387,11 +387,11 @@ jobs:
       VERSION: ${{ needs.verify.outputs.version }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with: { name: release-dist, path: dist }
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
           subject-path: |
             dist/*.deb

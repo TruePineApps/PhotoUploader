@@ -54,14 +54,14 @@ jobs:
           - { name: Windows, os: windows-2025,   task: ":desktopApp:packageReleaseMsi", glob: "desktopApp/build/compose/binaries/main-release/msi/*.msi" }
           - { name: macOS,   os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg" }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: ./.github/actions/setup-build
       # Tests run on every OS: the app handles file paths and folders, so OS-specific bugs matter.
       - name: Run all tests
         run: ./gradlew allTests --stacktrace
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-reports-${{ matrix.name }}
           path: "**/build/reports/tests/"
@@ -69,7 +69,7 @@ jobs:
       - name: Package
         run: ./gradlew ${{ matrix.task }} --no-parallel --stacktrace
       - name: Upload unsigned package
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-${{ matrix.name }}
           path: ${{ matrix.glob }}
