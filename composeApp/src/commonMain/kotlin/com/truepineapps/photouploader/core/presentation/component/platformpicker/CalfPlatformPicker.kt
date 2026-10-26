@@ -25,6 +25,11 @@ import com.mohamedrejeb.calf.picker.FilePickerLauncher
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 
+/**
+ * Wrapper for `com.mohamedrejeb.calf.picker.FilePicker`.
+ * Landing page: https://MohamedRejeb.github.io/Calf/filepicker
+ * Sources: https://github.com/MohamedRejeb/Calf/blob/main/calf-file-picker
+ */
 open class CalfPlatformPicker : PlatformPicker {
 
     /*****

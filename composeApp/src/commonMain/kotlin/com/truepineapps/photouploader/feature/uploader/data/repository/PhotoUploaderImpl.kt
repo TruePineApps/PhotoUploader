@@ -341,7 +341,7 @@ class PhotoUploaderImpl(
         log.e { "handleError: Request failed: ${response.status}" }
         log.e { "handleError: Response: $errorBody" }
 
-        /* First test for status codes that allow a retry.
+        /* First test for status codes that allow a retry, see also https://docs.cloud.google.com/storage/docs/retry-strategy.
            Status codes marked for exponential backoff in Google Photos API docs https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes:
            408 (Timeout), 429 (Rate Limit) HttpStatusCode.RequestTimeout and HttpStatusCode.TooManyRequests,
            and in the 5xx range HttpStatusCode.InternalServerError, HttpStatusCode.BadGateway,

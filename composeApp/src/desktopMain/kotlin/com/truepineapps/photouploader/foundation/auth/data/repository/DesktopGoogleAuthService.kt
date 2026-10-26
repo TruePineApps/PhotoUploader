@@ -101,7 +101,7 @@ class DesktopGoogleAuthService(private val log: Logger) : GoogleAuthService {
     private val dataStoreFactory = FileDataStoreFactory(credentialsFolder)
 
     /**
-     * Opens [url] in the system's default browser.
+     * Browser object; call `browse` with a url to open it in the system's default browser.
      *
      * We deliberately do NOT rely on the library's default behavior (or `java.awt.Desktop.browse`),
      * because on Linux that ends up shelling out (e.g. via `xdg-open`) WITHOUT redirecting the new

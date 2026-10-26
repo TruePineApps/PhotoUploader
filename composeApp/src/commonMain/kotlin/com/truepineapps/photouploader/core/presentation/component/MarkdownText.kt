@@ -27,6 +27,10 @@ import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 
+/**
+ * A composable that renders Markdown text using the RichText library,
+ * see https://github.com/MohamedRejeb/Compose-Rich-Editor.
+ */
 @OptIn(ExperimentalRichTextApi::class)
 @Composable
 fun MarkdownText(

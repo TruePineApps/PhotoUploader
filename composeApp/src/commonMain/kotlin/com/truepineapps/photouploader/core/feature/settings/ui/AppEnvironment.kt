@@ -58,6 +58,7 @@ fun AppEnvironment(
         // Provide this effectiveLocaleTag via the LocalAppLocale CompositionLocal.
         // This allows stringResource, painterResource, etc., from Compose Multiplatform
         // resource libraries to pick up the correct language.
+        // See https://kotlinlang.org/docs/multiplatform/compose-resource-environment.html
         CompositionLocalProvider(
             LocalAppLocale provides effectiveLocaleTag
         ) {

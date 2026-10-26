@@ -246,8 +246,8 @@ class PhotoUploaderViewModel(
      * Cancels the current sign-in or upload job if it's still running.
      */
     fun cancelProcess() {
-        // This will cancel the job running performSignIn(), triggering the CancellationException there
-        // The finally-block in performSignIn() will handle the state update
+        // This will cancel the job running `performSignIn` or `uploadPhotosInAlbum`, triggering the
+        // CancellationException there. The finally-block in will handle the state update.
         log.d("cancelProcess: Cancel process")
         processJob?.cancel()
         processJob = null
