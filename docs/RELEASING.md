@@ -3,7 +3,7 @@
 ## 1. Release Architecture Overview
 
 | Feature &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Overview                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|:----------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Trigger**                                                     | `git push origin vMAJOR.MINOR.PATCH` only.<br>Commits never release.                                                                                                                                                                                                                                                                                                                                                      |
 | **Gate**                                                        | The tag must match `^v\d+\.\d+\.\d+$`, point at a commit **on main**, and be exactly `v` + the version in `libs.versions.toml` (`cfg-appMajor.cfg-appMinor.cfg-appPatch`).<br>It must also be higher than every earlier release tag. `MAJOR` must be at least 1 (macOS packaging), `MINOR` at most 255 and `PATCH` at most 65535 (MSI limits).                                                                            |
 | **Version**                                                     | The version is maintained in `libs.versions.toml`: `cfg-appMajor`, `cfg-appMinor`, `cfg-appPatch` (human-maintained, bumped in a commit) and `cfg-appStage` (e.g. "Beta 1"; a non-empty stage marks the GitHub Release as *pre-release*).<br>The tag only confirms that version; it is never the source of the version.<br>The CI build number (`GITHUB_RUN_NUMBER`) is kept separate and is not part of the app version. |
@@ -20,11 +20,16 @@
      adding yourself as reviewer only adds a second click.
 2. **Settings → Rules → Rulesets → New tag ruleset**, target `v*`: restrict creations, updates and deletions
    (bypass: repository admin). Release tags become immutable.
-3. **Settings → Actions → General**: "Workflow permissions" = read-only; require approval for fork PR workflows.
+3. **Settings → Actions → General**:
+   - *Approval for running fork pull request workflows from contributors*: Choose **Require approval for all external contributors**.
+   - *Workflow permissions*: Choose **Read repository contents and packages permissions**.
 4. Enable 2FA (hardware key/passkey) on your GitHub account. Whoever controls it controls every secret below.
 5. Add the secrets and variables from the next section under **Environments → release** (not repository-wide).
-6. Supply chain: pin every `uses:` to a full commit SHA before the first release (`npx pinact run` does this)
-   and enable Dependabot for `github-actions`.
+6. **Supply Chain Security**:
+   - *Enable Dependabot*: In **Settings → Advanced Security**, enable **Dependabot version updates** by clicking 'Create dependabot.yml'. For contents, see [dependabot.yml](../.github/dependabot.yml). When `dependabot.yml` exists, GitHub enables Dependabot version updates automatically.
+   - *Pin Actions to Commit SHAs*: In your workflow `.yml` files, third-party actions use tags like `uses: actions/checkout@v4`. Pinning the version of the actions to an immutable 40-character commit SHA (e.g. `uses: actions/checkout@b4ffde6... # v4.1.1`) from the open-source Git repository for workflows on GitHub Marketplace prevents supply-chain attacks if an action tag is ever maliciously altered.
+   - *Replacing Version Tags with SHAs*: You can replace version tags with SHAs automatically across all workflow files using `npx pin-github-action .github/workflows/*.yml` in your terminal. (If `npx` is not installed on your machine, install Node.js/npm first: `sudo apt install nodejs npm` on Linux, or `brew install node` on macOS).
+   - *When to Rerun Pinning*: You only need to rerun `npx pin-github-action` if you manually add or update action references in your `.yml` files. When Dependabot is enabled (step above), Dependabot will automatically open Pull Requests updating your pinned SHAs whenever new action releases are published.
 7. Make sure `composeApp/src/desktopMain/resources/client_secrets.json` is in `.gitignore`. The release
    workflow writes that file from a secret; it must never be committed.
 
@@ -40,7 +45,7 @@ Items added under **Settings → Environments → release** are split into two c
 ### Environment Secrets (`secrets.*`)
 
 | Secret Name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Used by Job &nbsp; &nbsp; &nbsp; &nbsp; | What it contains                                                                                                                                                            |
-|:--------------------------------------------------------------------|:----------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :------------------------------------------------------------------ | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GOOGLE_CLIENT_SECRETS_JSON`                                        | build jobs                              | Contents of `client_secrets.json`. It ships inside the application, and Google treats installed-app secrets as non-confidential: keep it out of git, not out of the binary. |
 | `MACOS_CERT_P12_BASE64`                                             | build-macos                             | Base64 string of the Developer ID Application `.p12` certificate.                                                                                                           |
 | `MACOS_CERT_PASSWORD`                                               | build-macos                             | Password protecting the `.p12` certificate.                                                                                                                                 |
@@ -65,7 +70,7 @@ variables they would publish your SSH host, username and server path in the logs
 ### Environment Variables (`vars.*`)
 
 | Variable Name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Used by Job &nbsp; &nbsp; &nbsp; &nbsp; | What it contains                                                                                              |
-|:----------------------------------------------------------------------|:----------------------------------------|:--------------------------------------------------------------------------------------------------------------|
+| :-------------------------------------------------------------------- | :-------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
 | `SIGNPATH_ORGANIZATION_ID`                                            | sign-windows                            | Your SignPath organization ID.                                                                                |
 | `SIGNPATH_PROJECT_SLUG`                                               | sign-windows                            | Your SignPath project slug, e.g. `photouploader`.                                                             |
 | `SIGNPATH_SIGNING_POLICY_SLUG`                                        | sign-windows                            | Your SignPath signing policy slug, e.g. `release-signing`.                                                    |
@@ -131,7 +136,7 @@ cannot re-issue the private key).
 Then **+** → name `GitHub notarization`, access *Developer*. You need three values from this page:
 
 | What you see &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Where on the page                                       | GitHub secret                            |
-|:-------------------------------------------------------|:--------------------------------------------------------|:-----------------------------------------|
+| :----------------------------------------------------- | :------------------------------------------------------ | :--------------------------------------- |
 | Issuer ID (a UUID)                                     | at the top of the keys list                             | `APPLE_NOTARY_ISSUER_ID`                 |
 | Key ID (10 characters)                                 | column *Key ID* of your new key (also in the file name) | `APPLE_NOTARY_KEY_ID`                    |
 | `AuthKey_<KeyID>.p8` file                              | *Download API Key*: **possible only once**              | `APPLE_NOTARY_KEY_P8_BASE64` (see below) |
@@ -180,12 +185,12 @@ components, and the project **must already be released in the form that will be 
 to do, so some of the items below may already exist. Enable MFA on your SignPath account first. Then collect
 these values in the SignPath web application:
 
-| GitHub name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Type     | Where to find it in SignPath                                                                                                                                                    |
-|:-------------------------------------------------------------|:---------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SIGNPATH_ORGANIZATION_ID`                                   | variable | Open your project → *Signing policies* → open the policy. The browser address contains two UUIDs: the **first** is the organization ID, the last is the policy ID (not needed). |
-| `SIGNPATH_PROJECT_SLUG`                                      | variable | The slug (short lower-case name) of your project, shown on the project page and in its address.                                                                                 |
-| `SIGNPATH_SIGNING_POLICY_SLUG`                               | variable | The slug of the signing policy used for releases, e.g. `release-signing`.                                                                                                       |
-| `SIGNPATH_API_TOKEN`                                         | secret   | Create a **CI user** in SignPath; the token is shown **once** when you add it. Copy it into the secret and your password manager.                                               |
+| GitHub name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Where to find it in SignPath                                                                                                                                                          |
+| :----------------------------------------------------------- | :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SIGNPATH_ORGANIZATION_ID`                                   | variable                                | Open your project → *Signing policies* → open the policy.<br>The browser address contains two UUIDs: the **first** is the organization ID,<br>the last is the policy ID (not needed). |
+| `SIGNPATH_PROJECT_SLUG`                                      | variable                                | The slug (short lower-case name) of your project,<br>shown on the project page and in its address.                                                                                    |
+| `SIGNPATH_SIGNING_POLICY_SLUG`                               | variable                                | The slug of the signing policy used for releases, e.g. `release-signing`.                                                                                                             |
+| `SIGNPATH_API_TOKEN`                                         | secret                                  | Create a **CI user** in SignPath; the token is shown **once** when you add it.<br>Copy it into the secret and your password manager.                                                  |
 
 Then in SignPath:
 
@@ -294,8 +299,7 @@ Put a calendar reminder in 11 months. To extend the primary key use `gpg --quick
 
 ### 4.4 cPanel Upload Key
 
-Use a dedicated SSH key pair for the upload, so it can be revoked without touching anything else. Do this on
-your own computer.
+Use a dedicated SSH key pair for the upload, so it can be revoked without touching anything else. This limits exposure if the secret is ever compromised and makes it easy to revoke access for GitHub without affecting your own access.Do this on your own computer.
 
 **Step 1: create the key pair.**
 
@@ -317,7 +321,7 @@ cPanel, ask your host to enable it.
 **Step 3: collect the connection values.**
 
 | GitHub secret &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | How to get it                                                                                                                                                                           |
-|:--------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `WEBSITE_HOST`                                          | The server name you connect to, e.g. `server42.example-host.com` or your domain. Use the same name in step 4.                                                                           |
 | `WEBSITE_USER`                                          | Your cPanel username (shown in cPanel under *General Information*).                                                                                                                     |
 | `WEBSITE_PORT`                                          | The SSH port from your host's documentation or the *SSH Access* page; 22 or a custom port.                                                                                              |
@@ -364,7 +368,7 @@ Optional hardening: a dedicated cPanel account or SSH user whose home only conta
 ### 4.5 Where Does Each Item Go?
 
 | Item &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Password manager | GitHub name (Environment `release`)                                    | Public                                       |
-|:-------------------------------------------------------------|:-----------------|:-----------------------------------------------------------------------|:---------------------------------------------|
+| :----------------------------------------------------------- | :--------------- | :--------------------------------------------------------------------- | :------------------------------------------- |
 | GPG `primary-secret-key.asc`                                 | Yes (file)       | never                                                                  | never                                        |
 | GPG `revocation-certificate.rev`                             | Yes (file)       | never                                                                  | never                                        |
 | GPG `ci-signing-subkey.asc` (text)                           | Optional backup  | `GPG_PRIVATE_KEY`                                                      | never                                        |
@@ -390,15 +394,16 @@ Optional hardening: a dedicated cPanel account or SSH user whose home only conta
 1. Prepare the version in one commit on `main`: set `cfg-appPatch` (and `cfg-appMinor`, `cfg-appMajor`,
    `cfg-appStage` if they change) in `gradle/libs.versions.toml` and update `CHANGELOG.md`. Commit with
    sign-off, push, and wait until CI is green on that commit.
-2. `git switch main && git pull`
-3. Tag exactly that version: `git tag -a v1.0.3 -m "PhotoUploader 1.0.3" && git push origin v1.0.3`
-   (the release stops immediately if the tag differs from the toml version or is not higher than the last
-   release tag).
-4. Watch Actions → *Release*. **Approve the Windows signing request in SignPath when prompted** (the job
+2. Run the release helper script from the root project folder:
+   ```bash
+   ./release.sh
+   ```
+   The script verifies that your working directory is clean, you are on `main` and synced with `origin/main`, confirms that the tag matching `libs.versions.toml` does not already exist, and creates/pushes the annotated version tag. (Manual `git tag` commands are strongly discouraged to avoid version mismatch or uncommitted change errors).
+3. Watch Actions → *Release*. **Approve the Windows signing request in SignPath when prompted** (the job
    waits up to 3 hours).
-5. If a job fails, fix the cause and use **Re-run failed jobs** (same tag, same version). If the fix needs a
-   code change, do not touch the tag: tags are protected. Bump `cfg-appPatch`, commit, and tag again.
-6. The release appears as a draft first, then is published when the website upload has succeeded.
+4. If a job fails, fix the cause and use **Re-run failed jobs** (same tag, same version). If the fix needs a
+   code change, do not touch the tag: tags are protected. Bump `cfg-appPatch`, commit, and run `./release.sh` again.
+5. The release appears as a draft first, then is published when the website upload has succeeded.
 
 ## 6. Things to Check on the First Real Run
 
@@ -425,7 +430,7 @@ Optional hardening: a dedicated cPanel account or SSH user whose home only conta
 ## 7. If a Secret Leaks
 
 | Secret &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Action                                                                                              |
-|:---------------------------------------------------------------|:----------------------------------------------------------------------------------------------------|
+| :------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
 | macOS certificate                                              | developer.apple.com → revoke the Developer ID certificate; issue a new one.                         |
 | Notary API key                                                 | App Store Connect → revoke the key; create a new one.                                               |
 | SignPath token                                                 | Revoke the API token in SignPath and create a new one; tell SignPath support if you suspect misuse. |

@@ -79,12 +79,15 @@ Details, secrets and runbooks:
 4. Be available for the SignPath approval (see below).
 
 ### 3. Triggering a Release
+Execute the release helper script from the root project directory:
 ```bash
-git switch main && git pull
-git tag -a v1.0.3 -m "PhotoUploader 1.0.3"
-git push origin v1.0.3
+./release.sh
 ```
-Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run failed jobs**. If the code must change, bump PATCH and tag again.
+This script verifies that your working directory is clean, you are on `main` and synced with `origin/main`, confirms that the version tag matching [`gradle/libs.versions.toml`](gradle/libs.versions.toml) does not already exist, and automatically creates and pushes the annotated version tag to GitHub.
+
+*(Manual `git tag` execution is strongly discouraged to prevent version mismatch or uncommitted code errors).*
+
+Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run failed jobs**. If the code must change, bump `cfg-appPatch` in `libs.versions.toml`, commit to `main`, and run `./release.sh` again.
 
 ### 4. Pipeline ([`release.yml`](.github/workflows/release.yml))
 1. **Verification gate**: tag format `vX.Y.Z`, commit is on `main`, tag matches `libs.versions.toml`, MAJOR ≥ 1.

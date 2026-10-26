@@ -85,3 +85,11 @@ localFiles/
 
 # Ignore the Google Auth secret
 composeApp/src/desktopMain/resources/client_secrets.json
+
+# Generated license reports and packaging resource copies
+index.html
+desktopApp/src/main/resources/macOS/
+desktopApp/src/main/resources/windows/legal/
+composeApp/src/commonMain/composeResources/files/LICENSE
+composeApp/src/commonMain/composeResources/files/PRIVACY*.md
+composeApp/src/commonMain/composeResources/files/TERMS*.md
