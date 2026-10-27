@@ -222,11 +222,15 @@ Run all commands below in **one terminal session on your own computer** (not in 
 * a **signing subkey** (`[S]`): the only part GitHub receives. If it leaks, you revoke it with the primary key
   and your identity stays intact.
 
-**Step 1: create the primary key.** When gpg asks for a passphrase, choose a strong one and save it in your
-password manager right away; it becomes the secret `GPG_PASSPHRASE`.
-
+**Step 1: create the primary key.**
+Create a strong password:
 ```bash
-gpg --quick-generate-key "True Pine Apps Releases <photouploader@truepineapps.com>" ed25519 cert 3y
+openssl rand -base64 16
+```
+Save it in your password manager right away; it becomes the secret `GPG_PASSPHRASE`.
+Copy the password. Generate the GPG key. When gpg asks for a passphrase, paste it.
+```bash
+gpg --quick-generate-key "True Pine Apps <photouploader@truepineapps.com>" ed25519 cert 3y
 FPR=$(gpg --list-keys --with-colons photouploader@truepineapps.com | awk -F: '/^fpr:/ {print $10; exit}')
 echo "$FPR"
 ```
@@ -255,7 +259,7 @@ ssb   ed25519 2026-10-23 [S] [expires: 2027-10-23]     <- "ssb" + [S] = SIGNING 
 (The fingerprints above are examples from a test run; yours differ. Always use the full 40 characters, never
 the short key ID.)
 
-**Step 3: export the files.** The first line creates the *primary secret key* backup you asked about.
+**Step 3: export the files.** The first line creates the *primary secret key* backup.
 
 ```bash
 gpg --armor --export-secret-keys "$FPR" > primary-secret-key.asc
@@ -274,6 +278,7 @@ GPG it is:
   attachments). Never GitHub, never the website.
 * `ci-signing-subkey.asc` → open it in a text editor, copy **the whole text** including the
   `-----BEGIN PGP PRIVATE KEY BLOCK-----` and `-----END ...-----` lines into the secret `GPG_PRIVATE_KEY`.
+  Optionally back it up in your password manager so you can easily restore `GPG_PRIVATE_KEY` if the GitHub secret is ever deleted.
 * The passphrase from step 1 → secret `GPG_PASSPHRASE`.
 * `$SUBFPR` (the 40 characters under the `ssb` line) → secret `GPG_KEY_FINGERPRINT`.
 * `photouploader-release-key.asc` and `$FPR` → **public**: website download page, the repository, and the
@@ -442,43 +447,43 @@ Optional hardening: a dedicated cPanel account or SSH user whose home only conta
 
 ### 8.1 Linux GPG Credentials
 
-| Output / Asset                                        | What it is                                                   | Where it goes                                                                    |
-| :---------------------------------------------------- | :----------------------------------------------------------- | :------------------------------------------------------------------------------- |
-| **Passphrase**                                        | Password chosen during key generation.                       | **GitHub Secret**: `GPG_PASSPHRASE`<br>+ **Local Password Safe**                 |
-| **Primary Fingerprint (`FPR`)**                       | 40-character hex string of the primary master key.           | **Local Password Safe** (used to manage/revoke subkeys).                         |
-| **Primary Master Key** (`primary-master-key.asc`)     | Private master key (`gpg --export-secret-keys <FPR>`).       | **Local Password Safe ONLY**. *(NEVER upload to GitHub!)*                        |
-| **Revocation Certificate** (`revoke-primary-key.asc`) | Revocation file (`gpg --gen-revoke <FPR>`).                  | **Local Password Safe ONLY**.                                                    |
-| **Subkey Fingerprint (`SUBKEY_FPR`)**                 | 40-character hex string of the signing subkey.               | **GitHub Secret**: `GPG_KEY_FINGERPRINT`                                         |
-| **Signing Subkey** (`subkey.asc`)                     | Subkey export (`gpg --export-secret-subkeys <SUBKEY_FPR>!`). | **GitHub Secret**: `GPG_PRIVATE_KEY`<br>*(Delete file from disk after pasting).* |
-| **Public Key** (`photouploader-release-key.asc`)      | Public key export (`gpg --export <FPR>`).                    | **Website Downloads Directory** + Repository                                     |
+| Output / Asset                                              | What it is                                                     | Where it goes                                                                    |
+|:------------------------------------------------------------|:---------------------------------------------------------------| :------------------------------------------------------------------------------- |
+| **Passphrase**                                              | Password chosen during key generation.                         | **GitHub Secret**: `GPG_PASSPHRASE`<br>+ **Password Manager**                    |
+| **Primary Fingerprint (`FPR`)**                             | 40-character hex string of the primary master key.             | **Password Manager** (used to manage/revoke subkeys).                            |
+| **Primary Master Key** (`primary-secret-key.asc`)           | Private master key (`gpg --export-secret-keys <FPR>`).         | **Password Manager ONLY**. *(NEVER upload to GitHub!)*                           |
+| **Revocation Certificate** (`revocation-certificate.rev`)   | Revocation file (`cp ~/.gnupg/openpgp-revocs.d/$FPR.rev`).     | **Password Manager ONLY**.                                                       |
+| **Subkey Fingerprint (`SUBFPR`)**                           | 40-character hex string of the signing subkey.                 | **GitHub Secret**: `GPG_KEY_FINGERPRINT`                                         |
+| **Signing Subkey** (`ci-signing-subkey.asc`)                | Subkey export (`gpg --export-secret-subkeys <SUBFPR>!`).       | **GitHub Secret**: `GPG_PRIVATE_KEY`<br>*(Delete file from disk after pasting).* |
+| **Public Key** (`photouploader-release-key.asc`)            | Public key export (`gpg --export <FPR>`).                      | **Website Downloads Directory** + Repository                                     |
 
 ### 8.2 macOS Developer ID & Notarization Credentials
 
 | Output / Asset                                          | What it is                                                           | Where it goes                                                                             |
 | :------------------------------------------------------ | :------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| **Developer ID `.p12` Certificate** (`cert.p12`)        | Base64 string of Developer ID Application `.p12` file.               | **GitHub Secret**: `MACOS_CERT_P12_BASE64`<br>+ **Local Password Safe** (`.p12` file)     |
-| **`.p12` Certificate Password**                         | Password protecting the exported `.p12` file.                        | **GitHub Secret**: `MACOS_CERT_PASSWORD`<br>+ **Local Password Safe**                     |
-| **Developer Signing Identity**                          | Text after `Developer ID Application: ` (e.g. `Your Name (TEAMID)`). | **GitHub Secret**: `MACOS_SIGNING_IDENTITY`<br>+ **Local Password Safe**                  |
-| **App Store Connect API Key `.p8`** (`AuthKey_XXXX.p8`) | Base64 string of `AuthKey_XXXX.p8` file.                             | **GitHub Secret**: `APPLE_NOTARY_KEY_P8_BASE64`<br>+ **Local Password Safe** (`.p8` file) |
-| **App Store Connect Key ID**                            | 10-character Key ID string (e.g. `4A2B3C4D5E`).                      | **GitHub Secret**: `APPLE_NOTARY_KEY_ID`<br>+ **Local Password Safe**                     |
-| **App Store Connect Issuer ID**                         | Issuer ID UUID string from App Store Connect.                        | **GitHub Secret**: `APPLE_NOTARY_ISSUER_ID`<br>+ **Local Password Safe**                  |
+| **Developer ID `.p12` Certificate** (`cert.p12`)        | Base64 string of Developer ID Application `.p12` file.               | **GitHub Secret**: `MACOS_CERT_P12_BASE64`<br>+ **Password Manager** (`.p12` file)        |
+| **`.p12` Certificate Password**                         | Password protecting the exported `.p12` file.                        | **GitHub Secret**: `MACOS_CERT_PASSWORD`<br>+ **Password Manager**                        |
+| **Developer Signing Identity**                          | Text after `Developer ID Application: ` (e.g. `Your Name (TEAMID)`). | **GitHub Secret**: `MACOS_SIGNING_IDENTITY`<br>+ **Password Manager**                     |
+| **App Store Connect API Key `.p8`** (`AuthKey_XXXX.p8`) | Base64 string of `AuthKey_XXXX.p8` file.                             | **GitHub Secret**: `APPLE_NOTARY_KEY_P8_BASE64`<br>+ **Password Manager** (`.p8` file)    |
+| **App Store Connect Key ID**                            | 10-character Key ID string (e.g. `4A2B3C4D5E`).                      | **GitHub Secret**: `APPLE_NOTARY_KEY_ID`<br>+ **Password Manager**                        |
+| **App Store Connect Issuer ID**                         | Issuer ID UUID string from App Store Connect.                        | **GitHub Secret**: `APPLE_NOTARY_ISSUER_ID`<br>+ **Password Manager**                     |
 
 ### 8.3 Windows SignPath Credentials
 
-| Output / Asset                   | What it is                                              | Where it goes                                                        |
-| :------------------------------- | :------------------------------------------------------ | :------------------------------------------------------------------- |
-| **SignPath API Token**           | Secret API Token generated for submitter user.          | **GitHub Secret**: `SIGNPATH_API_TOKEN`<br>+ **Local Password Safe** |
-| **SignPath Organization ID**     | Organization identifier string from SignPath dashboard. | **GitHub Variable**: `SIGNPATH_ORGANIZATION_ID`                      |
-| **SignPath Project Slug**        | Project slug identifier (e.g. `photouploader`).         | **GitHub Variable**: `SIGNPATH_PROJECT_SLUG`                         |
-| **SignPath Signing Policy Slug** | Policy slug identifier (e.g. `release-signing`).        | **GitHub Variable**: `SIGNPATH_SIGNING_POLICY_SLUG`                  |
-| **Windows Signing Enable Flag**  | Flag string (`signpath`) enabling Windows signing job.  | **GitHub Variable**: `WINDOWS_SIGNING`                               |
+| Output / Asset                     | What it is                                                | Where it goes                                                     |
+|:-----------------------------------|:----------------------------------------------------------|:------------------------------------------------------------------|
+| **SignPath API Token**             | Secret API Token generated for submitter user.            | **GitHub Secret**: `SIGNPATH_API_TOKEN`<br>+ **Password Manager** |
+| **SignPath Organization ID**       | Organization identifier string from SignPath dashboard.   | **GitHub Variable**: `SIGNPATH_ORGANIZATION_ID`                   |
+| **SignPath Project Slug**          | Project slug identifier (e.g. `photouploader`).           | **GitHub Variable**: `SIGNPATH_PROJECT_SLUG`                      |
+| **SignPath Signing Policy Slug**   | Policy slug identifier (e.g. `release-signing`).          | **GitHub Variable**: `SIGNPATH_SIGNING_POLICY_SLUG`               |
+| **Windows Signing Enable Flag**    | Flag string (`signpath`) enabling Windows signing job.    | **GitHub Variable**: `WINDOWS_SIGNING`                            |
 
 ### 8.4 cPanel Deployment SSH Credentials
 
-| Output / Asset                                  | What it is                                                    | Where it goes                                                                              |
-| :---------------------------------------------- | :------------------------------------------------------------ | :----------------------------------------------------------------------------------------- |
-| **Private SSH Key** (`photouploader_deploy`)    | Private Ed25519 SSH key content.                              | **GitHub Secret**: `WEBSITE_SSH_KEY`<br>+ **Local Password Safe**                          |
-| **Public SSH Key** (`photouploader_deploy.pub`) | Public Ed25519 SSH key content.                               | **cPanel SSH Access** (Authorized Keys)                                                    |
-| **Server Known Hosts Line**                     | Host key output line from `ssh-keyscan`.                      | **GitHub Secret**: `WEBSITE_KNOWN_HOSTS`                                                   |
-| **Server Connection Settings**                  | Hostname, username, port, and remote download directory path. | **GitHub Secrets**: `WEBSITE_HOST`, `WEBSITE_USER`, `WEBSITE_PORT`, `WEBSITE_DOWNLOAD_DIR` |
+| Output / Asset                                    | What it is                                                      | Where it goes                                                                                  |
+|:--------------------------------------------------|:----------------------------------------------------------------|:-----------------------------------------------------------------------------------------------|
+| **Private SSH Key** (`photouploader_deploy`)      | Private Ed25519 SSH key content.                                | **GitHub Secret**: `WEBSITE_SSH_KEY`<br>+ **Password Manager**                                 |
+| **Public SSH Key** (`photouploader_deploy.pub`)   | Public Ed25519 SSH key content.                                 | **cPanel SSH Access** (Authorized Keys)                                                        |
+| **Server Known Hosts Line**                       | Host key output line from `ssh-keyscan`.                        | **GitHub Secret**: `WEBSITE_KNOWN_HOSTS`                                                       |
+| **Server Connection Settings**                    | Hostname, username, port, and remote download directory path.   | **GitHub Secrets**: `WEBSITE_HOST`, `WEBSITE_USER`, `WEBSITE_PORT`, `WEBSITE_DOWNLOAD_DIR`     |
 

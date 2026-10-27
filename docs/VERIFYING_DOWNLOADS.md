@@ -18,7 +18,7 @@ The installer must report `OK` / match exactly. If it does not, delete the file 
 
 ```bash
 gpg --import photouploader-release-key.asc        # public key, download from this site and from GitHub
-gpg --fingerprint "True Pine Apps Releases"       # compare fingerprint
+gpg --fingerprint "True Pine Apps Releases"       # Key fingerprint = 21CD 4245 8B26 1BE9 219F  FB3E 7CC6 A56F C8A2 0457
 gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt    # must say: Good signature
 ```
 
