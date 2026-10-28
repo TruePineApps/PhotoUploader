@@ -15,7 +15,8 @@ jobs:
     steps:
       - name: Check DCO
         uses: christophebedard/dco-check@ec8bfc43106afe98b323ace9133650df10497e12 # 0.5.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           # skip merge commits, revert commits, and automated bot commits (Dependabot)
-          exclude-pattern: '^(Merge|Revert)'
-          exclude-authors: 'dependabot\[bot\]@users\.noreply\.github\.com'
+          args: '--exclude-pattern "^(Merge|Revert)" --exclude-authors "dependabot\[bot\]@users\.noreply\.github\.com"'
