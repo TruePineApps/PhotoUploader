@@ -175,16 +175,15 @@ components, and the project **must already be released in the form that will be 
 
 **Before SignPath:**
 
-1. **Create a SignPath account.** Go to https://SignPath.org and register your user account. **Mandatory Requirement**: 
-   Enable Multi-Factor Authentication (MFA / 2FA) on your SignPath user profile.
-2. **Publish a first release unsigned.** Leave the variable `WINDOWS_SIGNING` unset (not defined or 
+1. **Publish a first release unsigned.** Leave the variable `WINDOWS_SIGNING` unset (not defined or 
    no value, both will work); the workflow then publishes the MSI as built (the job passes it through). 
    Make sure the landing page describes the app.
-3. **Add the "Code signing policy" section** from [CODE_SIGNING_POLICY.md](../CODE_SIGNING_POLICY.md)
+2. **Add the "Code signing policy" section** from [CODE_SIGNING_POLICY.md](../CODE_SIGNING_POLICY.md)
    to [README.md](../README.md) *and* the website's home and download pages (mandatory wording).
-4. **Verify** that the website download landing page shows the Code Signing Policy in the context of the 
+3. **Verify** that the website download landing page shows the Code Signing Policy in the context of the 
    download link for the .msi release. Verify that the link to the Privacy Policy is correct.
-5. **Apply** at https://signpath.org/apply (they review project reputation; acceptance is their decision).
+4. **Apply** at https://signpath.org/apply (they review project reputation; acceptance is their decision).
+   **Mandatory Requirement**: Enable Multi-Factor Authentication (MFA / 2FA) on your SignPath user profile once invited.
 
 **After acceptance.** SignPath Foundation sets up your organization and project and tells you what is left
 to do, so some of the items below may already exist. Enable MFA on your SignPath account first. Then collect
