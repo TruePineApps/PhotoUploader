@@ -19,4 +19,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           # skip merge commits, revert commits, and automated bot commits (Dependabot)
-          args: '--exclude-pattern "^(Merge|Revert)" --exclude-authors "dependabot\[bot\]@users\.noreply\.github\.com"'
+          args: '--exclude-pattern "^(Merge|Revert)" --exclude-emails "dependabot[bot]@users.noreply.github.com"'
