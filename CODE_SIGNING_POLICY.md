@@ -15,4 +15,4 @@ Windows installers (.msi) of PhotoUploader are signed through SignPath Foundatio
 
 **Privacy policy**
 
-This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. For full details, see our [Privacy Policy](../PRIVACY.md).
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. For full details, see our [Privacy Policy](PRIVACY.md).

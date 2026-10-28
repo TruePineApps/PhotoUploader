@@ -64,7 +64,7 @@ Commits and merges never release anything.
 
 Details, secrets and runbooks:
 - **[docs/RELEASING.md](docs/RELEASING.md)**: release setup, credentials management, security runbooks.
-- **[docs/CODE_SIGNING_POLICY.md](docs/CODE_SIGNING_POLICY.md)**: public code-signing policy text that SignPath Foundation requires on the README and the website.
+- **[docs/CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md)**: public code-signing policy text that SignPath Foundation requires on the README and the website.
 - **[docs/VERIFYING_DOWNLOADS.md](docs/VERIFYING_DOWNLOADS.md)**: user-facing text for verifying SHA-256 checksums and the GPG signature.
 
 ### 1. Versioning
