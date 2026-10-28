@@ -10,9 +10,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      actions-updates:
+        patterns:
+          - "*"
 
   # Check for updates to Gradle dependencies (libs.versions.toml)
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      gradle-updates:
+        patterns:
+          - "*"
