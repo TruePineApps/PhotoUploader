@@ -6,18 +6,13 @@
 
 ## Code signing policy
 
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-Windows installers (.msi) of PhotoUploader are signed through SignPath Foundation. Every release is built
-by an automated GitHub Actions workflow from the source code in this repository, and each signing request
-is approved manually before it is signed.
+Windows installers (.msi) of PhotoUploader are signed through SignPath Foundation. Free code signing is provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). Every release is built by an automated GitHub Actions workflow from the source code in this repository, and each signing request is approved manually before it is signed.
 
 **Team roles**
 
-- Committers and reviewers: True Pine Apps
-- Approvers: True Pine Apps
+- Committers and reviewers: [True Pine Apps Team](https://github.com/orgs/TruePineApps/people)
+- Approvers: [Marcel van Heerwaarden](https://github.com/mvanheerwaarden)
 
 **Privacy policy**
 
-This program will not transfer any information to other networked systems unless specifically requested
-by the user or the person installing or operating it.
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. For full details, see our [Privacy Policy](../PRIVACY.md).
