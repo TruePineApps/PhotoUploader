@@ -36,6 +36,7 @@ import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderVi
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.UiState
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.app_name
+import com.truepineapps.photouploader.resources.partial_path_suffix
 import com.truepineapps.photouploader.resources.photo_uploader
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -56,10 +57,15 @@ fun PhotoUploaderScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val appName = stringResource(Res.string.app_name)
+    val partialPathSuffix = stringResource(Res.string.partial_path_suffix)
 
     // Update TopAppBar title when path changes or on initial composition
-    LaunchedEffect(uiState.path) {
-        val title = uiState.path.ifBlank { appName }
+    LaunchedEffect(uiState.path, uiState.isScanPartial) {
+        val title = when {
+            uiState.path.isBlank() -> appName
+            uiState.isScanPartial -> uiState.path + partialPathSuffix
+            else -> uiState.path
+        }
         onUpdateTopAppBar(title, null) {}
     }
 

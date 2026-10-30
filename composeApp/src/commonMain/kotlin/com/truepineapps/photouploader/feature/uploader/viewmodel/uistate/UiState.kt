@@ -29,6 +29,8 @@ data class UiState(
     val isShowDirPicker: Boolean get() = viewState.status == AppStatus.CHOOSING_DIRECTORY
     val isSigningIn: Boolean get() = viewState.status == AppStatus.SIGNING_IN
     val isUploading: Boolean get() = viewState.status == AppStatus.UPLOADING
+    val isScanning: Boolean get() = viewState.isScanning
+    val isScanPartial: Boolean get() = viewState.isScanPartial
     val path: String get() = viewState.path
     val selectedAlbumId get() = viewState.selectedAlbumId
     val globalErrorMessage: UiText? get() = viewState.globalErrorMessage
@@ -43,6 +45,8 @@ data class UiState(
                 "isShowDirPicker=$isShowDirPicker, " +
                 "isSigningIn=$isSigningIn, " +
                 "isUploading=$isUploading, " +
+                "isScanning=$isScanning, " +
+                "isScanPartial=$isScanPartial, " +
                 "path='$path', " +
                 "globalErrorMessage=$globalErrorMessage, " +
                 "album size=${albumUiStates.size})"

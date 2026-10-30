@@ -25,11 +25,17 @@ import com.truepineapps.photouploader.core.util.FileUtils
 import com.truepineapps.photouploader.feature.uploader.domain.model.Album
 import com.truepineapps.photouploader.feature.uploader.domain.model.Photo
 import com.truepineapps.photouploader.feature.uploader.domain.repository.PhotoDirectoryRepository
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import okio.Path.Companion.toPath
 
 class PhotoDirectoryRepositoryImpl(
@@ -39,6 +45,13 @@ class PhotoDirectoryRepositoryImpl(
 
     private val _albums = MutableStateFlow<List<Album>>(emptyList())
     override val albums: StateFlow<List<Album>> = _albums.asStateFlow()
+    private val _isScanning = MutableStateFlow(false)
+    override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+    private val _isScanPartial = MutableStateFlow(false)
+    override val isScanPartial: StateFlow<Boolean> = _isScanPartial.asStateFlow()
+    private val scanCancellationRequested = MutableStateFlow(false)
+    private val scanGeneration = MutableStateFlow(0L)
+    private var activeScanGeneration: Long? = null
 
     var platformContext: PlatformContext? = null
     private var currentKmpFile: KmpFile? = null
@@ -47,8 +60,11 @@ class PhotoDirectoryRepositoryImpl(
     private var needsRefresh = true
 
     override fun setPath(kmpFile: KmpFile, platformContext: PlatformContext) {
+        invalidateCurrentScan()
         currentKmpFile = kmpFile
         this.platformContext = platformContext
+        _albums.value = emptyList()
+        _isScanPartial.value = false
         // A new path means we definitely need to scan
         needsRefresh = true
     }
@@ -62,58 +78,105 @@ class PhotoDirectoryRepositoryImpl(
 
     override val loadingState: Flow<DataLoadingState> = flow {
         // If we have data and don't need a forced refresh, emit Success immediately.
-        // This prevents re-scanning (and resetting user selections) when navigating back.
-        if (!needsRefresh && _albums.value.isNotEmpty()) {
+        // This prevents re-scanning (and resetting user selections) when navigating back, including empty and partial results.
+        if (!needsRefresh) {
             emit(DataLoadingState.Success)
             return@flow
         }
 
+        val generation = scanGeneration.value
+        scanCancellationRequested.value = false
+        _isScanPartial.value = false
+        val rootDir = currentKmpFile
+        val currentContext = platformContext
+        if (rootDir == null || currentContext == null) {
+            _albums.value = emptyList()
+            needsRefresh = false
+            emit(DataLoadingState.Success)
+            return@flow
+        }
+
+        activeScanGeneration = generation
+        _isScanning.value = true
         try {
             emit(DataLoadingState.Loading)
-            if (currentKmpFile != null) {
-                val result = scanDirectoryInternal(currentKmpFile)
-                _albums.value = result
-                needsRefresh = false
-            } else {
-                _albums.value = emptyList()
+            val result = withContext(Dispatchers.Default) {
+                scanDirectoryInternal(rootDir, currentContext, generation)
             }
+            // Discard results if a path change or reload superseded this scan.
+            if (generation != scanGeneration.value) {
+                log.d { "Discarding stale scan result for superseded scan" }
+                return@flow
+            }
+            _albums.value = result.albums
+            _isScanPartial.value = result.isPartial
+            needsRefresh = false
             emit(DataLoadingState.Success)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log.e(e) { "Exception while loading photos" }
             emit(DataLoadingState.Error(e))
+        } finally {
+            if (activeScanGeneration == generation) {
+                activeScanGeneration = null
+                _isScanning.value = false
+            }
         }
     }
 
     override fun prepareReload() {
+        invalidateCurrentScan()
         // Force a scan on the next collection
+        _isScanPartial.value = false
         needsRefresh = true
+    }
+
+    override fun cancelScan() {
+        scanCancellationRequested.value = true
+    }
+
+    private fun invalidateCurrentScan() {
+        scanGeneration.update { it + 1 }
+        scanCancellationRequested.value = false
+        activeScanGeneration = null
+        _isScanning.value = false
     }
 
     /**
      * Scans the directory structure starting from [rootDir] and returns a list of [Album]s.
      */
-    private fun scanDirectoryInternal(rootDir: KmpFile?): List<Album> {
-
-        requireNotNull(rootDir)
-
-        // Get a safe non-mutable context variable
-        val currentContext = platformContext ?: throw IllegalStateException("current platformContext is null")
-        log.d { "Scanning directory: ${platformFileSystem.getDisplayName(rootDir, currentContext)}" }
+    private suspend fun scanDirectoryInternal(
+        rootDir: KmpFile,
+        currentContext: PlatformContext,
+        generation: Long,
+    ): ScanResult {
+        log.d {
+            "Scanning directory: ${
+                platformFileSystem.getDisplayName(
+                    rootDir,
+                    currentContext
+                )
+            }"
+        }
 
         // The root itself might contain photos
         val albums = mutableListOf<Album>()
-        processDirectory(rootDir, null, "", albums, currentContext)
-
-        return albums
+        val completed = processDirectory(rootDir, null, "", albums, currentContext, generation)
+        return ScanResult(
+            albums = albums,
+            isPartial = !completed && generation == scanGeneration.value && scanCancellationRequested.value,
+        )
     }
 
-    private fun processDirectory(
+    private suspend fun processDirectory(
         currentDir: KmpFile,
         parentTitle: String?,
         groupName: String,
         albums: MutableList<Album>,
         currentContext: PlatformContext,
-    ) {
+        generation: Long,
+    ): Boolean {
         // Construct the album name based on the hierarchy
         val albumName: String
         val titlePrefix: String
@@ -131,25 +194,50 @@ class PhotoDirectoryRepositoryImpl(
         val entries = platformFileSystem.list(currentDir, currentContext)
         log.d { "Processing directory: $name with ${entries.size} entries" }
 
-        // 1. Identify photos in the current directory
-        val photoFiles = entries
-            .filter {
-                !platformFileSystem.isDir(it, currentContext) &&
-                FileUtils.isPhotoFile(platformFileSystem.getName(it, currentContext))
+        currentCoroutineContext().ensureActive()
+        if (generation != scanGeneration.value) {
+            return false
+        }
+
+        val photoFiles = mutableListOf<Photo>()
+        val subDirectories = mutableListOf<KmpFile>()
+        var wasCancelled = false
+
+        // 1. Loop all entries in the current directory
+        for (entry in entries) {
+            // Propagate cancellation of the job
+            currentCoroutineContext().ensureActive()
+            if (generation != scanGeneration.value) {
+                return false
             }
-            .sortedBy { platformFileSystem.getName(it, currentContext) }
-            .map { path ->
-                Photo(
-                    kmpFile = path,
-                    path = (platformFileSystem.getPath(path, currentContext) ?: "").toPath(),
-                    name = platformFileSystem.getName(path, currentContext) ?: "",
-                )
+            // Stop if the user canceled the scan, keep the partial result.
+            if (scanCancellationRequested.value) {
+                wasCancelled = true
+                break
             }
 
-        // 2. Identify Subdirectories
-        val subDirectories = entries
-            .filter { platformFileSystem.isDirectory(it, currentContext) }
-            .sortedBy { platformFileSystem.getPath(it, currentContext) }
+            // 2. Identify photos and subdirectories
+            if (platformFileSystem.isDirectory(entry, currentContext)) {
+                // Found a subdirectory in the current directory
+                subDirectories.add(entry)
+            } else {
+                val entryName = platformFileSystem.getName(entry, currentContext)
+                if (FileUtils.isPhotoFile(entryName)) {
+                    // Found a photo in the current directory
+                    photoFiles.add(
+                        Photo(
+                            kmpFile = entry,
+                            path = (platformFileSystem.getPath(entry, currentContext)
+                                ?: "").toPath(),
+                            name = entryName ?: "",
+                        )
+                    )
+                }
+            }
+        }
+
+        photoFiles.sortBy { it.name }
+        subDirectories.sortBy { platformFileSystem.getPath(it, currentContext) }
 
         // 3. Create an Album if there are photos
         if (photoFiles.isNotEmpty()) {
@@ -167,17 +255,41 @@ class PhotoDirectoryRepositoryImpl(
             )
         }
 
+        if (wasCancelled || scanCancellationRequested.value) {
+            return false
+        }
+
         // 4. Recurse
         for (subDir in subDirectories) {
+            currentCoroutineContext().ensureActive()
+            if (generation != scanGeneration.value) {
+                return false
+            }
+            if (scanCancellationRequested.value) {
+                return false
+            }
             // The names of the direct child dirs of rootDir are the sticky group headers in the UI
-            val group = if (parentTitle == null) platformFileSystem.getDisplayName(subDir, currentContext) else groupName
-            processDirectory(
+            val group = if (parentTitle == null) platformFileSystem.getDisplayName(
+                subDir,
+                currentContext
+            ) else groupName
+            val completed = processDirectory(
                 currentDir = subDir,
                 parentTitle = if (parentTitle == null) "" else titlePrefix,
                 groupName = group,
                 albums = albums,
                 currentContext = currentContext,
+                generation = generation,
             )
+            if (!completed) {
+                return false
+            }
         }
+        return true
     }
+
+    private data class ScanResult(
+        val albums: List<Album>,
+        val isPartial: Boolean,
+    )
 }

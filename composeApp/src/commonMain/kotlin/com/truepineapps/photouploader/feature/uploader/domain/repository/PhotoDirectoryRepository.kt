@@ -24,7 +24,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface PhotoDirectoryRepository : DataLoadingRepository {
     val albums: StateFlow<List<Album>>
+    val isScanning: StateFlow<Boolean>
+    val isScanPartial: StateFlow<Boolean>
     fun setPath(kmpFile: KmpFile, platformContext: PlatformContext)
+    fun cancelScan()
 
     // Allow updating albums from outside (e.g. toggling check boxes in ViewModel)
     fun updateAlbums(newAlbums: List<Album>)

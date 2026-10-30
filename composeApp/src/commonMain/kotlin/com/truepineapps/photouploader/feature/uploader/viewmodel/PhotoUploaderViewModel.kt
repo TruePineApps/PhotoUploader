@@ -141,6 +141,18 @@ class PhotoUploaderViewModel(
                 }
             }
             .launchIn(viewModelScope)
+
+        repository.isScanning
+            .onEach { isScanning ->
+                _viewState.update { it.copy(isScanning = isScanning) }
+            }
+            .launchIn(viewModelScope)
+
+        repository.isScanPartial
+            .onEach { isScanPartial ->
+                _viewState.update { it.copy(isScanPartial = isScanPartial) }
+            }
+            .launchIn(viewModelScope)
     }
 
     override fun getDisplayNameText(): UiText = UiTextResource(Res.string.photo_folders)
@@ -310,6 +322,10 @@ class PhotoUploaderViewModel(
         repository.setPath(kmpFile, platformContext)
         // Trigger the repository.albums flow to reload, causing the state to remap
         reload()
+    }
+
+    fun cancelDirectoryScan() {
+        repository.cancelScan()
     }
 
     fun updateShowDirPicker(isShowing: Boolean) {

@@ -3,6 +3,7 @@ package com.truepineapps.photouploader.ui.viewmodel
 import app.cash.turbine.test
 import co.touchlab.kermit.Logger
 import com.mohamedrejeb.calf.core.PlatformContext
+import com.truepineapps.photouploader.core.domain.state.DataLoadingState
 import com.truepineapps.photouploader.core.util.UiTextResource
 import com.truepineapps.photouploader.feature.uploader.data.dto.AlbumResponse
 import com.truepineapps.photouploader.feature.uploader.data.dto.BatchCreateMediaItemsRequest
@@ -107,7 +108,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle() // Wait for scan
+        awaitDirectoryScan(viewModel)
 
         // When the root path doesn't exist, the repository returns an empty album list.
         // Consequently, uploadPhotos returns null and performs no actions.
@@ -132,7 +133,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle() // Wait for scan
+        awaitDirectoryScan(viewModel)
 
         // When the root path is not a directory, the repository returns an empty album list.
         // UploadPhotos returns null.
@@ -157,7 +158,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle() // Wait for scan
+        awaitDirectoryScan(viewModel)
         signInAndUpload(viewModel, platformContext)
 
         // Verify requests
@@ -348,7 +349,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle()
+        awaitDirectoryScan(viewModel)
 
         // Disable one album
         val disabledAlbum = viewModel.uiState.value.getAlbumContaining("DisabledAlbum")
@@ -395,7 +396,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle()
+        awaitDirectoryScan(viewModel)
 
         // Rename album
         val album = viewModel.uiState.value.albumUiStates.first()
@@ -901,6 +902,14 @@ class UploadPhotosTest : KoinTest {
      * scan to complete, initiates the upload process, and then waits for the upload
      * to finish. This provides a standardized way to test the entire upload sequence.
      */
+    private suspend fun TestScope.awaitDirectoryScan(viewModel: PhotoUploaderViewModel) {
+        advanceUntilIdle()
+        viewModel.loadingState.first {
+            it is DataLoadingState.Success || it is DataLoadingState.Error
+        }
+        advanceUntilIdle()
+    }
+
     private suspend fun TestScope.uploadPhotos() {
         val viewModel: PhotoUploaderViewModel by inject()
         val platformContext = createTestPlatformContext()
@@ -911,7 +920,7 @@ class UploadPhotosTest : KoinTest {
         viewModel.updatePath(
             kmpFile = createTestKmpFile(ROOT_PATH), platformContext = platformContext
         )
-        advanceUntilIdle() // Wait for scan
+        awaitDirectoryScan(viewModel)
         signInAndUpload(viewModel, platformContext)
     }
 

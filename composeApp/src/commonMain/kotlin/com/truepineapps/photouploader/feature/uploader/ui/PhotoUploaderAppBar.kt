@@ -72,6 +72,7 @@ import com.truepineapps.photouploader.resources.sign_in
 import com.truepineapps.photouploader.resources.sign_in_menu
 import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.sign_out_menu
+import com.truepineapps.photouploader.resources.scanning_folder
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
@@ -117,10 +118,13 @@ fun PhotoUploaderAppBar(
     val uiState by viewModel.uiState.collectAsState()
     val isSigningIn = uiState.isSigningIn
     val isUploading = uiState.isUploading
-    val canChooseDirectory = uiState.idle() && isEnabled
+    val isScanning = uiState.isScanning
+    val canInteract = isEnabled && !isScanning
+    val canChooseDirectory = uiState.idle() && canInteract
     // Only allow uploading if we have albums, path is set, and not currently busy
     val canUploadPhotos =
-        uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && uiState.idle() && isEnabled
+        uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() &&
+                uiState.idle() && canInteract
     val userProfile = uiState.userProfile
 
     CenterAlignedTopAppBar(
@@ -145,29 +149,35 @@ fun PhotoUploaderAppBar(
                         closeDialog()
                         navigateUp()
                     },
-                    enabled = isEnabled
+                    enabled = canInteract
                 )
             } else if (canNavigateBack) {
                 ThemedIconButton(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescriptionResource = Res.string.back_button,
                     onClick = navigateUp,
-                    enabled = isEnabled
+                    enabled = canInteract
                 )
             } else if (userProfile != null) {
-                AvatarMenu(userProfile, isEnabled && uiState.idle()) { viewModel.signOut() }
+                AvatarMenu(userProfile, canInteract && uiState.idle()) { viewModel.signOut() }
             } else {
-                SignInMenu(isEnabled && uiState.idle()) { viewModel.signIn() }
+                SignInMenu(canInteract && uiState.idle()) { viewModel.signIn() }
             }
         },
         actions = {
-            actions()
-            ThemedIconButton(
-                imageVector = Icons.Filled.PermMedia,
-                contentDescriptionResource = Res.string.choose_folder,
-                enabled = canChooseDirectory,
-                onClick = showDirPicker
-            )
+            if (!isScanning) {
+                actions()
+                ThemedIconButton(
+                    imageVector = Icons.Filled.PermMedia,
+                    contentDescriptionResource = Res.string.choose_folder,
+                    enabled = canChooseDirectory,
+                    onClick = showDirPicker
+                )
+            } else {
+                ProgressMenu(stringResource(Res.string.scanning_folder)) {
+                    viewModel.cancelDirectoryScan()
+                }
+            }
             if (isUploading) {
                 ProgressMenu(stringResource(Res.string.uploading)) {
                     viewModel.cancelProcess()
@@ -180,7 +190,7 @@ fun PhotoUploaderAppBar(
                     onClick = onUploadClick,
                 )
             }
-            MoreMenu(isEnabled, moreMenuNavigator)
+            MoreMenu(canInteract, moreMenuNavigator)
         },
         colors = colors
     )

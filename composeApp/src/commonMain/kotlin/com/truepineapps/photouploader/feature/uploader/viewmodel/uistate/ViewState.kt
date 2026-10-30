@@ -25,6 +25,8 @@ data class ViewState(
     val status: AppStatus = AppStatus.IDLE,
     private val kmpFile: KmpFile? = null,
     val path: String = "",
+    val isScanning: Boolean = false,
+    val isScanPartial: Boolean = false,
     val selectedAlbumId: String? = null,
     val globalErrorMessage: UiText? = null,
     val uploadReport: UploadReport? = null,
