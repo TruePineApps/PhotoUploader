@@ -18,6 +18,7 @@ import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.util.normalizeWhitespace
 import com.truepineapps.photouploader.resources.Res
 import com.truepineapps.photouploader.resources.disclosure_summary
+import com.truepineapps.photouploader.resources.no_photos_found
 import com.truepineapps.photouploader.resources.select_photo_folder
 import org.jetbrains.compose.resources.stringResource
 
@@ -26,6 +27,7 @@ fun StartScreen(
     showDirPicker: () -> Unit,
     canChooseDirectory: Boolean,
     modifier: Modifier = Modifier,
+    hasNoPhotosFound: Boolean = false,
 ) {
     SubcomposeLayout(modifier = modifier) { constraints ->
         // --- Pass 1: probe the *natural* height of the content (icon block + disclosure text) ---
@@ -34,6 +36,7 @@ fun StartScreen(
             StartScreenContent(
                 showDirPicker = showDirPicker,
                 canChooseDirectory = canChooseDirectory,
+                hasNoPhotosFound = hasNoPhotosFound,
                 // measure it "naturally"
                 isScrollable = false,
                 isCalculation = true
@@ -48,6 +51,7 @@ fun StartScreen(
             StartScreenContent(
                 showDirPicker = showDirPicker,
                 canChooseDirectory = canChooseDirectory,
+                hasNoPhotosFound = hasNoPhotosFound,
                 isScrollable = needsScroll,
                 isCalculation = false
             )
@@ -65,9 +69,10 @@ fun StartScreen(
 private fun StartScreenContent(
     showDirPicker: () -> Unit,
     canChooseDirectory: Boolean,
+    modifier: Modifier = Modifier,
+    hasNoPhotosFound: Boolean = false,
     isScrollable: Boolean = false,
     isCalculation: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     val columnModifier = if (isScrollable && !isCalculation) {
@@ -87,7 +92,7 @@ private fun StartScreenContent(
             },
             contentAlignment = Alignment.Center
         ) {
-            IconBlock(showDirPicker, canChooseDirectory)
+            IconBlock(showDirPicker, canChooseDirectory, hasNoPhotosFound)
         }
 
         DisclosureText()
@@ -95,8 +100,20 @@ private fun StartScreenContent(
 }
 
 @Composable
-private fun IconBlock(showDirPicker: () -> Unit, canChooseDirectory: Boolean) {
+private fun IconBlock(
+    showDirPicker: () -> Unit,
+    canChooseDirectory: Boolean,
+    hasNoPhotosFound: Boolean = false,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (hasNoPhotosFound) {
+            Text(
+                text = stringResource(Res.string.no_photos_found),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(Dimensions.padding_medium)
+            )
+        }
         ThemedIconButton(
             imageVector = Icons.Filled.PermMedia,
             contentDescriptionResource = Res.string.select_photo_folder,

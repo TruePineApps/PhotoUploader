@@ -125,7 +125,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
     // The scroll state of the overview must not be applied to the other screens
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
-    val isStartScreenState = uiState.albumUiStates.isEmpty() && uiState.path.isEmpty()
+    val isStartScreenState = uiState.albumUiStates.isEmpty()
     val scrollBehavior = if (currentRoute == PhotoUploaderDestination.route && !isStartScreenState) {
         TopAppBarDefaults.enterAlwaysScrollBehavior()
     } else {

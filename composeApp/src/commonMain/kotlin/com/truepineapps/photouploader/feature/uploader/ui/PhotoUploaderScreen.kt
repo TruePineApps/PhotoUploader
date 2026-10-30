@@ -71,13 +71,14 @@ fun PhotoUploaderScreen(
 
     LoadingScreen(loadingViewModel = viewModel, log = log, modifier = modifier) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.albumUiStates.isEmpty() && uiState.path.isEmpty()) {
+            if (uiState.albumUiStates.isEmpty()) {
                 StartScreen(
                     showDirPicker = showDirPicker,
-                    canChooseDirectory = !uiState.isUploading,
+                    canChooseDirectory = !uiState.isUploading && !uiState.isScanning,
+                    hasNoPhotosFound = uiState.path.isNotEmpty() && !uiState.isScanning,
                     modifier = Modifier.fillMaxSize()
                 )
-            } else if (uiState.albumUiStates.isNotEmpty()) {
+            } else {
                 BoxWithConstraints {
                     FolderContent(
                         uiState = uiState,
