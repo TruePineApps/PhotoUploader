@@ -7,12 +7,12 @@ True Pine Apps (https://www.truepineapps.com/).
 THIRD-PARTY SOFTWARE NOTICES
 ============================================================
 
-Total Unique Packages: 279
+Total Unique Packages: 280
 Note: Where packages are listed under combined license headers (e.g., Apache-2.0 OR LGPL),
 True Pine Apps distributes them under the Apache-2.0 license.
 
 ------------------------------------------------------------
-Apache-2.0 (268 packages)
+Apache-2.0 (269 packages)
 https://www.apache.org/licenses/LICENSE-2.0
 ------------------------------------------------------------
   androidx.annotation:annotation:1.9.1  (https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1)
