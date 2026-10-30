@@ -45,7 +45,7 @@ fun MoreMenu(
     platformInfo: PlatformInfo = koinInject(),
 ) {
     // The expanded state of the dropdown menu.
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember(isEnabled) { mutableStateOf(false) }
 
     ThemedIconButton(
         imageVector = Icons.Filled.MoreVert,
@@ -54,36 +54,36 @@ fun MoreMenu(
         onClick = { expanded = true }
     )
     DropdownMenu(
-        expanded = expanded,
+        expanded = expanded && isEnabled,
         onDismissRequest = { expanded = false }
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.preferences)) },
             onClick = {
-                moreMenuNavigator.navigateToSettings()
                 expanded = false
+                moreMenuNavigator.navigateToSettings()
             }
         )
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.about)) },
             onClick = {
-                moreMenuNavigator.navigateToAbout()
                 expanded = false
+                moreMenuNavigator.navigateToAbout()
             }
         )
         DropdownMenuItem(
             text = { Text(stringResource(Res.string.legal)) },
             onClick = {
-                moreMenuNavigator.navigateToLegalHub()
                 expanded = false
+                moreMenuNavigator.navigateToLegalHub()
             }
         )
         if (platformInfo.isDebugBuild) {
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.debug_actions)) },
                 onClick = {
-                    moreMenuNavigator.navigateToDebugActions()
                     expanded = false
+                    moreMenuNavigator.navigateToDebugActions()
                 }
             )
         }

@@ -33,7 +33,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -68,11 +67,11 @@ import com.truepineapps.photouploader.resources.choose_folder
 import com.truepineapps.photouploader.resources.close_button
 import com.truepineapps.photouploader.resources.connected_as
 import com.truepineapps.photouploader.resources.google_icon
+import com.truepineapps.photouploader.resources.scanning_folder
 import com.truepineapps.photouploader.resources.sign_in
 import com.truepineapps.photouploader.resources.sign_in_menu
 import com.truepineapps.photouploader.resources.sign_out
 import com.truepineapps.photouploader.resources.sign_out_menu
-import com.truepineapps.photouploader.resources.scanning_folder
 import com.truepineapps.photouploader.resources.upload_photos
 import com.truepineapps.photouploader.resources.uploading
 import com.truepineapps.photouploader.resources.waiting_for_browser_sign_in
@@ -98,7 +97,6 @@ import org.jetbrains.compose.resources.stringResource
  *   . About
  *   . Licenses
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoUploaderAppBar(
     moreMenuNavigator: MoreMenuNavigator,
@@ -119,12 +117,10 @@ fun PhotoUploaderAppBar(
     val isSigningIn = uiState.isSigningIn
     val isUploading = uiState.isUploading
     val isScanning = uiState.isScanning
-    val canInteract = isEnabled && !isScanning
-    val canChooseDirectory = uiState.idle() && canInteract
+    val canInteract = isEnabled && uiState.idle() && !isScanning
     // Only allow uploading if we have albums, path is set, and not currently busy
     val canUploadPhotos =
-        uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() &&
-                uiState.idle() && canInteract
+        uiState.albumUiStates.isNotEmpty() && uiState.path.isNotBlank() && canInteract
     val userProfile = uiState.userProfile
 
     CenterAlignedTopAppBar(
@@ -159,9 +155,9 @@ fun PhotoUploaderAppBar(
                     enabled = canInteract
                 )
             } else if (userProfile != null) {
-                AvatarMenu(userProfile, canInteract && uiState.idle()) { viewModel.signOut() }
+                AvatarMenu(userProfile, canInteract) { viewModel.signOut() }
             } else {
-                SignInMenu(canInteract && uiState.idle()) { viewModel.signIn() }
+                SignInMenu(canInteract) { viewModel.signIn() }
             }
         },
         actions = {
@@ -170,7 +166,7 @@ fun PhotoUploaderAppBar(
                 ThemedIconButton(
                     imageVector = Icons.Filled.PermMedia,
                     contentDescriptionResource = Res.string.choose_folder,
-                    enabled = canChooseDirectory,
+                    enabled = canInteract,
                     onClick = showDirPicker
                 )
             } else {
@@ -202,7 +198,7 @@ private fun SignInMenu(
     signIn: () -> Unit,
 ) {
     // The expanded state of the sign-in dropdown menu.
-    var signInExpanded by remember { mutableStateOf(false) }
+    var signInExpanded by remember(isEnabled) { mutableStateOf(false) }
 
     Box {
         Image(
@@ -210,18 +206,18 @@ private fun SignInMenu(
             contentDescription = stringResource(Res.string.sign_in_menu),
             modifier = Modifier
                 .size(Dimensions.medium_icon_size)
-                .clickable { if (isEnabled) signInExpanded = true }
+                .clickable(enabled = isEnabled) { signInExpanded = true }
                 .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
         )
         DropdownMenu(
-            expanded = signInExpanded,
+            expanded = signInExpanded && isEnabled,
             onDismissRequest = { signInExpanded = false }
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.sign_in)) },
                 onClick = {
-                    signIn()
                     signInExpanded = false
+                    signIn()
                 }
             )
         }
@@ -271,7 +267,7 @@ fun AvatarMenu(
     signOut: () -> Unit,
 ) {
     // The expanded state of the avatar dropdown menu.
-    var avatarExpanded by remember { mutableStateOf(false) }
+    var avatarExpanded by remember(isEnabled) { mutableStateOf(false) }
 
     Box {
         if (userProfile.avatarUrl != null) {
@@ -287,7 +283,7 @@ fun AvatarMenu(
                     .size(Dimensions.medium_icon_size)
                     .clip(CircleShape)
                     .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value)
-                    .clickable { if (isEnabled) avatarExpanded = true }
+                    .clickable(enabled = isEnabled) { avatarExpanded = true }
             )
         } else {
             // Fallback icon if no avatar URL
@@ -300,7 +296,7 @@ fun AvatarMenu(
             )
         }
         DropdownMenu(
-            expanded = avatarExpanded,
+            expanded = avatarExpanded && isEnabled,
             onDismissRequest = { avatarExpanded = false }
         ) {
             val displayName = if (userProfile.email != null) {
@@ -316,8 +312,8 @@ fun AvatarMenu(
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.sign_out)) },
                 onClick = {
-                    signOut()
                     avatarExpanded = false
+                    signOut()
                 }
             )
         }
