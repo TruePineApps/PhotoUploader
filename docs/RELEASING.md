@@ -96,7 +96,7 @@ Developer ID: you create the certificate yourself below.
 2. developer.apple.com → Account → *Certificates, IDs & Profiles* → *Certificates* → **+** → *Developer ID
    Application* → profile type *G2 Sub-CA* → upload the CSR → download `developerID_application.cer`.
 3. Double-click the `.cer`. In Keychain Access → *login* → *My Certificates*, the entry
-   "Developer ID Application: Your Name (ABCDE12345)" must show a private key when you expand its arrow. If
+   "Developer ID Application: Your Name (ABCDE12345)" must show a **private key** when you expand its arrow. If
    there is no key below it, you are on the wrong Mac or in the wrong keychain.
 
 **Step 2: find the identity text.** Run:
@@ -128,11 +128,11 @@ base64 -i developerID_application.p12 | pbcopy
 ```
 
 Paste it immediately into the secret `MACOS_CERT_P12_BASE64`, then copy any harmless text so the clipboard no
-longer holds the key. Store the `.p12` file itself in your password manager (this is your only backup; Apple
-cannot re-issue the private key).
+longer holds the key. Store the `.p12` file itself in your password manager (this is your only backup of the local Keychain private key; Apple does not hold your private key and cannot re-issue it).
 
 **Step 5: create the notarization API key.** App Store Connect → *Users and Access* → *Integrations* →
-*App Store Connect API* → *Team Keys*. The first time, the Account Holder may have to click *Request Access*.
+*App Store Connect API* → *Team Keys*. 
+The first time, the Account Holder may have to click *Request Access*, to agree with the condition that the App Store Connect API is for internal development, testing, and reporting purposes within the team only, and lets you automate key parts of your own internal workflow.
 Then **+** → name `GitHub notarization`, access *Developer*. You need three values from this page:
 
 | What you see &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Where on the page                                       | GitHub secret                            |
@@ -308,7 +308,7 @@ Put a calendar reminder in 11 months. To extend the primary key use `gpg --quick
 
 ### 4.4 cPanel Upload Key
 
-Use a dedicated SSH key pair for the upload, so it can be revoked without touching anything else. This limits exposure if the secret is ever compromised and makes it easy to revoke access for GitHub without affecting your own access.Do this on your own computer.
+Use a dedicated SSH key pair for the upload, so it can be revoked without touching anything else. This limits exposure if the secret is ever compromised and makes it easy to revoke access for GitHub without affecting your own access. Do this on your own computer.
 
 **Step 1: create the key pair.**
 
