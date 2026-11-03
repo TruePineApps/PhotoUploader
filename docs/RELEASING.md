@@ -321,58 +321,90 @@ This creates **two** files. `-N ""` means no passphrase, which is required becau
 * `photouploader_deploy`: the **private** key. It goes to GitHub only (secret `WEBSITE_SSH_KEY`).
 * `photouploader_deploy.pub`: the **public** key (one line, starts with `ssh-ed25519`). It goes to cPanel only.
 
-**Step 2: authorize the public key in cPanel.** cPanel → *Security* → *SSH Access* → *Manage SSH Keys* →
-*Import Key*. Enter a name (e.g. `github-actions-photouploader`), leave the **private key box empty**, paste the
-whole content of `photouploader_deploy.pub` into the public key box and click *Import*. Then go back to
-*Manage SSH Keys*, click *Manage* next to the new key, and **Authorize** it. If *SSH Access* is missing in
-cPanel, ask your host to enable it.
+**Step 2: authorize the public key in cPanel.
+** cPanel → *Security* → *SSH Access* → *Manage SSH Keys* → *Import Key*. 
+Enter a name (e.g. `github-actions-photouploader`), leave the **private key box empty**, paste the
+whole content of `photouploader_deploy.pub` into the public key box and click *Import*. 
+Then go back to *Manage SSH Keys*, click *Manage* next to the new key, and **Authorize** it. 
+If *SSH Access* is missing in cPanel, ask your host to enable it.
 
 **Step 3: collect the connection values.**
 
-| GitHub secret &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | How to get it                                                                                                                                                                           |
-| :------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `WEBSITE_HOST`                                          | The server name you connect to, e.g. `server42.example-host.com` or your domain. Use the same name in step 4.                                                                           |
-| `WEBSITE_USER`                                          | Your cPanel username (shown in cPanel under *General Information*).                                                                                                                     |
-| `WEBSITE_PORT`                                          | The SSH port from your host's documentation or the *SSH Access* page; 22 or a custom port.                                                                                              |
-| `WEBSITE_DOWNLOAD_DIR`                                  | The absolute folder for releases, e.g. `/home/USER/public_html/photouploader/downloads`. Find the home directory with the test in step 5; the workflow creates the version sub-folders. |
+| GitHub secret &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | How to get it                                                                                                                                                                    |
+|:--------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `WEBSITE_HOST`                                          | The server name you connect to, e.g. `server42.example-host.com` or your domain. Use the same name in step 4.                                                                    |
+| `WEBSITE_USER`                                          | Your cPanel username (shown in cPanel under *General Information*).                                                                                                              |
+| `WEBSITE_PORT`                                          | The SSH port from your host's documentation or the *SSH Access* page; 22 or a custom port.                                                                                       |
+| `WEBSITE_DOWNLOAD_DIR`                                  | The absolute folder for releases, e.g. `/home/USER/apps/photouploader/downloads`. Find the home directory with the test in step 5; the workflow creates the version sub-folders. |
 
-**Step 4: pin the server (`WEBSITE_KNOWN_HOSTS`).**
-
-```bash
-ssh-keyscan -p PORT -t ed25519 HOST
-```
-
-The line(s) it prints (not the comment line starting with `#`) go **unchanged** into the secret
-`WEBSITE_KNOWN_HOSTS`. Before you trust them, check the fingerprint against your host (cPanel or support):
+**Step 4: Check the key.** 
+Set `HOST`, `PORT`, and `USER` as terminal variables (collected in Step 3), or replace them directly in the commands below:
 
 ```bash
-ssh-keyscan -p PORT -t ed25519 HOST | ssh-keygen -lf -
+HOST="your-server-hostname.com"
+PORT="22"
+USER="your_cpanel_username"
 ```
 
+Before you trust them, check the fingerprint against your host (cPanel (Server Information? Account details?) or welcome email?).
+```bash
+ssh-keyscan -p "$PORT" -t ed25519 "$HOST" | ssh-keygen -lf -
+```
 If the server has no ed25519 host key, run the command with `-t ecdsa` or `-t rsa` instead.
+
+Alternatives: 
+1. If you already logged in from your machine to the remote machine, you can verify with the server's host key in the local `~/.ssh/known_hosts`:
+Run 'ssh-keygen -l -f ~/.ssh/known_hosts'
+Verify that the output of the first command is contained in the output of the second command.
+2. Continue with step 5. If it is the first time connecting with that command, OpenSSH will print the server's host key fingerprint directly in your terminal:
+```text
+The authenticity of host 'photouploader.truepineapps.com (123.45.67.89)' can't be established.
+ED25519 key fingerprint is SHA256:aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4c.
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+You can compare that terminal prompt directly against your ssh-keyscan fingerprint.
 
 **Step 5: test the whole chain before the first release.**
 
 ```bash
-ssh -i photouploader_deploy -p PORT -o IdentitiesOnly=yes USER@HOST 'echo connected; pwd'
+ssh -i photouploader_deploy -p "$PORT" -o IdentitiesOnly=yes "$USER@$HOST" 'echo connected; pwd'
 echo test > test.txt
-scp -i photouploader_deploy -P PORT -o IdentitiesOnly=yes test.txt USER@HOST:/home/USER/public_html/
+scp -i photouploader_deploy -P "$PORT" -o IdentitiesOnly=yes test.txt "$USER@$HOST":/home/"$USER"/apps/photouploader/downloads
 ```
 
-`pwd` prints your home directory, which is the start of `WEBSITE_DOWNLOAD_DIR`. Delete `test.txt` on the
+Run `ssh -i photouploader_deploy -p "$PORT" "$USER@$HOST"` to login the remote server.
+`pwd` prints your home directory, which must be equal to the start of `WEBSITE_DOWNLOAD_DIR`. Delete `test.txt` on the
 server afterward. If the login asks for a password, the key was not authorized in step 2.
+Run `exit` to come back to the local machine.
 
-**Step 6: store the private key.** Copy the **whole** file including the `-----BEGIN OPENSSH PRIVATE KEY-----`
+**Step 6: pin the server (`WEBSITE_KNOWN_HOSTS`).**
+```bash
+ssh-keyscan -p "$PORT" -t ed25519 "$HOST"
+```
+
+The line(s) it prints (not the comment line starting with `#`) go **unchanged** into the secret
+`WEBSITE_KNOWN_HOSTS`. 
+
+
+**Step 7: store the private key.** Copy the **whole** file including the `-----BEGIN OPENSSH PRIVATE KEY-----`
 and `-----END ...-----` lines into the secret `WEBSITE_SSH_KEY`:
 
+**Linux:**
 ```bash
-pbcopy < photouploader_deploy        # macOS;  Linux: xclip -selection clipboard < photouploader_deploy
+xclip -selection clipboard < photouploader_deploy
+```
+If xclip is not available, it can be installed with `sudo apt install xclip`.
+
+**macOS:**
+```bash
+pbcopy < photouploader_deploy  
 ```
 
+**Step 8: cleanup.**
 Then delete the local copies: `shred -u photouploader_deploy photouploader_deploy.pub` (macOS: `rm -P`).
 A backup is not needed: if the key is lost or leaks, create a new pair and replace the key in cPanel.
 
-Optional hardening: a dedicated cPanel account or SSH user whose home only contains the downloads folder.
+Optional hardening: a dedicated cPanel account or SSH user whose home only contains the Downloads folder.
 
 ### 4.5 Where Does Each Item Go?
 
