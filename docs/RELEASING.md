@@ -210,12 +210,7 @@ Then in SignPath:
 Finally, in GitHub (Environment `release`): add the secret and the three variables from the table, then set
 `WINDOWS_SIGNING` = `signpath`.
 
-How a release behaves: the `sign-windows` job submits the MSI, then **waits up to 3 hours for you to approve**
-the request in SignPath (you get an e-mail). After approval, it downloads the signed MSI and verifies the
-signature and signer name before publishing. SignPath only accepts workflows whose jobs all ran on
-GitHub-hosted runners (true for this workflow). SignPath Foundation may also configure pipeline policies for
-your project (e.g. branch rulesets); follow their onboarding instructions. Menu names in the SignPath web
-application may differ slightly from the ones above; their documentation is authoritative.
+How a release behaves: While `WINDOWS_SIGNING` is unset (initial release), the workflow passes the MSI through unsigned immediately with zero manual action required. Once `WINDOWS_SIGNING` = `signpath`, the `sign-windows` job submits the MSI and waits up to 3 hours for manual approval. You receive an e-mail with a link to log into [SignPath.org](https://signpath.org) and approve the Signing Request. Upon approval, the workflow automatically downloads the signed MSI, verifies the Authenticode signature and signer name, and continues the release. SignPath only accepts workflows whose jobs all ran on GitHub-hosted runners (true for this workflow). SignPath Foundation may also configure pipeline policies for your project (e.g. branch rulesets); follow their onboarding instructions. Menu names in the SignPath web application may differ slightly from the ones above; their documentation is authoritative.
 
 ### 4.3 Linux GPG Signature
 
