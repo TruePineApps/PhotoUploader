@@ -17,6 +17,8 @@
 package packaging
 
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -35,7 +37,7 @@ import java.util.Locale
  * 4. Adding a compressed changelog.gz.
  * 5. Standardizing file permissions and ownership.
  * 6. Adding LICENSE, NOTICE, OFL.txt and NOTICES to
- *    /opt/photo-uploader/share/doc/.
+ *    /opt/<packageName>/share/doc/.
  */
 abstract class PatchDebPackage : PackageTask() {
 
@@ -46,6 +48,9 @@ abstract class PatchDebPackage : PackageTask() {
     /** Debian-format copyright file to replace the generated one. */
     @get:InputFile
     abstract val copyrightSourceFile: RegularFileProperty
+
+    @get:Input
+    abstract val packageName: Property<String>
 
     @TaskAction
     override fun patchPackage() {
@@ -70,7 +75,7 @@ abstract class PatchDebPackage : PackageTask() {
             fixControlFile(extractDir)
             replaceCopyrightFile(extractDir)
             addChangelog(extractDir)
-            copyLicenseFiles(File(extractDir, "/opt/photo-uploader/share/doc"))
+            copyLicenseFiles(File(extractDir, "/opt/${packageName.get()}/share/doc"))
             copyLintianOverrides(extractDir)
 
             // Fix permissions and ownership before repacking
@@ -134,7 +139,8 @@ abstract class PatchDebPackage : PackageTask() {
     }
 
     private fun addChangelog(extractDir: File) {
-        val docDir = File(extractDir, "usr/share/doc/photo-uploader")
+        val pkg = packageName.get()
+        val docDir = File(extractDir, "usr/share/doc/$pkg")
         docDir.mkdirs()
         val changelogFile = File(docDir, "changelog")
         
@@ -144,7 +150,7 @@ abstract class PatchDebPackage : PackageTask() {
         )
         
         val content = """
-            photo-uploader (${appVersion.get()}) stable; urgency=medium
+            $pkg (${appVersion.get()}) stable; urgency=medium
 
               * Initial release.
 
@@ -181,10 +187,13 @@ abstract class PatchDebPackage : PackageTask() {
         val desktopFiles = extractDir.walk().filter {
             it.isFile && it.name.endsWith(".desktop") && !it.absolutePath.contains("/legal/")
         }
+        val pkg = packageName.get()
         if (desktopFiles.any()) {
             desktopFiles.forEach { desktopFile ->
-                desktopSource.copyTo(desktopFile, overwrite = true)
-                logger.lifecycle("Replaced .desktop file: ${desktopFile.absolutePath}")
+                val sourceText = desktopSource.readText()
+                val patchedText = sourceText.replace("/opt/photo-uploader/", "/opt/$pkg/")
+                desktopFile.writeText(patchedText)
+                logger.lifecycle("Replaced and patched .desktop file: ${desktopFile.absolutePath}")
             }
         } else {
             logger.warn("No .desktop files found in extracted .deb content")
@@ -193,8 +202,9 @@ abstract class PatchDebPackage : PackageTask() {
 
     private fun replaceCopyrightFile(extractDir: File) {
         val copyrightSource = copyrightSourceFile.asFile.get()
+        val pkg = packageName.get()
         // Debian standard location for copyright files
-        val copyrightTarget = File(extractDir, "/usr/share/doc/photo-uploader/copyright")
+        val copyrightTarget = File(extractDir, "/usr/share/doc/$pkg/copyright")
         copyrightTarget.parentFile.mkdirs()
         copyrightSource.copyTo(copyrightTarget, overwrite = true)
         logger.lifecycle("Replaced copyright file at standard location")
@@ -231,11 +241,21 @@ abstract class PatchDebPackage : PackageTask() {
         }
 
         // Make the main executable and launcher executable
-        val binDir = File(extractDir, "opt/photo-uploader/bin")
+        val pkg = packageName.get()
+        val binDir = File(extractDir, "opt/$pkg/bin")
         if (binDir.exists()) {
             execOperations.exec {
                 commandLine("find", binDir.absolutePath, "-type", "f", "-exec", "chmod", "755", "{}", "+")
             }
+            logger.lifecycle("Made binaries in ${binDir.absolutePath} executable (755)")
+        }
+
+        // Make Java runtime process spawn helpers executable (755) so ProcessBuilder can spawn processes (e.g. "sh")
+        execOperations.exec {
+            commandLine("bash", "-c", "find ${extractDir.absolutePath} -name jspawnhelper -exec chmod 755 {} +")
+        }
+        execOperations.exec {
+            commandLine("bash", "-c", "find ${extractDir.absolutePath} -name jexec -exec chmod 755 {} +")
         }
         
         // Ensure shared libraries are NOT executable (Lintian error)

@@ -106,7 +106,7 @@ compose.desktop {
 
             // Get PlatformVersion object for app name and version based on libs.versions.toml
             val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
-            packageName = versionInfo.appLabel
+            packageName = versionInfo.packageName
             packageVersion = versionInfo.numericVersion
             copyright = "© 2026 True Pine Apps. All rights reserved."
             vendor = "True Pine Apps"
@@ -183,6 +183,7 @@ afterEvaluate {
             sharedResourceDir.set(project.file(sharedResourceFiles))
             noticesFileName.set(noticesName)
             appVersion.set(versionInfo.numericVersion)
+            packageName.set(versionInfo.packageName)
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }

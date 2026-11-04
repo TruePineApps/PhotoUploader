@@ -60,18 +60,37 @@ open class ProjectVersion(project: Project) {
     val numericVersion: String = "$appMajor.$appMinor.$appPatch"
 
     /**
+     * Slug representation of stage (e.g., "beta" from "Beta 1").
+     */
+    val stageSlug: String = run {
+        if (appStage.isBlank()) ""
+        else appStage.lowercase().split(Regex("\\s+"))[0]
+    }
+
+    /**
+     * The package name / installer name (e.g., "photo-uploader" or "photo-uploader-beta").
+     */
+    val packageName: String = run {
+        val base = "photo-uploader"
+        if (stageSlug.isNotEmpty()) "$base-$stageSlug" else base
+    }
+
+    /**
      * Concise label for the OS (Launcher, Taskbar).
      * Avoids version numbers to prevent truncation and stable installation paths.
      */
-    val appLabel: String = if (appStage.isNotEmpty()) "$appName Beta" else appName
+    val appLabel: String = run {
+        val base = "Photo Uploader"
+        if (appStage.isNotEmpty()) "$base $appStage" else base
+    }
 
     /**
      * Unique application identifier.
-     * Uses a stable '.beta' suffix for all non-production stages to ensure
-     * that new beta versions upgrade previous ones.
+     * Uses a stable stage suffix for all non-production stages to ensure
+     * side-by-side installation.
      */
     val appId: String = run {
         val baseId = catalog.findVersion("cfg-appId").get().requiredVersion
-        if (appStage.isNotEmpty()) "$baseId.beta" else baseId
+        if (stageSlug.isNotEmpty()) "$baseId.$stageSlug" else baseId
     }
 }
