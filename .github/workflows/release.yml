@@ -145,18 +145,10 @@ jobs:
 
   # macOS: Compose signs the app during packaging, so the certificate must be in this job.
   # The .dmg is then signed, notarized and stapled.
-  # Builds both Apple Silicon (arm64) and Intel (x64) binaries.
   build-macos:
-    name: Build, sign and notarize macOS (${{ matrix.arch }})
+    name: Build, sign and notarize macOS (.dmg)
     needs: [verify, test]
-    strategy:
-      matrix:
-        include:
-          - os: macos-15
-            arch: arm64
-          - os: macos-13
-            arch: x64
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-15            # Apple silicon -> arm64 app.
     environment: release
     timeout-minutes: 90
     env:
@@ -242,7 +234,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: signed-macos-${{ matrix.arch }}
+          name: signed-macos
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
           if-no-files-found: error
           retention-days: 3
@@ -355,8 +347,7 @@ jobs:
           cp incoming/signed-linux/*.deb        "dist/$P-linux-amd64.deb"
           cp incoming/signed-linux/*.deb.asc    "dist/$P-linux-amd64.deb.asc"
           cp incoming/signed-windows/*.msi      "dist/$P-windows-x64.msi"
-          cp incoming/signed-macos-arm64/*.dmg  "dist/$P-macos-arm64.dmg"
-          cp incoming/signed-macos-x64/*.dmg    "dist/$P-macos-x64.dmg"
+          cp incoming/signed-macos/*.dmg        "dist/$P-macos-arm64.dmg"
 
       - name: Write and sign SHA256SUMS.txt
         env:
