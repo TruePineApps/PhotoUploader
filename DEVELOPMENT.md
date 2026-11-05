@@ -37,6 +37,20 @@ Run these commands from the project root:
 - **Build:** Open the `iosApp/iosApp.xcworkspace` in Xcode.
 - **Run:** Use the run configuration in Xcode or Android Studio (with KMP plugin).
 
+### Testing Unsigned CI Builds & Injecting Client Secrets
+
+Every push or Pull Request triggers GitHub Actions CI builds that upload unsigned installer artifacts (`unsigned-linux`, `unsigned-windows`, `unsigned-macos-arm`, `unsigned-macos-intel`) under the **Artifacts** section at the bottom of any CI workflow run on GitHub.
+
+To download and test a CI build locally:
+
+1. **Download & Install**: Download the `.zip` artifact from the GitHub Actions run summary page, extract it, and install the package.
+2. **Bypass macOS Gatekeeper (macOS only)**: For unsigned CI test builds on macOS, right-click `photo-uploader-beta.app` in Finder $\rightarrow$ select **Open** to allow Gatekeeper to launch the application.
+3. **Inject Google OAuth Credentials**: For security reasons, CI test builds omit production secrets (`client_secrets.json`). To test Google Sign-In on an installed CI test build, run the helper script from the project root:
+    - **macOS:** `sudo ./inject-client-secrets.sh /Applications/photo-uploader-beta.app`
+    - **Linux:** `sudo ./inject-client-secrets.sh /opt/photo-uploader-beta`
+    - **Windows (Git Bash):** `./inject-client-secrets.sh "/c/Program Files/Photo-Uploader"`
+    - **Windows (CMD / PowerShell):** `bash inject-client-secrets.sh "C:/Program Files/Photo-Uploader"`
+
 ---
 
 ## 🏗️ Project Structure
