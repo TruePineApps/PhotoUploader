@@ -3,8 +3,8 @@
 # Inject client_secrets.json from the local project repository into an installed CI test app.
 #
 # Usage:
-#   macOS:                   sudo ./inject-client-secrets.sh /Applications/photo-uploader-beta.app
-#   Linux:                   sudo ./inject-client-secrets.sh /opt/photo-uploader-beta
+#   macOS:                   sudo ./inject-client-secrets.sh /Applications/photo-uploader.app
+#   Linux:                   sudo ./inject-client-secrets.sh /opt/photo-uploader
 #   Windows/bash:            ./inject-client-secrets.sh "/c/Program Files/Photo-Uploader"
 #   Windows/CMD & PowerShell: bash inject-client-secrets.sh "C:/Program Files/Photo-Uploader"
 #
@@ -24,8 +24,8 @@ if [ "$#" -ne 1 ]; then
     echo "Usage: [sudo] $0 <path-to-installed-app-or-bundle>"
     echo ""
     echo "Examples:"
-    echo "  macOS:                   sudo $0 /Applications/photo-uploader-beta.app"
-    echo "  Linux:                   sudo $0 /opt/photo-uploader-beta"
+    echo "  macOS:                   sudo $0 /Applications/photo-uploader.app"
+    echo "  Linux:                   sudo $0 /opt/photo-uploader"
     echo "  Windows/bash:            $0 \"/c/Program Files/Photo-Uploader\""
     echo "  Windows/CMD & PowerShell: bash $0 \"C:/Program Files/Photo-Uploader\""
     exit 1
@@ -38,22 +38,42 @@ if [ ! -e "$TARGET" ]; then
     exit 1
 fi
 
-# Detect resources directory inside macOS .app bundle, Linux /opt install, or Windows Program Files
-if [ -d "$TARGET/Contents/app/resources" ]; then
-    DEST_DIR="$TARGET/Contents/app/resources"
-elif [ -d "$TARGET/lib/app/resources" ]; then
-    DEST_DIR="$TARGET/lib/app/resources"
-elif [ -d "$TARGET/app/resources" ]; then
-    DEST_DIR="$TARGET/app/resources"
-elif [ -d "$TARGET" ]; then
-    DEST_DIR="$TARGET"
+# Detect resources directories inside macOS .app bundle, Linux /opt install, or Windows Program Files
+DEST_DIRS=()
+
+if [ -d "$TARGET/Contents" ]; then
+    # macOS .app bundle
+    DEST_DIRS+=("$TARGET/Contents/app" "$TARGET/Contents/app/resources" "$TARGET/Contents/Resources")
+elif [ -d "$TARGET/lib/app" ]; then
+    # Linux /opt install
+    DEST_DIRS+=("$TARGET/lib/app" "$TARGET/lib/app/resources")
+elif [ -d "$TARGET/app" ]; then
+    # Windows Program Files
+    DEST_DIRS+=("$TARGET/app" "$TARGET/app/resources")
 else
-    echo "Error: Could not determine resources directory inside: $TARGET"
-    exit 1
+    DEST_DIRS+=("$TARGET")
 fi
 
-mkdir -p "$DEST_DIR"
-cp -v "$SOURCE_SECRETS" "$DEST_DIR/client_secrets.json"
+for dir in "${DEST_DIRS[@]}"; do
+    mkdir -p "$dir"
+    cp -v "$SOURCE_SECRETS" "$dir/client_secrets.json"
+done
 
-echo "Successfully injected client_secrets.json into:"
-echo "  $DEST_DIR/client_secrets.json"
+# Inject client_secrets.json directly into composeApp JAR archives so java.getResourceAsStream("/client_secrets.json") finds it
+mapfile -t JAR_FILES < <(find "$TARGET" -name "composeApp*.jar" 2>/dev/null || true)
+if [ ${#JAR_FILES[@]} -gt 0 ] && [ -f "${JAR_FILES[0]}" ]; then
+    SECRETS_DIR="$(dirname "$SOURCE_SECRETS")"
+    SECRETS_FILE="$(basename "$SOURCE_SECRETS")"
+    for jar in "${JAR_FILES[@]}"; do
+        if [ -f "$jar" ]; then
+            echo "Updating JAR archive: $jar"
+            if command -v jar >/dev/null 2>&1; then
+                (cd "$SECRETS_DIR" && jar uf "$jar" "$SECRETS_FILE")
+            elif command -v zip >/dev/null 2>&1; then
+                (cd "$SECRETS_DIR" && zip -u "$jar" "$SECRETS_FILE")
+            fi
+        fi
+    done
+fi
+
+echo "Successfully injected client_secrets.json into app bundle and JAR."
