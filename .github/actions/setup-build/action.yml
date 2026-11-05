@@ -5,6 +5,9 @@ inputs:
   cache-disabled:
     description: "Set to 'true' for release builds so no cache from other runs can influence the artifacts."
     default: "false"
+  architecture:
+    description: "Target JDK architecture (x64 or arm64)."
+    default: "x64"
 
 runs:
   using: composite
@@ -14,6 +17,7 @@ runs:
       with:
         distribution: temurin
         java-version: "21"   # also exports JAVA_HOME, which desktopApp/build.gradle.kts uses on CI
+        architecture: ${{ inputs.architecture }}
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v5

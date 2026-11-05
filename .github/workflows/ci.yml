@@ -50,12 +50,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: linux,   os: ubuntu-24.04,   task: ":desktopApp:packageReleaseDeb", glob: "desktopApp/build/compose/binaries/main-release/deb/*.deb" }
-          - { name: windows, os: windows-2025,   task: ":desktopApp:packageReleaseMsi", glob: "desktopApp/build/compose/binaries/main-release/msi/*.msi" }
-          - { name: macos,   os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg" }
+          - { name: linux,       os: ubuntu-24.04,   task: ":desktopApp:packageReleaseDeb", glob: "desktopApp/build/compose/binaries/main-release/deb/*.deb", arch: "x64" }
+          - { name: windows,     os: windows-2025,   task: ":desktopApp:packageReleaseMsi", glob: "desktopApp/build/compose/binaries/main-release/msi/*.msi", arch: "x64" }
+          - { name: macos-arm,   os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg", arch: "arm64" }
+          - { name: macos-intel, os: macos-15,       task: ":desktopApp:packageReleaseDmg", glob: "desktopApp/build/compose/binaries/main-release/dmg/*.dmg", arch: "x64" }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
+        with:
+          architecture: ${{ matrix.arch }}
       # Tests run on Linux only, because unit tests are pure JVM tests
       - name: Run all tests
         if: matrix.os == 'ubuntu-24.04'

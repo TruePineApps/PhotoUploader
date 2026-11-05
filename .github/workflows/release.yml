@@ -145,10 +145,18 @@ jobs:
 
   # macOS: Compose signs the app during packaging, so the certificate must be in this job.
   # The .dmg is then signed, notarized and stapled.
+  # Builds both Apple Silicon (arm64) and Intel (x64) binaries on macos-15.
   build-macos:
-    name: Build, sign and notarize macOS (.dmg)
+    name: Build, sign and notarize macOS (${{ matrix.arch }})
     needs: [verify, test]
-    runs-on: macos-15            # Apple silicon -> arm64 app.
+    strategy:
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+          - os: macos-15
+            arch: x64
+    runs-on: ${{ matrix.os }}
     environment: release
     timeout-minutes: 90
     env:
@@ -157,7 +165,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
-        with: { cache-disabled: "true" }
+        with:
+          cache-disabled: "true"
+          architecture: ${{ matrix.arch }}
 
       - name: Write Google OAuth client config
         env: { GOOGLE_CLIENT_SECRETS_JSON: "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" }
@@ -234,7 +244,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: signed-macos
+          name: signed-macos-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
           if-no-files-found: error
           retention-days: 3
@@ -347,7 +357,8 @@ jobs:
           cp incoming/signed-linux/*.deb        "dist/$P-linux-amd64.deb"
           cp incoming/signed-linux/*.deb.asc    "dist/$P-linux-amd64.deb.asc"
           cp incoming/signed-windows/*.msi      "dist/$P-windows-x64.msi"
-          cp incoming/signed-macos/*.dmg        "dist/$P-macos-arm64.dmg"
+          cp incoming/signed-macos-arm64/*.dmg  "dist/$P-macos-arm64.dmg"
+          cp incoming/signed-macos-x64/*.dmg    "dist/$P-macos-x64.dmg"
 
       - name: Write and sign SHA256SUMS.txt
         env:
