@@ -60,20 +60,18 @@ for dir in "${DEST_DIRS[@]}"; do
 done
 
 # Inject client_secrets.json directly into composeApp JAR archives so java.getResourceAsStream("/client_secrets.json") finds it
-mapfile -t JAR_FILES < <(find "$TARGET" -name "composeApp*.jar" 2>/dev/null || true)
-if [ ${#JAR_FILES[@]} -gt 0 ] && [ -f "${JAR_FILES[0]}" ]; then
-    SECRETS_DIR="$(dirname "$SOURCE_SECRETS")"
-    SECRETS_FILE="$(basename "$SOURCE_SECRETS")"
-    for jar in "${JAR_FILES[@]}"; do
-        if [ -f "$jar" ]; then
-            echo "Updating JAR archive: $jar"
-            if command -v jar >/dev/null 2>&1; then
-                (cd "$SECRETS_DIR" && jar uf "$jar" "$SECRETS_FILE")
-            elif command -v zip >/dev/null 2>&1; then
-                (cd "$SECRETS_DIR" && zip -u "$jar" "$SECRETS_FILE")
-            fi
+SECRETS_DIR="$(dirname "$SOURCE_SECRETS")"
+SECRETS_FILE="$(basename "$SOURCE_SECRETS")"
+
+while IFS= read -r jar; do
+    if [ -f "$jar" ]; then
+        echo "Updating JAR archive: $jar"
+        if command -v jar >/dev/null 2>&1; then
+            (cd "$SECRETS_DIR" && jar uf "$jar" "$SECRETS_FILE")
+        elif command -v zip >/dev/null 2>&1; then
+            (cd "$SECRETS_DIR" && zip -u "$jar" "$SECRETS_FILE")
         fi
-    done
-fi
+    fi
+done < <(find "$TARGET" -name "composeApp*.jar" 2>/dev/null || true)
 
 echo "Successfully injected client_secrets.json into app bundle and JAR."
