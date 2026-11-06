@@ -30,6 +30,7 @@ class NoticesRenderer(
         "MIT" to "https://opensource.org/licenses/MIT",
         "BSD-2-Clause" to "https://opensource.org/licenses/BSD-2-Clause",
         "BSD-3-Clause" to "https://opensource.org/licenses/BSD-3-Clause",
+        "BSD-4-Clause" to "https://opensource.org/licenses/BSD-4-Clause",
         "LGPL-2.1-only" to "https://www.gnu.org/licenses/lgpl-2.1",
         "LGPL-2.1-or-later" to "https://www.gnu.org/licenses/lgpl-2.1",
         "LGPL-2.0-only" to "https://www.gnu.org/licenses/lgpl-2.0",
@@ -39,6 +40,9 @@ class NoticesRenderer(
         "EPL-2.0" to "https://www.eclipse.org/legal/epl-2.0",
         "MPL-2.0" to "https://www.mozilla.org/en-US/MPL/2.0/",
         "CDDL-1.0" to "https://opensource.org/licenses/CDDL-1.0",
+        "ISC" to "https://opensource.org/licenses/ISC",
+        "Unlicense" to "https://unlicense.org/",
+        "CC0-1.0" to "https://creativecommons.org/publicdomain/zero/1.0/",
         "Unknown" to ""
     )
 
@@ -78,7 +82,7 @@ class NoticesRenderer(
             module.licenseFiles.forEach { file ->
                 file.fileDetails.forEach { detail ->
                     val filePath = detail.file ?: return@forEach
-                    val f = File(reportDir,filePath)
+                    val f = File(filePath).takeIf { it.exists() } ?: File(reportDir, filePath)
                     if (!f.exists()) return@forEach
                     val fileName = f.name.uppercase()
 
@@ -194,15 +198,15 @@ class NoticesRenderer(
 
         // Check POMs
         module.poms.forEach { pom ->
-            pom.licenses.forEach { if (!it.name.isNullOrBlank()) names.add(it.name) }
+            pom.licenses.forEach { if (!it.name.isNullOrBlank()) names.add(it.name!!.trim()) }
         }
         // Check Manifests
         module.manifests.forEach { manifest ->
-            if (!manifest.license.isNullOrBlank()) names.add(manifest.license)
+            manifest.licenses.forEach { if (!it.name.isNullOrBlank()) names.add(it.name!!.trim()) }
         }
         // Check License Files
         module.licenseFiles.forEach { file ->
-            file.fileDetails.forEach { if (!it.license.isNullOrBlank()) names.add(it.license) }
+            file.fileDetails.forEach { if (!it.license.isNullOrBlank()) names.add(it.license!!.trim()) }
         }
 
         return if (names.isEmpty()) "Unknown" else names.sorted().joinToString(" OR ")
@@ -233,7 +237,24 @@ class NoticesRenderer(
     }
 
     private fun extractCopyrights(content: String): List<String> {
-        return content.lines().filter { it.startsWith("Copyright", ignoreCase = true) }
-            .map { it.trim() }.filter { it.isNotBlank() }
+        val boilerplateKeywords = listOf(
+            "permission", "hereby", "granted", "warranty", "liability",
+            "merchantability", "software", "license", "disclaimer", "indemnify",
+            "without limitation", "subject to the following", "authors", "holders",
+            "infringement", "damages", "action", "contract", "tort", "limitation"
+        )
+        return content.lineSequence()
+            .map { it.trim().removePrefix("*").trim() }
+            .filter { line ->
+                val lower = line.lowercase()
+                val isCopyright = lower.startsWith("copyright") || lower.startsWith("©") || lower.startsWith("(c)") ||
+                        lower.contains(" copyright ") || lower.contains(" (c) ")
+                val isBoilerplate = boilerplateKeywords.any { lower.contains(it) }
+                isCopyright && !isBoilerplate
+            }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+            .toList()
     }
 }

@@ -1,6 +1,4 @@
 import com.android.build.api.variant.impl.capitalizeFirstChar
-import com.github.jk1.license.filter.SpdxLicenseBundleNormalizer
-import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import packaging.PatchDebPackage
@@ -9,48 +7,10 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    id("com.github.jk1.dependency-license-report")
 }
 
-// Run a report for 3rd party dependencies with `./gradlew :desktopApp:generateLicenseReport --no-parallel`.
-// Output in desktopApp/build/reports/dependency-license/: NOTICES and index.html.
-// Note: As of version 3.1.1, the 'com.github.jk1.dependency-license-report' plugin
-// is not fully compatible with the Gradle Configuration Cache.
-// Running the task creates a message:
-// "1 problem was found storing the configuration cache."
-// "Task :desktopApp:generateLicenseReport ... cannot serialize object of type 'DefaultProject'".
-// This is a known issue with the plugin's internal task design and does not affect
-// the correctness of the generated NOTICES.
-val sharedResourceFiles: FileSystemLocation =
-    project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files")
-val dependencyDir: Provider<Directory> = layout.buildDirectory.dir("reports/dependency-license")
+val sharedResourceFiles = project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files")
 val noticesName = "NOTICES"
-licenseReport {
-    renderers = arrayOf(
-        InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
-        // Pass the output directory explicitly to help with Gradle's configuration cache
-        NoticesRenderer(noticesName, dependencyDir.get().asFile)
-    )
-    // LicenseBundleNormalizer normalizes different namings of the same license,
-    // SpdxLicenseBundleNormalizer also replaces it with the standardized name.
-    filters = arrayOf(SpdxLicenseBundleNormalizer())
-    excludeGroups = arrayOf("com.truepineapps")
-}
-
-// Task to copy the generated report to composeResources/files in composeApp so shared code can see it
-val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
-    description = "Copy the generated report to composeResources/files in composeApp so shared code can see it"
-
-    dependsOn("generateLicenseReport")
-    // Source: desktopApp build folder
-    from(dependencyDir.map { it.file(noticesName) })
-    from(rootProject.file("LICENSE"))
-    from(rootProject.projectDir) {
-        include("TERMS*.md", "PRIVACY*.md")
-    }
-    // Target: composeApp resources (relative to project root)
-    into(sharedResourceFiles)
-}
 
 kotlin {
     dependencies {
@@ -180,7 +140,7 @@ afterEvaluate {
             desktopSourceFile.set(layout.projectDirectory.file("src/main/resources/linux/Photo-Uploader.desktop"))
             copyrightSourceFile.set(layout.projectDirectory.file("../COPYRIGHT"))
             licenseSourceFile.set(layout.projectDirectory.file("../LICENSE"))
-            sharedResourceDir.set(project.file(sharedResourceFiles))
+            sharedResourceDir.set(sharedResourceFiles)
             noticesFileName.set(noticesName)
             appVersion.set(versionInfo.numericVersion)
             packageName.set(versionInfo.packageName)
@@ -200,8 +160,8 @@ fun prepareLicenseFiles(resourceDir: String) = tasks.register<Copy>(
 ) {
     description = "Copy license files to the Windows/macOS app resources directory before MSI/DMG packaging."
 
-    // Explicitly depend on the task that generates NOTICES
-    dependsOn(copyNoticesToResources)
+    // Explicitly depend on the task that copies the generated report to composeApp resources
+    dependsOn(":composeApp:copyNoticesToResources")
 
     from(rootProject.file("LICENSE"))
     from(sharedResourceFiles) {

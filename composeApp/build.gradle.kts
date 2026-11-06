@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import com.github.jk1.license.filter.SpdxLicenseBundleNormalizer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -10,6 +12,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.skie)
+    id("com.github.jk1.dependency-license-report")
 }
 
 ksp {
@@ -18,6 +21,57 @@ ksp {
 
 // Get PlatformVersion object for app name and version based on libs.versions.toml
 val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
+
+val sharedResourceFiles = layout.projectDirectory.dir("src/commonMain/composeResources/files")
+val dependencyDir = layout.buildDirectory.dir("reports/dependency-license")
+val noticesName = "NOTICES"
+
+// ============================================================================
+// Third-Party License & Legal Document Generation
+// ============================================================================
+// Run a report for 3rd party dependencies with `./gradlew :composeApp:generateLicenseReport --no-parallel`.
+// Output in composeApp/build/reports/dependency-license/: NOTICES and index.html.
+// Note: As of version 3.1.1, the 'com.github.jk1.dependency-license-report' plugin
+// is not fully compatible with the Gradle Configuration Cache.
+// Running the task creates a message:
+// "1 problem was found storing the configuration cache."
+// "Task :composeApp:generateLicenseReport ... cannot serialize object of type 'DefaultProject'".
+// This is a known issue with the plugin's internal task design and does not affect
+// the correctness of the generated NOTICES.
+configure<com.github.jk1.license.LicenseReportExtension> {
+    renderers = arrayOf(
+        InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
+        NoticesRenderer(noticesName, dependencyDir.get().asFile)
+    )
+    filters = arrayOf(SpdxLicenseBundleNormalizer())
+    excludeGroups = arrayOf("com.truepineapps")
+}
+
+/**
+ * Copies the generated third-party `NOTICES` report along with root legal documents 
+ * (`LICENSE`, `TERMS*.md`, `PRIVACY*.md`) into `composeResources/files` in `composeApp` 
+ * so shared code across all platforms (Android, iOS, Desktop) can see and display them at runtime.
+ */
+val copyNoticesToResources = tasks.register<Copy>("copyNoticesToResources") {
+    description = "Copy the generated report and legal documents to composeResources/files in composeApp"
+    dependsOn("generateLicenseReport")
+
+    from(dependencyDir.map { it.file(noticesName) })
+    from(rootProject.file("LICENSE"))
+    from(rootProject.projectDir) {
+        include("TERMS*.md", "PRIVACY*.md")
+    }
+    into(sharedResourceFiles)
+}
+
+tasks.matching { 
+    it.name.contains("ProcessResources", ignoreCase = true) || 
+    it.name.contains("ComposeResources", ignoreCase = true) || 
+    it.name.contains("generateComposeResClass", ignoreCase = true) ||
+    it.name.contains("NonXmlValueResources", ignoreCase = true)
+}.configureEach {
+    dependsOn(copyNoticesToResources)
+}
 
 /**
  * Unique application identifier, suffixed by the release stage (e.g., .beta)
@@ -353,14 +407,7 @@ compose.resources {
     generateResClass = auto
 }
 
-// Avoid implicit task dependency validation errors between composeApp resource processing
-// and desktopApp license report copying
-tasks.matching {
-    it.name.startsWith("copyNonXmlValueResources") ||
-    it.name.startsWith("prepareComposeResources")
-}.configureEach {
-    mustRunAfter(":desktopApp:copyNoticesToResources")
-}
+
 
 // Prints the report link for any task that produces a "test" related HTML report
 tasks.configureEach {

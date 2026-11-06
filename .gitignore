@@ -91,5 +91,6 @@ index.html
 desktopApp/src/main/resources/macOS/
 desktopApp/src/main/resources/windows/legal/
 composeApp/src/commonMain/composeResources/files/LICENSE
+composeApp/src/commonMain/composeResources/files/NOTICES
 composeApp/src/commonMain/composeResources/files/PRIVACY*.md
 composeApp/src/commonMain/composeResources/files/TERMS*.md
