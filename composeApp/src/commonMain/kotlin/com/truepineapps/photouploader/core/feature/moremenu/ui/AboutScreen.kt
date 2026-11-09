@@ -185,17 +185,23 @@ fun AboutScreen(
 
         // ── Application ───────────────────────────────────────────────
         SectionHeader(Res.string.application_info)
-        DetailRow(Res.string.version, appInfo.versionName)
+        val displayVersion = buildString {
+            append(appInfo.versionName)
+            if (appInfo.appStage.isNotBlank()) {
+                append(" (${appInfo.appStage})")
+            }
+        }
+        DetailRow(Res.string.version, displayVersion)
         DetailRow(Res.string.app_id, appInfo.appId)
         DetailRow(
-            Res.string.website,
-            AppConstants.WEBSITE_DISPLAY_URL,
-            AppConstants.WEBSITE_URL
+            labelResId = Res.string.website,
+            detail = AppConstants.WEBSITE_DISPLAY_URL,
+            url = AppConstants.WEBSITE_URL
         )
         DetailRow(
-            Res.string.sources,
-            AppConstants.GITHUB_DISPLAY_URL,
-            AppConstants.GITHUB_APP_REPO_URL
+            labelResId = Res.string.sources,
+            detail = AppConstants.GITHUB_DISPLAY_URL,
+            url = AppConstants.GITHUB_APP_REPO_URL
         )
 
         Spacer(modifier = Modifier.height(Dimensions.padding_large))
@@ -276,8 +282,8 @@ private fun SectionHeader(labelResId: StringResource, modifier: Modifier = Modif
 private fun DetailRow(
     labelResId: StringResource,
     detail: String?,
-    url: String? = null,
     modifier: Modifier = Modifier,
+    url: String? = null,
 ) {
     if (detail.isNullOrBlank()) return
     val uriHandler = LocalUriHandler.current
