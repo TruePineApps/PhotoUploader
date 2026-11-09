@@ -100,7 +100,6 @@ fun App(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemedLocalizedLegalAcceptedApp(
     startDestination: String,

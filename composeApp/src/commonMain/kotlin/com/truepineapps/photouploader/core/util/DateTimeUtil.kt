@@ -41,23 +41,18 @@ import kotlin.time.Instant
 // region Now
 
 /** Now as [Instant] */
-@OptIn(ExperimentalTime::class)
 fun nowInstant(): Instant = Clock.System.now()
 
-@OptIn(ExperimentalTime::class)
 fun startOfMonthInstant(): Instant = startOfMonth()
     .toInstant()
 
-@OptIn(ExperimentalTime::class)
 fun endOfMonthInstant(): Instant = endOfMonth()
     .toInstant()
 
 /** Now as [LocalDateTime] */
-@OptIn(ExperimentalTime::class)
 fun now(): LocalDateTime = nowInstant().toLocalDateTime(TimeZone.currentSystemDefault())
 
 /** Now in UTC milliseconds */
-@OptIn(ExperimentalTime::class)
 fun nowMillis(): Long = nowInstant().toEpochMilliseconds()
 
 fun startOfMonth(): LocalDate {
@@ -75,21 +70,17 @@ fun endOfMonth(): LocalDate {
 // region Conversion
 
 /** Convert UTC milliseconds to [LocalDateTime] in the default time zone */
-@OptIn(ExperimentalTime::class)
 fun ofEpochMilli(utcMillis: Long): LocalDateTime =
     Instant.fromEpochMilliseconds(utcMillis).toLocalDateTime(TimeZone.currentSystemDefault())
 
 /** Convert [LocalDateTime] to UTC milliseconds */
-@OptIn(ExperimentalTime::class)
 fun LocalDateTime.toEpochMilli(): Long =
     toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
 
 /** Convert [Instant] to [LocalDateTime] using the default time zone */
-@OptIn(ExperimentalTime::class)
 fun Instant.toLocalDateTime(): LocalDateTime = toLocalDateTime(TimeZone.currentSystemDefault())
 
 /** Convert [LocalDate] to [Instant] using the default time zone */
-@OptIn(ExperimentalTime::class)
 fun LocalDate.toInstant(): Instant = atStartOfDayIn(TimeZone.currentSystemDefault())
 
 // endregion
@@ -240,7 +231,6 @@ fun LocalDate.format(): String = DEFAULT_DATE_FORMAT.format(this)
 fun LocalTime.format(): String = DEFAULT_TIME_FORMAT.format(this)
 
 /** Format the time component of an Instant according to the short default format */
-@OptIn(ExperimentalTime::class)
 fun Instant.formatTime(): String = toLocalDateTime().formatTime()
 
 /** Parse a date string according to the short default format */
@@ -258,7 +248,6 @@ fun String.parseDate(): LocalDate = DEFAULT_DATE_FORMAT.parse(this)
  * @return A new [LocalDateTime] with the specified amount of time added.
  * @throws IllegalArgumentException if an unsupported [DateTimeUnit] is used.
  */
-@OptIn(ExperimentalTime::class)
 fun LocalDateTime.plus(value: Int, unit: DateTimeUnit): LocalDateTime {
     return when (unit) {
         is DateTimeUnit.DateBased -> {

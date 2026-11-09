@@ -16,7 +16,6 @@
 
 package com.truepineapps.photouploader.feature.uploader.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,20 +36,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import com.truepineapps.photouploader.resources.Res
-import com.truepineapps.photouploader.resources.collapse_album
-import com.truepineapps.photouploader.resources.expand_album
-import com.truepineapps.photouploader.core.presentation.design.Dimensions
 import com.truepineapps.photouploader.core.presentation.component.ThemedIconButton
+import com.truepineapps.photouploader.core.presentation.design.Dimensions
+import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.ui.components.AlbumCard
 import com.truepineapps.photouploader.feature.uploader.ui.components.ScrollLoadingInView
 import com.truepineapps.photouploader.feature.uploader.ui.components.UploadStatusIndicator
-import com.truepineapps.photouploader.core.presentation.design.Opacity
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.AlbumUiState
 import com.truepineapps.photouploader.feature.uploader.viewmodel.uistate.GroupUiState
-import kotlin.collections.indexOfLast
+import com.truepineapps.photouploader.resources.Res
+import com.truepineapps.photouploader.resources.collapse_album
+import com.truepineapps.photouploader.resources.expand_album
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlbumListContent(
     groupUiStates: List<GroupUiState>,

@@ -118,7 +118,6 @@ expect val platformLocalizationModule: Module
  */
 expect val settingsModule: Module
 
-@OptIn(ExperimentalTime::class)
 private fun coreModule(isPickerDefined: Boolean) = module {
     if (!isPickerDefined) {
         single<PlatformPicker> { CalfPlatformPicker() }

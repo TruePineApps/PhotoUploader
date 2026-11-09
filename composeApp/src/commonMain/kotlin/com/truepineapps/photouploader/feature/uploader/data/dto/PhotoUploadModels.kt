@@ -73,7 +73,7 @@ data class MediaItemResult(
     /** Media item created with the upload token. It's populated if no errors occurred and the media item was created successfully. */
     val mediaItem: MediaItem? = null,
 ) {
-    fun isSuccess() = status == null || status.code == null || status.code == 0
+    fun isSuccess() = status?.code == null || status.code == 0
 }
 
 @Serializable

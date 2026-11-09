@@ -82,7 +82,6 @@ fun <T> SelectionField(
         })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> SelectionDialog(
     label: String,
@@ -110,7 +109,6 @@ private fun <T> SelectionDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SelectionDialogContent(
     label: String,

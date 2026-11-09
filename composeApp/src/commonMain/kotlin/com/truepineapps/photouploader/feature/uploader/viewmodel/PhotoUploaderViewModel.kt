@@ -184,26 +184,24 @@ class PhotoUploaderViewModel(
      * the sign-in process and waits for it to complete.
      * @return true if authenticated, false otherwise.
      */
-    suspend fun ensureAuthenticated(): Boolean {
-        if (_viewState.value.isAuthenticated) return true
-
-        return try {
-            // Wait for existing sign-in or start a new one
-            if (_viewState.value.status == AppStatus.SIGNING_IN) {
-                processJob?.join()
-            } else {
-                performSignIn()
-            }
-            _viewState.value.isAuthenticated
-        } catch (e: Exception) {
-            log.e("ensureAuthenticated failed", e)
-            if (e !is CancellationException) {
-                val uiText = e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
-                _viewState.update { it.copy(globalErrorMessage = uiText) }
-            }
-            false
+    suspend fun ensureAuthenticated(): Boolean = _viewState.value.isAuthenticated || try {
+        // Wait for existing sign-in or start a new one
+        if (_viewState.value.status == AppStatus.SIGNING_IN) {
+            processJob?.join()
+        } else {
+            performSignIn()
         }
+        _viewState.value.isAuthenticated
+    } catch (e: Exception) {
+        log.e("ensureAuthenticated failed", e)
+        if (e !is CancellationException) {
+            val uiText =
+                e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
+            _viewState.update { it.copy(globalErrorMessage = uiText) }
+        }
+        false
     }
+
 
     /**
      * Centralized suspend function that handles the sign-in flow, error handling,
@@ -241,7 +239,8 @@ class PhotoUploaderViewModel(
             handleAuthExpiry()
         } catch (e: Exception) {
             log.e("performSignIn: Sign in failed", e)
-            val uiText = e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
+            val uiText =
+                e.message?.let { UiTextString(it) } ?: UiTextResource(Res.string.error_unknown)
             _viewState.update { it.copy(globalErrorMessage = uiText) }
         } finally {
             log.d("Set viewState to Idle after sign-in")
