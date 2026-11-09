@@ -18,6 +18,7 @@ package com.truepineapps.photouploader.app.navigation
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -46,6 +47,7 @@ fun PhotoUploaderAppNavHost(
     onUpdateTopAppBar: (title: String, closeAction: (() -> Unit)?, actions: @Composable (RowScope.() -> Unit)) -> Unit,
     showDirPicker: () -> Unit,
     viewModel: PhotoUploaderViewModel,
+    lazyListState: LazyListState,
     modifier: Modifier = Modifier,
     startDestination: String = PhotoUploaderDestination.route
 ) {
@@ -63,6 +65,7 @@ fun PhotoUploaderAppNavHost(
                     navController.navigate("${PhotoListDestination.route}/$albumId")
                 },
                 viewModel = viewModel,
+                lazyListState = lazyListState,
                 modifier = Modifier.fillMaxSize(),
             )
         }

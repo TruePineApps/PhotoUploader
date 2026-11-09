@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +53,7 @@ fun PhotoUploaderScreen(
     showDirPicker: () -> Unit,
     navigateToPhotos: (String) -> Unit,
     viewModel: PhotoUploaderViewModel,
+    lazyListState: LazyListState,
     modifier: Modifier = Modifier,
     log: Logger = koinInject()
 ) {
@@ -85,6 +87,7 @@ fun PhotoUploaderScreen(
                         isHorizontalLayout = isExpandedWidth(maxWidth),
                         navigateToPhotos = navigateToPhotos,
                         viewModel = viewModel,
+                        lazyListState = lazyListState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -99,6 +102,7 @@ private fun FolderContent(
     isHorizontalLayout: Boolean,
     navigateToPhotos: (String) -> Unit,
     viewModel: PhotoUploaderViewModel,
+    lazyListState: LazyListState,
     modifier: Modifier = Modifier
 ){
     val albumIdToShow = uiState.selectedAlbumId ?: uiState.albumUiStates.first().id
@@ -113,6 +117,7 @@ private fun FolderContent(
                     groupUiStates = uiState.groupUiStates,
                     selectedAlbumId = albumIdToShow,
                     isUploading = uiState.isUploading,
+                    lazyListState = lazyListState,
                     onAlbumClick = { album -> viewModel.updateSelectedAlbum(album.id) },
                     onAlbumToggle = viewModel::toggleAlbum,
                     onAlbumRename = viewModel::renameAlbum,
@@ -135,6 +140,7 @@ private fun FolderContent(
             groupUiStates = uiState.groupUiStates,
             selectedAlbumId = albumIdToShow,
             isUploading = uiState.isUploading,
+            lazyListState = lazyListState,
             onAlbumClick = { album ->
                 viewModel.updateSelectedAlbum(album.id)
                 navigateToPhotos(album.id)

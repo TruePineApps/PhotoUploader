@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -59,9 +60,8 @@ fun AlbumListContent(
     onAlbumGroupToggle: (GroupUiState, Boolean) -> Unit,
     onAlbumGroupExpanded: (GroupUiState) -> Unit,
     modifier: Modifier = Modifier,
+    lazyListState: LazyListState = rememberLazyListState(),
 ) {
-    val lazyListState = rememberLazyListState()
-
     // Count items for scroll position calculation
     var currentLastUploadingIndex = -1
     var totalItems = 0

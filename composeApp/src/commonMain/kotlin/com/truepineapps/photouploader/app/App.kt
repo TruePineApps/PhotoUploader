@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -109,6 +109,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
     val filePicker: PlatformPicker = koinInject()
     val viewModel: PhotoUploaderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val isStartScreenState = uiState.albumUiStates.isEmpty()
 
     val appName = stringResource(resource = Res.string.app_name)
     var title by rememberSaveable { mutableStateOf(appName) }
@@ -122,11 +123,13 @@ private fun ThemedLocalizedLegalAcceptedApp(
 
     val navController = rememberNavController()
     // The scroll state of the overview must not be applied to the other screens
+    // NOTE: Explicitly providing scrollableState (lazyListState) is required on macOS
+    // to correctly track content start position during high-precision trackpad smooth/momentum scrolling.
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
-    val isStartScreenState = uiState.albumUiStates.isEmpty()
+    val lazyListState = rememberLazyListState()
     val scrollBehavior = if (currentRoute == PhotoUploaderDestination.route && !isStartScreenState) {
-        TopAppBarDefaults.enterAlwaysScrollBehavior()
+        TopAppBarDefaults.enterAlwaysScrollBehavior(scrollableState = lazyListState)
     } else {
         null
     }
@@ -216,6 +219,7 @@ private fun ThemedLocalizedLegalAcceptedApp(
                 },
                 showDirPicker = showDirPickerAction,
                 viewModel = viewModel,
+                lazyListState = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .alpha(if (isEnabled) Opacity.FULL.value else Opacity.DISABLED.value),
