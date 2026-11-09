@@ -226,8 +226,8 @@ private fun SignInMenu(
 
 @Composable
 private fun ProgressMenu(progressText: String, onCancel: () -> Unit) {
-    // The expanded state of the sign-in in progress dropdown menu.
-    var progressMenuExpanded by remember { mutableStateOf(false) }
+    // The expanded state of the sign-in in progress dropdown menu, starting open so the option to cancel is immediately visible.
+    var progressMenuExpanded by remember { mutableStateOf(true) }
 
     Box {
         IconButton(onClick = { progressMenuExpanded = true }) {
