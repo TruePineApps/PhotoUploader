@@ -88,6 +88,7 @@ fun PhotoUploaderScreen(
                         navigateToPhotos = navigateToPhotos,
                         viewModel = viewModel,
                         lazyListState = lazyListState,
+                        log = log,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -103,11 +104,12 @@ private fun FolderContent(
     navigateToPhotos: (String) -> Unit,
     viewModel: PhotoUploaderViewModel,
     lazyListState: LazyListState,
+    log: Logger,
     modifier: Modifier = Modifier
 ){
     val albumIdToShow = uiState.selectedAlbumId ?: uiState.albumUiStates.first().id
     if (isHorizontalLayout) {
-        Logger.d("FolderContent: Horizontal layout")
+        log.d("FolderContent: Horizontal layout")
         Row(
             modifier = modifier
                 .padding(Dimensions.padding_small)
@@ -135,7 +137,7 @@ private fun FolderContent(
             }
         }
     } else {
-        Logger.d("FolderContent: Compact layout")
+        log.d("FolderContent: Compact layout")
         AlbumListContent(
             groupUiStates = uiState.groupUiStates,
             selectedAlbumId = albumIdToShow,
