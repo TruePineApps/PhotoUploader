@@ -66,7 +66,8 @@ compose.desktop {
 
             // Get PlatformVersion object for app name and version based on libs.versions.toml
             val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
-            packageName = versionInfo.packageName
+            // User facing name: Title Case with spaces
+            packageName = versionInfo.appLabel
             packageVersion = versionInfo.numericVersion
             copyright = "© 2026 True Pine Apps. All rights reserved."
             vendor = "True Pine Apps"
@@ -75,6 +76,8 @@ compose.desktop {
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/main/resources"))
 
             linux {
+                // Debian requires lowercase letters, numbers, and hyphens ONLY
+                packageName = versionInfo.packageName
                 iconFile.set(project.file("src/main/resources/desktopicon.png"))
                 appCategory = "Utility"
                 rpmLicenseType = "Apache 2.0"
@@ -82,13 +85,13 @@ compose.desktop {
                 debMaintainer = "True Pine Apps <photouploader@truepineapps.com>"
             }
             macOS {
-                bundleID = "com.truepineapps.photouploader"
+                bundleID = versionInfo.appId
                 iconFile.set(project.file("src/main/resources/desktopicon.icns"))
                 appCategory = "public.app-category.utilities"
             }
             windows {
                 iconFile.set(project.file("src/main/resources/desktopicon.ico"))
-                menuGroup = "Photo_Uploader"
+                menuGroup = "Photo Uploader"
                 shortcut = true
                 upgradeUuid = "0D40844D-0D36-4889-A1D4-5BF995A9B471"
             }

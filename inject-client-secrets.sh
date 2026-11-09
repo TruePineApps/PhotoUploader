@@ -3,10 +3,10 @@
 # Inject client_secrets.json from the local project repository into an installed CI test app.
 #
 # Usage:
-#   macOS:                   sudo ./inject-client-secrets.sh /Applications/photo-uploader.app
-#   Linux:                   sudo ./inject-client-secrets.sh /opt/photo-uploader
-#   Windows/bash:            ./inject-client-secrets.sh "/c/Program Files/Photo-Uploader"
-#   Windows/CMD & PowerShell: bash inject-client-secrets.sh "C:/Program Files/Photo-Uploader"
+#   macOS:                   sudo ./inject-client-secrets.sh "/Applications/Photo Uploader Beta.app"
+#   Linux:                   sudo ./inject-client-secrets.sh /opt/photo-uploader-beta
+#   Windows/bash:            ./inject-client-secrets.sh "/c/Program Files/Photo Uploader Beta"
+#   Windows/CMD & PowerShell: bash inject-client-secrets.sh "C:/Program Files/Photo Uploader Beta"
 #
 
 set -euo pipefail
@@ -24,10 +24,10 @@ if [ "$#" -ne 1 ]; then
     echo "Usage: [sudo] $0 <path-to-installed-app-or-bundle>"
     echo ""
     echo "Examples:"
-    echo "  macOS:                   sudo $0 /Applications/photo-uploader.app"
-    echo "  Linux:                   sudo $0 /opt/photo-uploader"
-    echo "  Windows/bash:            $0 \"/c/Program Files/Photo-Uploader\""
-    echo "  Windows/CMD & PowerShell: bash $0 \"C:/Program Files/Photo-Uploader\""
+    echo "  macOS:                   sudo $0 \"/Applications/Photo Uploader Beta.app\""
+    echo "  Linux:                   sudo $0 /opt/photo-uploader-beta"
+    echo "  Windows/bash:            $0 \"/c/Program Files/Photo Uploader Beta\""
+    echo "  Windows/CMD & PowerShell: bash $0 \"C:/Program Files/Photo Uploader Beta\""
     exit 1
 fi
 
