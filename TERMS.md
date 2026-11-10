@@ -1,12 +1,12 @@
-# Terms of Service for Photo-Uploader
+# Terms of Service for Photo Uploader
 
-**Effective Date:** October 13, 2026
+**Effective Date:** November 10, 2026
 
 ---
 
 ### 1. Introduction
 
-This document describes the Terms of Service ("Terms") for **Photo-Uploader** ("the App"), developed and maintained by **Marcel van Heerwaarden**, trading as **True Pine Apps** ("the Developer").
+This document describes the Terms of Service ("Terms") for **Photo Uploader** ("the App"), developed and maintained by **Marcel van Heerwaarden**, trading as **True Pine Apps** ("the Developer").
 
 The App is currently in a **testing phase** and should be treated as beta software. You acknowledge that the App may contain bugs, errors, or inaccuracies that could cause failures, data corruption, or loss of data, including photos or metadata. You are strongly advised to maintain independent backups of all your photos before using the App and to verify the results of any operation before deleting local copies.
 
@@ -26,7 +26,7 @@ Full contact details: https://truepineapps.com/en/imprint
 
 ### 2. What the App Does
 
-Photo-Uploader is an open-source tool that helps you upload photos from your local device to your own Google Photos account and organize them into albums based on your local directory structure.
+Photo Uploader is an open-source tool that helps you upload photos from your local device to your own Google Photos account and organize them into albums based on your local directory structure.
 
 The App runs entirely on your local device. Your photos are uploaded directly to your own Google Photos account. No data is transmitted to the Developer or any server controlled by the Developer. For full details on how personal data is handled, please see the [Privacy Policy](https://photouploader.truepineapps.com/#privacy_policy).
 

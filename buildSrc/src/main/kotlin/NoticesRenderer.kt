@@ -104,7 +104,7 @@ class NoticesRenderer(
 
         println("NoticesRenderer: Generating output")
         output.bufferedWriter().use { writer ->
-            writer.write("PhotoUploader\n")
+            writer.write("Photo Uploader\n")
             writer.write("Copyright 2026 True Pine Apps\n\n")
             writer.write("This product includes software developed at\n")
             writer.write("True Pine Apps (https://www.truepineapps.com/).\n\n")

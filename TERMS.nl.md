@@ -1,12 +1,12 @@
-# Gebruiksvoorwaarden voor Photo-Uploader
+# Gebruiksvoorwaarden voor Photo Uploader
 
-**Ingangsdatum:** 13 oktober 2026
+**Ingangsdatum:** 10 november 2026
 
 ---
 
 ### 1. Inleiding
 
-Dit document beschrijft de Gebruiksvoorwaarden ("Voorwaarden") voor **Photo-Uploader** ("de App"), ontwikkeld en onderhouden door **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps** ("de Ontwikkelaar").
+Dit document beschrijft de Gebruiksvoorwaarden ("Voorwaarden") voor **Photo Uploader** ("de App"), ontwikkeld en onderhouden door **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps** ("de Ontwikkelaar").
 
 De App bevindt zich momenteel in een **testfase** en dient te worden beschouwd als bètasoftware. U erkent dat de App fouten, gebreken of onnauwkeurigheden kan bevatten die kunnen leiden tot storingen, gegevensbeschadiging of gegevensverlies, waaronder foto's of metadata. U wordt sterk aangeraden om vóór gebruik van de App onafhankelijke back-ups te maken van al uw foto's en de resultaten van elke bewerking te controleren voordat u lokale kopieën verwijdert.
 
@@ -26,7 +26,7 @@ Volledige contactgegevens: https://truepineapps.com/nl/imprint
 
 ### 2. Wat de App doet
 
-Photo-Uploader is een open-source applicatie waarmee u foto's van uw lokale apparaat kunt uploaden naar uw eigen Google Photos-account en ze kunt organiseren in albums op basis van uw lokale mappenstructuur.
+Photo Uploader is een open-source applicatie waarmee u foto's van uw lokale apparaat kunt uploaden naar uw eigen Google Photos-account en ze kunt organiseren in albums op basis van uw lokale mappenstructuur.
 
 De App werkt volledig op uw lokale apparaat. Uw foto's worden rechtstreeks geüpload naar uw eigen Google Photos-account. Er worden geen gegevens verzonden naar de Ontwikkelaar of naar servers onder beheer van de Ontwikkelaar. Raadpleeg voor volledige informatie over de verwerking van persoonsgegevens het [Privacybeleid](https://photouploader.truepineapps.com/#privacy_policy).
 

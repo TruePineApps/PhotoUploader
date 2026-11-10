@@ -6,7 +6,7 @@
 
 ## Code signing policy
 
-Windows installers (.msi) of PhotoUploader are signed through SignPath Foundation. Free code signing is provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). Every release is built by an automated GitHub Actions workflow from the source code in this repository, and each signing request is approved manually before it is signed.
+Windows installers (.msi) of Photo Uploader are signed through SignPath Foundation. Free code signing is provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). Every release is built by an automated GitHub Actions workflow from the source code in this repository, and each signing request is approved manually before it is signed.
 
 **Team roles**
 

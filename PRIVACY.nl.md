@@ -1,12 +1,12 @@
-# Privacybeleid voor Photo-Uploader
+# Privacybeleid voor Photo Uploader
 
-**Ingangsdatum:** 13 oktober 2026
+**Ingangsdatum:** 10 november 2026
 
 ---
 
 ### 1. Inleiding en identiteit
 
-Dit privacybeleid beschrijft hoe **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps** ("de Ontwikkelaar"), omgaat met persoonsgegevens binnen de applicatie **Photo-Uploader** ("de App"). De App is een persoonlijk hulpmiddel om foto's te uploaden naar Google Foto's en ze te organiseren in albums op basis van de lokale mappenstructuur.
+Dit privacybeleid beschrijft hoe **Marcel van Heerwaarden**, handelend onder de naam **True Pine Apps** ("de Ontwikkelaar"), omgaat met persoonsgegevens binnen de applicatie **Photo Uploader** ("de App"). De App is een persoonlijk hulpmiddel om foto's te uploaden naar Google Foto's en ze te organiseren in albums op basis van de lokale mappenstructuur.
 
 Als ontwikkelaar gevestigd in Nederland zet ik mij in voor de bescherming van uw privacy, in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG). De Ontwikkelaar is de verwerkingsverantwoordelijke voor de persoonsgegevens die in dit beleid worden beschreven.
 

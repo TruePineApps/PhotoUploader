@@ -24,6 +24,7 @@ import com.truepineapps.photouploader.app.di.exitKoin
 import com.truepineapps.photouploader.app.di.initKoin
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.DesktopPlatformPicker
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
+import com.truepineapps.photouploader.core.util.AppInfo
 import org.koin.dsl.module
 import kotlin.system.exitProcess
 
@@ -33,6 +34,9 @@ fun main() = application {
         modules(module { single<PlatformPicker> { DesktopPlatformPicker() } })
     }
     val log = koinApp.koin.get<Logger>()
+    val appInfo = koinApp.koin.getOrNull<AppInfo>()
+    val windowTitle = appInfo?.appLabel ?: "Photo Uploader"
+
     Window(
         onCloseRequest = {
             log.d {"Window close requested. Shutting down resources..."}
@@ -53,7 +57,7 @@ fun main() = application {
                 exitProcess(0)
             }
         },
-        title = "PhotoUploader",
+        title = windowTitle,
     ) {
         App()
     }

@@ -1,12 +1,12 @@
-# Privacy Policy for Photo-Uploader
+# Privacy Policy for Photo Uploader
 
-**Effective Date:** October 13, 2026
+**Effective Date:** November 10, 2026
 
 ---
 
 ### 1. Introduction and Identity
 
-This Privacy Policy describes how **Marcel van Heerwaarden**, trading as **True Pine Apps** ("the Developer"), handles personal data within the application **Photo-Uploader** ("the App"). The App is a personal utility tool designed to upload photos to Google Photos and organize them into albums based on local directory structures.
+This Privacy Policy describes how **Marcel van Heerwaarden**, trading as **True Pine Apps** ("the Developer"), handles personal data within the application **Photo Uploader** ("the App"). The App is a personal utility tool designed to upload photos to Google Photos and organize them into albums based on local directory structures.
 
 As a developer based in the Netherlands, I am committed to protecting your privacy in accordance with the General Data Protection Regulation (GDPR). The Developer is the data controller for the personal data described in this policy.
 

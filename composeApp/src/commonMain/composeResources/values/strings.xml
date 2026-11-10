@@ -156,7 +156,7 @@
     </string>
     <string name="account_privacy">Account and privacy</string>
     <string name="manage_data_description">
-        Photo-Uploader does not store your photos or credentials on its own servers.
+        Photo Uploader does not store your photos or credentials on its own servers.
         You can manage your data as follows:
     </string>
     <string name="manage_data_photos_title">Uploaded Photos</string>
@@ -175,7 +175,7 @@
         [%2$s](mailto:%2$s).
     </string>
     <string name="disclosure_summary">
-        Photo-Uploader accesses your Google account to upload photos and create albums. It reads
+        Photo Uploader accesses your Google account to upload photos and create albums. It reads
         only content it has created. Your email is used solely to manage access.
         No data is shared or used for other purposes.
     </string>
@@ -199,7 +199,7 @@
 
     <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
     <string name="legal_backup_acknowledgement">
-        I understand that Photo-Uploader uploads photos to Google Photos but cannot
+        I understand that Photo Uploader uploads photos to Google Photos but cannot
         guarantee that all uploads are stored correctly. The App reports what was sent
         and acknowledged — what Google Photos ultimately stores is beyond the App\'s
         visibility. I am responsible for maintaining independent backups of my photos

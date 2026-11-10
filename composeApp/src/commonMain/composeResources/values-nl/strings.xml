@@ -149,7 +149,7 @@
     <!-- Legal Hub & Account/Privacy Management -->
     <string name="account_privacy">Account en privacy</string>
     <string name="manage_data_description">
-        Photo-Uploader bewaart geen foto\'s of inloggegevens op eigen servers.
+        Photo Uploader bewaart geen foto\'s of inloggegevens op eigen servers.
         Je kunt je gegevens als volgt beheren:
     </string>
     <string name="manage_data_photos_title">Geüploade foto\'s</string>
@@ -168,7 +168,7 @@
         %1$s via [%2$s](mailto:%2$s).
     </string>
     <string name="disclosure_summary">
-        Photo-Uploader heeft toegang tot je Google-account om foto's te uploaden en albums te maken.
+        Photo Uploader heeft toegang tot je Google-account om foto's te uploaden en albums te maken.
         De app leest alleen gegevens die door de app zelf zijn gemaakt. Je e-mailadres wordt
         uitsluitend gebruikt voor toegangsbeheer. Er worden geen gegevens gedeeld of voor
         andere doeleinden gebruikt.
@@ -199,7 +199,7 @@
 
     <!-- Backup acknowledgement — shown as a standalone prominent checkbox -->
     <string name="legal_backup_acknowledgement">
-        Ik begrijp dat Photo-Uploader foto's uploadt naar Google Foto's, maar niet kan garanderen
+        Ik begrijp dat Photo Uploader foto's uploadt naar Google Foto's, maar niet kan garanderen
         dat alle uploads correct worden opgeslagen. De app meldt wat er is verzonden en bevestigd.
         Wat Google Foto's uiteindelijk opslaat, valt buiten het zicht van de app. Ik ben zelf
         verantwoordelijk voor het maken van onafhankelijke back-ups van mijn foto's en ik zal mijn

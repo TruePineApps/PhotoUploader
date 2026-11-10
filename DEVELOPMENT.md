@@ -1,6 +1,6 @@
 # Developer Guide
 
-This document contains information on how to build and run **PhotoUploader** from source.
+This document contains information on how to build and run **Photo Uploader** from source.
 
 ## 🛠️ Prerequisites
 

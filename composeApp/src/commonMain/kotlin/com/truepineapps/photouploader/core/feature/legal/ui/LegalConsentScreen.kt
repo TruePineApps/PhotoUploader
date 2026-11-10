@@ -244,7 +244,7 @@ fun PreviewLegalConsentScreenMD() {
                     latestVersion = "01-01-2000",
                     termsOfService =
                         """
-# Terms of Service for Photo-Uploader
+# Terms of Service for Photo Uploader
 
 **Effective Date:** April 17, 2026
 
@@ -252,7 +252,7 @@ fun PreviewLegalConsentScreenMD() {
 
 ### 1. Introduction
 
-This document describes the Terms of Service ("Terms") for **Photo-Uploader** ("the App"),
+This document describes the Terms of Service ("Terms") for **Photo Uploader** ("the App"),
 developed and maintained by **Marcel van Heerwaarden**, trading as **True Pine Apps**
 ("the Developer").
 
@@ -261,7 +261,7 @@ The App is currently in a **testing phase** and should be treated as beta softwa
                         """,
                     privacyPolicy =
                         """
-# Privacy Policy for Photo-Uploader
+# Privacy Policy for Photo Uploader
 
 **Effective Date:** April 3, 2026
 
@@ -270,7 +270,7 @@ The App is currently in a **testing phase** and should be treated as beta softwa
 ### 1. Introduction and Identity
 
 This Privacy Policy describes how **Marcel van Heerwaarden**, trading as **True Pine Apps**
-("the Developer"), handles personal data within the application **Photo-Uploader** ("the
+("the Developer"), handles personal data within the application **Photo Uploader** ("the
 App"). The App is a tool designed to upload photos to Google Photos and organize them into
 albums based on local directory structures.
 
