@@ -52,6 +52,9 @@ abstract class PatchDebPackage : PackageTask() {
     @get:Input
     abstract val packageName: Property<String>
 
+    @get:Input
+    abstract val appLabel: Property<String>
+
     @TaskAction
     override fun patchPackage() {
         val deb = findPackageFile("deb")
@@ -184,14 +187,56 @@ abstract class PatchDebPackage : PackageTask() {
             logger.warn("Custom .desktop file not found at: ${desktopSource.absolutePath}")
             return
         }
+        val pkg = packageName.get()
+        val label = appLabel.get()
+
+        // 1. Rename the launcher binary executable in /opt/$pkg/bin/ to match $pkg (lowercase & hyphenated)
+        val binDir = File(extractDir, "opt/$pkg/bin")
+        val execFile = binDir.listFiles()?.firstOrNull { it.isFile }
+        val targetExecFile = File(binDir, pkg)
+        if (execFile != null && execFile.name != pkg) {
+            execFile.renameTo(targetExecFile)
+            logger.lifecycle("Renamed binary executable from '${execFile.name}' to '$pkg'")
+        }
+        val execPath = "/opt/$pkg/bin/$pkg"
+
+        // 2. Rename the jpackage config file (.cfg) in /opt/$pkg/lib/app/ to match $pkg.cfg
+        val cfgDir = File(extractDir, "opt/$pkg/lib/app")
+        if (cfgDir.exists()) {
+            val cfgFile = cfgDir.listFiles()?.firstOrNull { it.isFile && it.name.endsWith(".cfg") }
+            if (cfgFile != null && cfgFile.name != "$pkg.cfg") {
+                val targetCfgFile = File(cfgDir, "$pkg.cfg")
+                cfgFile.renameTo(targetCfgFile)
+                logger.lifecycle("Renamed config file from '${cfgFile.name}' to '$pkg.cfg'")
+            }
+        }
+
+        // 3. Rename icon .png in /opt/$pkg/lib/ to match $pkg.png
+        val libDir = File(extractDir, "opt/$pkg/lib")
+        if (libDir.exists()) {
+            val iconFile = libDir.listFiles()?.firstOrNull { it.isFile && it.name.endsWith(".png") }
+            if (iconFile != null && iconFile.name != "$pkg.png") {
+                val targetIconFile = File(libDir, "$pkg.png")
+                iconFile.renameTo(targetIconFile)
+                logger.lifecycle("Renamed icon file from '${iconFile.name}' to '$pkg.png'")
+            }
+        }
+        val iconPath = "/opt/$pkg/lib/$pkg.png"
+
+        // 3. Find all .desktop files in extracted package
         val desktopFiles = extractDir.walk().filter {
             it.isFile && it.name.endsWith(".desktop") && !it.absolutePath.contains("/legal/")
         }
-        val pkg = packageName.get()
+
         if (desktopFiles.any()) {
             desktopFiles.forEach { desktopFile ->
                 val sourceText = desktopSource.readText()
-                val patchedText = sourceText.replace("/opt/photo-uploader/", "/opt/$pkg/")
+                val patchedText = sourceText
+                    .replace("Name=Photo Uploader", "Name=$label")
+                    .replace("Exec=\"/opt/photo-uploader/bin/Photo-Uploader\"", "Exec=\"$execPath\"")
+                    .replace("Exec=/opt/photo-uploader/bin/Photo-Uploader", "Exec=\"$execPath\"")
+                    .replace("Icon=/opt/photo-uploader/lib/Photo-Uploader.png", "Icon=$iconPath")
+                    .replace("/opt/photo-uploader/", "/opt/$pkg/")
                 desktopFile.writeText(patchedText)
                 logger.lifecycle("Replaced and patched .desktop file: ${desktopFile.absolutePath}")
             }

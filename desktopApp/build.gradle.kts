@@ -147,6 +147,7 @@ afterEvaluate {
             noticesFileName.set(noticesName)
             appVersion.set(versionInfo.numericVersion)
             packageName.set(versionInfo.packageName)
+            appLabel.set(versionInfo.appLabel)
         }
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
