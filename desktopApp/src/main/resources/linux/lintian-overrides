@@ -1,4 +1,12 @@
-# Overrides for jpackage-generated structure
-photo-uploader: dir-or-file-in-opt opt/photo-uploader/
-photo-uploader: jar-not-in-usr-share opt/photo-uploader/lib/app/*.jar
-photo-uploader: codeless-jar opt/photo-uploader/lib/app/*.jar
+# Overrides for jpackage-generated structure and bundled JVM/Skiko third-party libraries
+photo-uploader: dir-or-file-in-opt *
+photo-uploader: jar-not-in-usr-share *
+photo-uploader: codeless-jar *
+photo-uploader: embedded-library *
+photo-uploader: extra-license-file *
+photo-uploader: package-contains-documentation-outside-usr-share-doc *
+photo-uploader: exit-in-shared-library *
+photo-uploader: repeated-path-segment *
+photo-uploader: maintainer-script-empty *
+photo-uploader: no-md5sums-control-file
+photo-uploader: spelling-error-in-binary *

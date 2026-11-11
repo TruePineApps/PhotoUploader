@@ -78,7 +78,7 @@ abstract class PatchDebPackage : PackageTask() {
             fixControlFile(extractDir)
             replaceCopyrightFile(extractDir)
             addChangelog(extractDir)
-            copyLicenseFiles(File(extractDir, "/opt/${packageName.get()}/share/doc"))
+            copyLicenseFiles(File(extractDir, "opt/${packageName.get()}/share/doc"))
             copyLintianOverrides(extractDir)
 
             // Fix permissions and ownership before repacking
@@ -106,38 +106,37 @@ abstract class PatchDebPackage : PackageTask() {
         }
 
         val lines = controlFile.readLines()
-        val fixedLines = mutableListOf<String>()
-        var descriptionHeaderAdded = false
+        val fields = LinkedHashMap<String, String>()
 
+        var currentKey: String? = null
         for (line in lines) {
-            when {
-                line.isEmpty() -> { /* Skip empty line */ }
-                line.startsWith("Maintainer:") -> {
-                    fixedLines.add("Maintainer: True Pine Apps <photouploader@truepineapps.com>")
+            if (line.isBlank()) continue
+            if (line.startsWith(" ")) {
+                if (currentKey != null) {
+                    fields[currentKey] = (fields[currentKey] ?: "") + "\n" + line
                 }
-                line.startsWith("Section:") -> {
-                    fixedLines.add("Section: utils")
-                }
-                line.startsWith("Description:") -> {
-                    // This is the short description, it should not start with the package name.
-                    fixedLines.add("Description: Upload photos organized in folders to Google Photos")
-                    descriptionHeaderAdded = true
-                }
-                line.startsWith(" ") && descriptionHeaderAdded -> {
-                    // Skip existing description body lines, we'll replace it with the one from AboutScreen
-                }
-                else -> {
-                    fixedLines.add(line)
-                }
+            } else if (line.contains(":")) {
+                val parts = line.split(":", limit = 2)
+                currentKey = parts[0].trim()
+                fields[currentKey] = parts[1].trim()
             }
         }
 
-        // Add the mandatory extended description (one space at the beginning)
+        fields["Maintainer"] = "True Pine Apps <photouploader@truepineapps.com>"
+        fields["Section"] = "utils"
+        // Add the description and the mandatory extended description (one space at the beginning)
         // Using the description from AboutScreen.kt
-        fixedLines.add(" This tool uploads a photo collection organized in folders into albums")
-        fixedLines.add(" on Google Photos. The album name is derived from the folder name.")
+        fields["Description"] = "Upload photos organized in folders to Google Photos\n" +
+            " This tool uploads a photo collection organized in folders into albums\n" +
+            " on Google Photos. The album name is derived from the folder name."
 
-        controlFile.writeText(fixedLines.joinToString("\n") + "\n")
+        val installedSize = fields["Installed-Size"]
+        if (installedSize != null) {
+            fields["Installed-Size"] = installedSize.lines().firstOrNull { it.isNotBlank() }?.trim() ?: installedSize
+        }
+
+        val outputText = fields.entries.joinToString("\n") { (k, v) -> "$k: $v" } + "\n"
+        controlFile.writeText(outputText)
         logger.lifecycle("Fixed metadata in control file")
     }
 
@@ -249,20 +248,29 @@ abstract class PatchDebPackage : PackageTask() {
         val copyrightSource = copyrightSourceFile.asFile.get()
         val pkg = packageName.get()
         // Debian standard location for copyright files
-        val copyrightTarget = File(extractDir, "/usr/share/doc/$pkg/copyright")
+        val copyrightTarget = File(extractDir, "usr/share/doc/$pkg/copyright")
         copyrightTarget.parentFile.mkdirs()
         copyrightSource.copyTo(copyrightTarget, overwrite = true)
         logger.lifecycle("Replaced copyright file at standard location")
     }
 
     private fun copyLintianOverrides(extractDir: File) {
-        val debianDir = File(extractDir, "DEBIAN")
-        debianDir.mkdirs()
-        val overridesFile = File(debianDir, "lintian-overrides")
+        val pkg = packageName.get()
+
+        // Install to usr/share/lintian/overrides/$pkg, according to Debian Filesystem Hierarchy Standard (FHS)
+        val fhsDir = File(extractDir, "usr/share/lintian/overrides")
+        fhsDir.mkdirs()
+        val fhsOverridesFile = File(fhsDir, pkg)
+
         val sourceFile = File(desktopSourceFile.asFile.get().parentFile.parentFile, "linux/lintian-overrides")
         if (sourceFile.exists()) {
-            sourceFile.copyTo(overridesFile, overwrite = true)
-            logger.lifecycle("Copied lintian-overrides to DEBIAN folder")
+            val sourceText = sourceFile.readText()
+            val patchedText = sourceText
+                .replace("photo-uploader:", "$pkg:")
+                .replace("opt/photo-uploader/", "opt/$pkg/")
+
+            fhsOverridesFile.writeText(patchedText)
+            logger.lifecycle("Copied and patched lintian-overrides to standard location: usr/share/lintian/overrides/$pkg")
         } else {
             logger.warn("lintian-overrides source not found at ${sourceFile.absolutePath}")
         }
@@ -282,7 +290,7 @@ abstract class PatchDebPackage : PackageTask() {
         // Exclude .jar files explicitly via -not -name "*.jar".
         // Note: xargs -d '\n' ensures filenames containing spaces (e.g. "PhotoUploader Beta") are preserved as single arguments.
         execOperations.exec {
-            commandLine("bash", "-c", "find ${extractDir.absolutePath} -type f -not -name \"*.jar\" -not -name \"*.so.*\" -exec file {} + | grep ELF | cut -d: -f1 | xargs -r -d '\\n' strip --strip-unneeded")
+            commandLine("bash", "-c", "find ${extractDir.absolutePath} -type f -not -name \"*.jar\" -not -name \"*.so.*\" -exec file {} + | grep ELF | cut -d: -f1 | xargs -r -d '\\n' strip --strip-unneeded --remove-section=.comment --remove-section=.note")
         }
 
         // Make the main executable and launcher executable
