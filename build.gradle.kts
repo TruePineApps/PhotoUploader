@@ -37,6 +37,7 @@ tasks.register<SyncInstallDocTask>("syncInstallDoc") {
     outputFile.set(layout.projectDirectory.file("INSTALL.md"))
     appName.set(versionInfo.appName)
     appLabel.set(versionInfo.appLabel)
+    packageName.set(versionInfo.packageName)
     version.set(versionInfo.numericVersion)
     majorMinor.set("${versionInfo.appMajor}.${versionInfo.appMinor}")
 }

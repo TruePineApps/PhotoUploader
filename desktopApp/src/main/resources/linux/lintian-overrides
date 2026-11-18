@@ -1,4 +1,10 @@
-# Overrides for jpackage-generated structure and bundled JVM/Skiko third-party libraries
+# Lintian Overrides
+#
+# Suppresses expected Lintian static analysis messages for jpackage-generated
+# application structure and bundled JVM/Skiko third-party libraries.
+#
+# Call lintian in bash terminal: `lintian -EviIL +pedantic <release.deb>`
+#
 photo-uploader: dir-or-file-in-opt *
 photo-uploader: jar-not-in-usr-share *
 photo-uploader: codeless-jar *

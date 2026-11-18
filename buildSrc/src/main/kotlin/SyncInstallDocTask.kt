@@ -26,6 +26,9 @@ abstract class SyncInstallDocTask : DefaultTask() {
     abstract val appLabel: Property<String>
 
     @get:Input
+    abstract val packageName: Property<String>
+
+    @get:Input
     abstract val version: Property<String>
 
     @get:Input
@@ -44,6 +47,7 @@ abstract class SyncInstallDocTask : DefaultTask() {
         // Perform replacements
         content = content.replace($$"${appName}", appName.get())
         content = content.replace($$"${appLabel}", appLabel.get())
+        content = content.replace($$"${packageName}", packageName.get())
         content = content.replace($$"${version}", version.get())
         content = content.replace($$"${majorMinor}", majorMinor.get())
 

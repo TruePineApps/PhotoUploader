@@ -63,3 +63,30 @@ terminal).
 ${appLabel} requires permission to access your local file system (to read your photos) and the 
 internet (to upload to Google Photos). It uses secure OAuth 2.0 to connect to your Google account; 
 your password is never seen or stored by this application.
+
+---
+
+## 🗑️ Uninstallation
+
+### Windows
+1. Open **Settings** $\rightarrow$ **Apps** $\rightarrow$ **Installed apps** (or **Control Panel** $\rightarrow$ **Programs and Features**).
+2. Locate **${appLabel}** in the list.
+3. Click the menu options next to the application and select **Uninstall**.
+
+### macOS
+1. Open **Finder** and navigate to your **Applications** folder.
+2. Drag **${appLabel}.app** into the **Trash** (or right-click and select **Move to Trash**).
+3. Empty the Trash to complete uninstallation.
+
+### Linux (Debian / Ubuntu)
+1. Open a terminal.
+2. Remove the installed package using `apt`:
+   ```bash
+   sudo apt remove ${packageName}
+   ```
+3. To remove application configuration and cached credentials as well, run:
+   ```bash
+   sudo apt purge ${packageName}
+   ```
+
+*Disclaimer: This application is not officially affiliated with or endorsed by Google LLC. Google Photos is a trademark of Google LLC.*

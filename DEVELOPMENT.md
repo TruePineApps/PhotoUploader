@@ -66,7 +66,7 @@ To download and test a CI build locally:
 
 When contributing to the codebase, ensure the following metadata files are kept in sync:
 - **[CHANGELOG.md](CHANGELOG.md)**: Add an entry under the `[Unreleased]` section for any user-facing changes or significant fixes.
-- **[NOTICES](composeApp/src/commonMain/composeResources/files/NOTICES)**: This file is updated automatically during regular builds when dependencies change. You can manually trigger a report update by running the `:desktopApp:generateLicenseReport` task. Commit relevant updates to this file alongside your code changes.
+- **[NOTICES](composeApp/src/commonMain/composeResources/files/NOTICES)**: This file is updated automatically during regular builds when dependencies change. You can manually trigger a report update by running the `:desktopApp:generateLicenseReport` task.
 - **[LICENSE](LICENSE) / [COPYRIGHT](COPYRIGHT)**: Ensure headers in new source files are correct and that project-wide dates are updated when necessary.
 
 ---
@@ -109,7 +109,7 @@ Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run 
 3. **Build** (parallel):
     - **Linux**: `:desktopApp:packageReleaseDeb`, then a GPG detached signature (`.deb.asc`) from the release subkey.
     - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. **Each release waits up to 3 h for your manual approval in SignPath.** Until SignPath has accepted the project (it must already have a public release), `WINDOWS_SIGNING` stays unset and the MSI is published unsigned.
-    - **macOS** (arm64): `:desktopApp:packageReleaseDmg` with Developer ID signing, then notarization with `xcrun notarytool` (App Store Connect API key) and stapling.
+    - **macOS** (both Apple Silicon (arm64) and Intel (x64)): `:desktopApp:packageReleaseDmg` with Developer ID signing, then notarization with `xcrun notarytool` (App Store Connect API key) and stapling.
 4. **Checksums**: `SHA256SUMS.txt` over the final files, signed with the GPG release key (`SHA256SUMS.txt.asc`).
 5. **Publish**: build provenance attestation, draft GitHub Release with all files, `scp` to the cPanel download directory plus an updated `latest.json` (versions and hashes), then the GitHub Release is published.
 
