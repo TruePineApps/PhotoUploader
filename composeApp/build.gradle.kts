@@ -40,11 +40,12 @@ val noticesName = "NOTICES"
 // the correctness of the generated NOTICES.
 configure<com.github.jk1.license.LicenseReportExtension> {
     renderers = arrayOf(
-        InventoryHtmlReportRenderer("index.html", "PhotoUploader – Third Party Licenses"),
+        InventoryHtmlReportRenderer("index.html", "Photo Uploader – Third Party Licenses"),
         NoticesRenderer(noticesName, dependencyDir.get().asFile)
     )
     filters = arrayOf(SpdxLicenseBundleNormalizer())
     excludeGroups = arrayOf("com.truepineapps")
+    configurations = arrayOf("desktopMainRuntimeClasspath")
 }
 
 /**
@@ -68,7 +69,8 @@ tasks.matching {
     it.name.contains("ProcessResources", ignoreCase = true) || 
     it.name.contains("ComposeResources", ignoreCase = true) || 
     it.name.contains("generateComposeResClass", ignoreCase = true) ||
-    it.name.contains("NonXmlValueResources", ignoreCase = true)
+    it.name.contains("NonXmlValueResources", ignoreCase = true) ||
+    it.name.contains("compileKotlin", ignoreCase = true)
 }.configureEach {
     dependsOn(copyNoticesToResources)
 }

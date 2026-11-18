@@ -15,8 +15,6 @@ val noticesName = "NOTICES"
 kotlin {
     dependencies {
         implementation(projects.composeApp)
-
-        implementation(compose.desktop.currentOs)
     }
 }
 
@@ -181,7 +179,8 @@ val prepareMacLicenseFiles = prepareLicenseFiles("macOS")
 
 // Explicitly define the "prepareAppResources" and "processResources" dependencies.
 // This ensures that when you run the package build task normally, the files are ready.
-tasks.matching { it.name == "prepareAppResources" || it.name == "processResources" }.all {
+tasks.matching { it.name == "prepareAppResources" || it.name == "processResources" || it.name.startsWith("package") }.all {
+    dependsOn(":composeApp:copyNoticesToResources")
     dependsOn(prepareMacLicenseFiles)
     dependsOn(prepareWindowsLicenseFiles)
 }
