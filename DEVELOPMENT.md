@@ -90,7 +90,7 @@ Details, secrets and runbooks:
 1. `cfg-appMajor` / `cfg-appMinor` / `cfg-appStage` match the target release.
 2. Update [`CHANGELOG.md`](CHANGELOG.md): move `[Unreleased]` entries under the new version.
 3. Commit with sign-off and push to `main`; wait until the **CI workflow is green on that commit**.
-4. Be available for the SignPath approval (see below).
+4. Be available to approve the SignPath Windows signing request when prompted (via email or directly at [signpath.org](https://signpath.org)).
 
 ### 3. Triggering a Release
 Execute the release helper script from the root project directory:
@@ -105,10 +105,10 @@ Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run 
 
 ### 4. Pipeline ([`release.yml`](.github/workflows/release.yml))
 1. **Verification gate**: tag format `vX.Y.Z`, commit is on `main`, tag matches `libs.versions.toml`, MAJOR ≥ 1.
-2. **Tests**: `allTests` on Linux, Windows and macOS.
+2. **Tests**: `allTests` on Linux (`ubuntu-24.04`).
 3. **Build** (parallel):
     - **Linux**: `:desktopApp:packageReleaseDeb`, then a GPG detached signature (`.deb.asc`) from the release subkey.
-    - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. **Each release waits up to 3 h for your manual approval in SignPath.** Until SignPath has accepted the project (it must already have a public release), `WINDOWS_SIGNING` stays unset and the MSI is published unsigned.
+    - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. When `WINDOWS_SIGNING` = `signpath`, the job submits the MSI and **waits up to 3 h for manual approval**. To approve: click the link in your notification email or log into [signpath.org](https://signpath.org) $\rightarrow$ **Signing Requests** $\rightarrow$ click **Approve**. (While `WINDOWS_SIGNING` remains unset, the MSI is published unsigned immediately).
     - **macOS** (both Apple Silicon (arm64) and Intel (x64)): `:desktopApp:packageReleaseDmg` with Developer ID signing, then notarization with `xcrun notarytool` (App Store Connect API key) and stapling.
 4. **Checksums**: `SHA256SUMS.txt` over the final files, signed with the GPG release key (`SHA256SUMS.txt.asc`).
 5. **Publish**: build provenance attestation, draft GitHub Release with all files, `scp` to the cPanel download directory plus an updated `latest.json` (versions and hashes), then the GitHub Release is published.
