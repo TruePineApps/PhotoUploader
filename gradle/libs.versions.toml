@@ -16,7 +16,7 @@ cfg-jvmversion = "11"
 cfg-appId = "com.truepineapps.photouploader"
 cfg-appMajor = "1"
 cfg-appMinor = "0"
-cfg-appPatch = "1"
+cfg-appPatch = "2"
 cfg-appStage = "Beta 1"
 
 # --- Library Versions ---
