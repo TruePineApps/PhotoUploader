@@ -107,7 +107,7 @@ jobs:
   build-desktop:
     name: Package (${{ matrix.name }})
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.desktop == 'true'
+    if: needs.changes.outputs.desktop == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
