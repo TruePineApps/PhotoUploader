@@ -238,6 +238,7 @@ jobs:
           spctl --assess --type open --context context:primary-signature -v "$DMG"
 
       - name: Remove temporary keychain
+        # Ensure cleanup runs even if a previous step fails
         if: always()
         run: security delete-keychain "$KEYCHAIN" || true
 
