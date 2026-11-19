@@ -164,7 +164,7 @@ fun PreviewUploadSummaryScreen() {
     AppTheme {
         UploadSummaryScreen(
             userProfile = UserProfile(
-                name = "marcel",
+                name = "Marcel",
                 email = "marcel@google.com",
                 avatarUrl = null,
                 accessToken = "1234567890"
