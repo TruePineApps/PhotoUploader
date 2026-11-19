@@ -50,7 +50,6 @@ import com.truepineapps.photouploader.resources.arrow_upload_ready
 import com.truepineapps.photouploader.resources.file_upload_off
 import kotlinx.datetime.DateTimeUnit.Companion.SECOND
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

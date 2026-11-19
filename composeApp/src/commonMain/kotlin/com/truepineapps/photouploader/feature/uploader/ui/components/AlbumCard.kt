@@ -58,7 +58,6 @@ import com.truepineapps.photouploader.resources.album_name
 import com.truepineapps.photouploader.resources.loading_img
 import com.truepineapps.photouploader.resources.photos_count
 import okio.Path.Companion.toPath
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource

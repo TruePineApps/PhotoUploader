@@ -27,10 +27,10 @@ import com.truepineapps.photouploader.core.feature.settings.domain.repository.Us
 import com.truepineapps.photouploader.core.feature.settings.viewmodel.LocaleViewModel
 import com.truepineapps.photouploader.core.feature.settings.viewmodel.SettingsViewModel
 import com.truepineapps.photouploader.core.localization.DateTimeFormatter
+import com.truepineapps.photouploader.core.localization.LocaleResolver
 import com.truepineapps.photouploader.core.localization.NumberFormatter
 import com.truepineapps.photouploader.core.localization.PlatformLocaleManager
 import com.truepineapps.photouploader.core.localization.PlatformLocaleProvider
-import com.truepineapps.photouploader.core.localization.LocaleResolver
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.CalfPlatformPicker
 import com.truepineapps.photouploader.core.presentation.component.platformpicker.PlatformPicker
 import com.truepineapps.photouploader.feature.uploader.viewmodel.PhotoUploaderViewModel
@@ -43,7 +43,6 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * Initializes the Koin dependency injection framework for the application.
