@@ -44,7 +44,7 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g
 
 jobs:
-  # Detect whether changes affect desktop packaging, buildSrc, or Gradle configuration
+  # Detect whether changes affect desktop packaging, buildSrc, or Gradle configuration using native git diff
   changes:
     name: Detect changes
     runs-on: ubuntu-24.04
@@ -52,19 +52,29 @@ jobs:
       desktop: ${{ steps.filter.outputs.desktop }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de9064fb3d7bf3066543051326543d088761f0f9 # v3.0.2
-        id: filter
         with:
-          filters: |
-            desktop:
-              - 'buildSrc/**'
-              - 'desktopApp/**'
-              - 'composeApp/src/desktopMain/**'
-              - '*.gradle.kts'
-              - 'settings.gradle.kts'
-              - 'gradle.properties'
-              - 'gradle/libs.versions.toml'
-              - '.github/workflows/ci.yml'
+          fetch-depth: 2
+      - name: Check file paths
+        id: filter
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=2
+            CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}" HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -qE '^(buildSrc/|desktopApp/|composeApp/src/desktopMain/|.*\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|gradle/libs\.versions\.toml|\.github/workflows/ci\.yml)'; then
+            echo "desktop=true" >> "$GITHUB_OUTPUT"
+            echo "Desktop changes detected."
+          else
+            echo "desktop=false" >> "$GITHUB_OUTPUT"
+            echo "No desktop changes detected."
+          fi
 
   # Linux always runs unit tests and packages the .deb installer
   build-linux:
