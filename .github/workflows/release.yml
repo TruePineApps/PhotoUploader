@@ -266,7 +266,7 @@ jobs:
       - name: Submit to SignPath and wait for your approval
         if: vars.WINDOWS_SIGNING == 'signpath'
         # Pin to a full commit SHA before the first release (see docs/RELEASING.md).
-        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3
+        uses: signpath/github-action-submit-signing-request@4a84eb4ad763290f059275786f2deed97c2c672b # v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
