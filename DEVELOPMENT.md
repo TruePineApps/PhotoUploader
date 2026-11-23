@@ -46,10 +46,10 @@ To download and test a CI build locally:
 1. **Download & Install**: Download the `.zip` artifact from the GitHub Actions run summary page, extract it, and install the package.
 2. **Bypass macOS Gatekeeper (macOS only)**: For unsigned CI test builds on macOS, right-click `photo-uploader-beta.app` in Finder $\rightarrow$ select **Open** to allow Gatekeeper to launch the application.
 3. **Inject Google OAuth Credentials**: For security reasons, CI test builds omit production secrets (`client_secrets.json`). To test Google Sign-In on an installed CI test build, run the helper script from the project root:
-    - **macOS:** `sudo ./inject-client-secrets.sh /Applications/photo-uploader-beta.app`
-    - **Linux:** `sudo ./inject-client-secrets.sh /opt/photo-uploader-beta`
-    - **Windows (Git Bash):** `./inject-client-secrets.sh "/c/Program Files/Photo-Uploader"`
-    - **Windows (CMD / PowerShell):** `bash inject-client-secrets.sh "C:/Program Files/Photo-Uploader"`
+    - **macOS:** `sudo ./scripts/inject-client-secrets.sh /Applications/photo-uploader-beta.app`
+    - **Linux:** `sudo ./scripts/inject-client-secrets.sh /opt/photo-uploader-beta`
+    - **Windows (Git Bash):** `./scripts/inject-client-secrets.sh "/c/Program Files/Photo-Uploader"`
+    - **Windows (CMD / PowerShell):** `bash scripts/inject-client-secrets.sh "C:/Program Files/Photo-Uploader"`
 
 ---
 
@@ -95,13 +95,13 @@ Details, secrets and runbooks:
 ### 3. Triggering a Release
 Execute the release helper script from the root project directory:
 ```bash
-./release.sh
+./scripts/release.sh
 ```
 This script verifies that your working directory is clean, you are on `main` and synced with `origin/main`, confirms that the version tag matching [`gradle/libs.versions.toml`](gradle/libs.versions.toml) does not already exist, and automatically creates and pushes the annotated version tag to GitHub.
 
 *(Manual `git tag` execution is strongly discouraged to prevent version mismatch or uncommitted code errors).*
 
-Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run failed jobs**. If the code must change, bump `cfg-appPatch` in `libs.versions.toml`, commit to `main`, and run `./release.sh` again.
+Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run failed jobs**. If the code must change, bump `cfg-appPatch` in `libs.versions.toml`, commit to `main`, and run `./scripts/release.sh` again.
 
 ### 4. Pipeline ([`release.yml`](.github/workflows/release.yml))
 1. **Verification gate**: tag format `vX.Y.Z`, commit is on `main`, tag matches `libs.versions.toml`, MAJOR ≥ 1.

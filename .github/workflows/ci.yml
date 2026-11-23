@@ -1,36 +1,14 @@
 name: CI
 
-# Docs-only and release-only changes do not need a CI build. Only list files that can NOT affect the build:
-# LICENSE, COPYRIGHT, TERMS*.md and PRIVACY*.md are copied into the app and packages,
-# so they must keep triggering CI. If you make CI a *required* status check, switch to a
-# job-level changed-files filter instead: skipped workflows leave required checks pending.
+# Docs-only and release-only changes do not need a CI build.
+# This workflow uses a job-level changed-files filter (the 'changes' job). This ensures the workflow
+# always runs and reports status to required status checks, while skipping heavy tests/build steps
+# when only docs, release.yml, or non-code files change.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "Architecture.md"
-      - "CHANGELOG.md"
-      - "CONTRIBUTING.md"
-      - "INSTALL.md"
-      - "DEVELOPMENT.md"
-      - "README.md"
-      - "TESTING.md"
-      - ".github/workflows/release.yml"
-      - ".github/workflows/dco.yml"
   pull_request:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "Architecture.md"
-      - "CHANGELOG.md"
-      - "CONTRIBUTING.md"
-      - "INSTALL.md"
-      - "DEVELOPMENT.md"
-      - "README.md"
-      - "TESTING.md"
-      - ".github/workflows/release.yml"
-      - ".github/workflows/dco.yml"
 
 # Least privilege: CI only reads the repo. No secrets are used anywhere in this file.
 permissions:
@@ -50,6 +28,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       desktop: ${{ steps.filter.outputs.desktop }}
+      code: ${{ steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -76,16 +55,35 @@ jobs:
             echo "No desktop changes detected."
           fi
 
+          if echo "$CHANGED_FILES" | grep -vE '^(docs/|scripts/|signpath/|\.github/workflows/release\.yml|\.github/workflows/dco\.yml|\.github/dependabot\.yml|.*\.md)$' | grep -q .; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "Code changes detected."
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "No code changes detected."
+          fi
+
   # Linux always runs unit tests and packages the .deb installer
   build-linux:
     name: Test & package (Linux)
+    needs: changes
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
       - name: Run all tests
+        if: needs.changes.outputs.code == 'true'
         run: ./gradlew allTests --stacktrace
+      - name: Skip tests if no code changes
+        if: needs.changes.outputs.code != 'true'
+        run: echo "No code changes requiring tests."
+      - name: Package Linux
+        if: needs.changes.outputs.desktop == 'true'
+        run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
+      - name: Skip packaging if no desktop changes
+        if: needs.changes.outputs.desktop != 'true'
+        run: echo "No desktop changes requiring packaging."
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -93,9 +91,8 @@ jobs:
           name: test-reports-linux
           path: "**/build/reports/tests/"
           retention-days: 7
-      - name: Package Linux
-        run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
       - name: Upload unsigned package
+        if: needs.changes.outputs.desktop == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-linux

@@ -432,13 +432,13 @@ Optional hardening: a dedicated cPanel account or SSH user whose home only conta
    sign-off, push, and wait until CI is green on that commit.
 2. Run the release helper script from the root project folder:
    ```bash
-   ./release.sh
+   ./scripts/release.sh
    ```
    The script verifies that your working directory is clean, you are on `main` and synced with `origin/main`, confirms that the tag matching `libs.versions.toml` does not already exist, and creates/pushes the annotated version tag. (Manual `git tag` commands are strongly discouraged to avoid version mismatch or uncommitted change errors).
 3. Watch Actions → *Release*. **Approve the Windows signing request in SignPath when prompted** (the job
    waits up to 3 hours).
 4. If a job fails, fix the cause and use **Re-run failed jobs** (same tag, same version). If the fix needs a
-   code change, do not touch the tag: tags are protected. Bump `cfg-appPatch`, commit, and run `./release.sh` again.
+   code change, do not touch the tag: tags are protected. Bump `cfg-appPatch`, commit, and run `./scripts/release.sh` again.
 5. The release appears as a draft first, then is published when the website upload has succeeded.
 
 ## 6. Things to Check on the First Real Run

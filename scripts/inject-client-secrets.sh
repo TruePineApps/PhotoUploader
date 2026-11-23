@@ -3,16 +3,18 @@
 # Inject client_secrets.json from the local project repository into an installed CI test app.
 #
 # Usage:
-#   macOS:                   sudo ./inject-client-secrets.sh "/Applications/Photo Uploader Beta.app"
-#   Linux:                   sudo ./inject-client-secrets.sh /opt/photo-uploader-beta
-#   Windows/bash:            ./inject-client-secrets.sh "/c/Program Files/Photo Uploader Beta"
-#   Windows/CMD & PowerShell: bash inject-client-secrets.sh "C:/Program Files/Photo Uploader Beta"
+#   macOS:                   sudo ./scripts/inject-client-secrets.sh "/Applications/Photo Uploader Beta.app"
+#   Linux:                   sudo ./scripts/inject-client-secrets.sh /opt/photo-uploader-beta
+#   Windows/bash:            ./scripts/inject-client-secrets.sh "/c/Program Files/Photo Uploader Beta"
+#   Windows/CMD & PowerShell: bash scripts/inject-client-secrets.sh "C:/Program Files/Photo Uploader Beta"
 #
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_SECRETS="$SCRIPT_DIR/composeApp/src/desktopMain/resources/client_secrets.json"
+# Change to project root directory (parent of scripts/)
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+SOURCE_SECRETS="composeApp/src/desktopMain/resources/client_secrets.json"
 
 if [ ! -f "$SOURCE_SECRETS" ]; then
     echo "Error: Local secrets file not found at: $SOURCE_SECRETS"

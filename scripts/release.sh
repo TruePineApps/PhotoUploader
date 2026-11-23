@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Change to project root directory (parent of scripts/)
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 # -----------------------------------------------------------------------------
 # PhotoUploader Release Helper Script
 #
