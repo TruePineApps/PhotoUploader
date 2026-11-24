@@ -78,5 +78,5 @@ The release workflow is triggered **only** when an annotated tag matching `vMAJO
 ## 3. Developer Guidelines & Reusing Workflows
 
 * **Shared Actions**: All setup logic (JDK 21, Gradle setup, platform prerequisites) is modularized in the composite action [`.github/actions/setup-build/action.yml`](../.github/actions/setup-build/action.yml).
-* **Testing CI Builds**: To test unsigned CI builds locally, download the `.zip` artifact from any GitHub Actions run, install the package, and inject local OAuth secrets using [`inject-client-secrets.sh`](../inject-client-secrets.sh).
+* **Testing CI Builds**: To test unsigned CI builds locally, download the `.zip` artifact from any GitHub Actions run, install the package, and inject local OAuth secrets using [`scripts/inject-client-secrets.sh`](../scripts/inject-client-secrets.sh).
 * **Dependabot Integration**: Configured in [`.github/dependabot.yml`](../.github/dependabot.yml) to combine updates into single pull requests (`gradle-updates` and `actions-updates`), ensuring PR checks remain clean and manageable.
