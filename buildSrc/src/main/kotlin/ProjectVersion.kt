@@ -3,8 +3,6 @@ import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.getByType
 
-private const val MAX_BUILD_NUMBER = "65535"
-
 /**
  * Central utility for calculating project versions and labels based on human-maintained
  * parts in `libs.versions.toml` and automated build numbers from the CI environment.
@@ -22,12 +20,22 @@ open class ProjectVersion(project: Project) {
         .named("libs")
 
     /**
-     * The internal build number, incremented automatically by the CI system.
-     * Defaults to MAX_BUILD_NUMBER for local builds to be easily recognizable as a dummy value.
+     * The human-maintained patch version number.
      */
-    val buildNumber: String = System.getenv("BUILD_NUMBER")
-        ?: System.getenv("GITHUB_RUN_NUMBER")
-        ?: MAX_BUILD_NUMBER
+    val appPatch: String = catalog.findVersion("cfg-appPatch").get().requiredVersion
+
+    /**
+     * The release workflow on GitHub sets environment variable "RELEASE_BUILD" to "true"
+     */
+    val isRelease = System.getenv("RELEASE_BUILD") == "true"
+
+    /**
+     * The internal build number, incremented automatically by the CI system.
+     * Defaults to appPatch for local builds.
+     */
+    val buildNumber: String = if (isRelease) appPatch
+    else
+        System.getenv("BUILD_NUMBER") ?: System.getenv("GITHUB_RUN_NUMBER") ?: appPatch
 
     /**
      * The stable application name (e.g., "PhotoUploader").
@@ -45,21 +53,20 @@ open class ProjectVersion(project: Project) {
     val appMinor: String = catalog.findVersion("cfg-appMinor").get().requiredVersion
 
     /**
-     * The human-maintained patch version number.
-     */
-    val appPatch: String = catalog.findVersion("cfg-appPatch").get().requiredVersion
-
-    /**
      * The human-maintained release stage (e.g., "Beta 1").
      */
     val appStage: String = catalog.findVersion("cfg-appStage").get().requiredVersion
 
     /**
-     * The technical version name, in the format `major.minor.patch`.
+     * The technical version name, in the format `major.minor.patch` for releases and local builds,
+     * or `major.minor.patch.build` for CI builds.
      */
-    val numericVersion: String = "$appMajor.$appMinor.$appPatch"
+    val numericVersion: String = if (isRelease || (buildNumber == appPatch))
+        "$appMajor.$appMinor.$appPatch"
+    else
+        "$appMajor.$appMinor.$appPatch.$buildNumber"
 
-    /**
+     /**
      * Slug representation of stage (e.g., "beta" from "Beta 1").
      */
     val stageSlug: String = run {

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.meta.outputs.version }}
-      build_number: ${{ steps.meta.outputs.build_number }}
+      stage: ${{ steps.meta.outputs.stage }}
       prerelease: ${{ steps.meta.outputs.prerelease }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -59,11 +59,11 @@ jobs:
           # 3. MSI/DMG version fields are limited to 65535 in the last component.
           (( PATCH <= 65535 )) || { echo "::error::Patch number too large for MSI"; exit 1; }
 
-          # The tag's PATCH becomes the build number: tag v1.0.3 ships as 1.0.3 (see ProjectVersion.kt).
+          # The tag's PATCH becomes the version.
           STAGE="$(toml cfg-appStage)"
           {
             echo "version=$MAJOR.$MINOR.$PATCH"
-            echo "build_number=$PATCH"
+            echo "stage=$STAGE"
             echo "prerelease=$([[ -n "$STAGE" ]] && echo true || echo false)"
           } >> "$GITHUB_OUTPUT"
 
@@ -89,7 +89,7 @@ jobs:
     environment: release
     timeout-minutes: 60
     env:
-      BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
+      RELEASE_BUILD: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
@@ -119,7 +119,7 @@ jobs:
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}   # SignPath needs this id
     env:
-      BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
+      RELEASE_BUILD: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-build
@@ -158,7 +158,7 @@ jobs:
     environment: release
     timeout-minutes: 90
     env:
-      BUILD_NUMBER: ${{ needs.verify.outputs.build_number }}
+      RELEASE_BUILD: "true"
       KEYCHAIN: ${{ github.workspace }}/../build.keychain-db
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -396,6 +396,7 @@ jobs:
       attestations: write
     env:
       VERSION: ${{ needs.verify.outputs.version }}
+      STAGE: ${{ needs.verify.outputs.stage }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -441,11 +442,11 @@ jobs:
           scp -P "${PORT:-22}" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
               dist/* "$USER_NAME@$HOST:$REMOTE_DIR/$VERSION/"
 
-          # latest.json (version + every file with its SHA-256) is uploaded LAST, so the landing page
+          # latest.json (version + stage + every file with its SHA-256) is uploaded LAST, so the landing page
           # only ever points at a complete release and can show the hashes without copying them by hand.
           FILES="$(awk '{print $1" "$2}' dist/SHA256SUMS.txt | jq -R -s -c 'split("\n")[:-1] | map(split(" ") | {sha256: .[0], name: .[1]})')"
-          jq -n --arg v "$VERSION" --arg d "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson f "$FILES" \
-            '{version:$v, released:$d, path:($v+"/"), checksums:"SHA256SUMS.txt", signature:"SHA256SUMS.txt.asc", files:$f}' > latest.json
+          jq -n --arg v "$VERSION" --arg s "$STAGE" --arg d "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson f "$FILES" \
+            '{version:$v, stage:$s, released:$d, path:($v+"/"), checksums:"SHA256SUMS.txt", signature:"SHA256SUMS.txt.asc", files:$f}' > latest.json
           cat latest.json
           scp -P "${PORT:-22}" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
               latest.json "$USER_NAME@$HOST:$REMOTE_DIR/latest.json"
