@@ -69,7 +69,7 @@ your password is never seen or stored by this application.
 ## 🗑️ Uninstallation
 
 ### Windows
-1. Open **Settings** $\rightarrow$ **Apps** $\rightarrow$ **Installed apps** (or **Control Panel** $\rightarrow$ **Programs and Features**).
+1. Open **Settings** → **Apps** → **Installed apps** (or **Control Panel** → **Programs and Features**).
 2. Locate **${appLabel}** in the list.
 3. Click the menu options next to the application and select **Uninstall**.
 

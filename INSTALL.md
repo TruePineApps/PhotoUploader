@@ -53,7 +53,7 @@ terminal).
 2.  Open a terminal in the download folder.
 3.  Install using `apt` (this will also resolve any system dependencies):
     ```bash
-    sudo apt install ./Photo Uploader Beta 1-1.0.0.deb
+    sudo apt install "./Photo Uploader Beta 1-1.0.0.deb"
     ```
 4.  Launch the app from your application menu or by typing `PhotoUploader` in the terminal.
 
@@ -69,7 +69,7 @@ your password is never seen or stored by this application.
 ## 🗑️ Uninstallation
 
 ### Windows
-1. Open **Settings** $\rightarrow$ **Apps** $\rightarrow$ **Installed apps** (or **Control Panel** $\rightarrow$ **Programs and Features**).
+1. Open **Settings** → **Apps** → **Installed apps** (or **Control Panel** → **Programs and Features**).
 2. Locate **Photo Uploader Beta 1** in the list.
 3. Click the menu options next to the application and select **Uninstall**.
 

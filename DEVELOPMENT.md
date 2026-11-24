@@ -44,7 +44,7 @@ Every push or Pull Request triggers GitHub Actions CI builds that upload unsigne
 To download and test a CI build locally:
 
 1. **Download & Install**: Download the `.zip` artifact from the GitHub Actions run summary page, extract it, and install the package.
-2. **Bypass macOS Gatekeeper (macOS only)**: For unsigned CI test builds on macOS, right-click `photo-uploader-beta.app` in Finder $\rightarrow$ select **Open** to allow Gatekeeper to launch the application.
+2. **Bypass macOS Gatekeeper (macOS only)**: For unsigned CI test builds on macOS, right-click `photo-uploader-beta.app` in Finder → select **Open** to allow Gatekeeper to launch the application.
 3. **Inject Google OAuth Credentials**: For security reasons, CI test builds omit production secrets (`client_secrets.json`). To test Google Sign-In on an installed CI test build, run the helper script from the project root:
     - **macOS:** `sudo ./scripts/inject-client-secrets.sh /Applications/photo-uploader-beta.app`
     - **Linux:** `sudo ./scripts/inject-client-secrets.sh /opt/photo-uploader-beta`
@@ -108,7 +108,7 @@ Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run 
 2. **Tests**: `allTests` on Linux (`ubuntu-24.04`).
 3. **Build** (parallel):
     - **Linux**: `:desktopApp:packageReleaseDeb`, then a GPG detached signature (`.deb.asc`) from the release subkey.
-    - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. When `WINDOWS_SIGNING` = `signpath`, the job submits the MSI and **waits up to 3 h for manual approval**. To approve: click the link in your notification email or log into [signpath.org](https://signpath.org) $\rightarrow$ **Signing Requests** $\rightarrow$ click **Approve**. (While `WINDOWS_SIGNING` remains unset, the MSI is published unsigned immediately).
+    - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. When `WINDOWS_SIGNING` = `signpath`, the job submits the MSI and **waits up to 3 h for manual approval**. To approve: click the link in your notification email or log into [signpath.org](https://signpath.org) → **Signing Requests** → click **Approve**. (While `WINDOWS_SIGNING` remains unset, the MSI is published unsigned immediately).
     - **macOS** (both Apple Silicon (arm64) and Intel (x64)): `:desktopApp:packageReleaseDmg` with Developer ID signing, then notarization with `xcrun notarytool` (App Store Connect API key) and stapling.
 4. **Checksums**: `SHA256SUMS.txt` over the final files, signed with the GPG release key (`SHA256SUMS.txt.asc`).
 5. **Publish**: build provenance attestation, draft GitHub Release with all files, `scp` to the cPanel download directory plus an updated `latest.json` (versions and hashes), then the GitHub Release is published.
