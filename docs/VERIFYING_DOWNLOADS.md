@@ -18,13 +18,18 @@ The installer must report `OK` / match exactly. If it does not, delete the file 
 
 ```bash
 gpg --import photouploader-release-key.asc        # public key, download from this site and from GitHub
-gpg --fingerprint "True Pine Apps Releases"       # Key fingerprint = 21CD 4245 8B26 1BE9 219F  FB3E 7CC6 A56F C8A2 0457
+gpg --fingerprint "True Pine Apps"                # Key fingerprint = 21CD 4245 8B26 1BE9 219F  FB3E 7CC6 A56F C8A2 0457
 gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt    # must say: Good signature
 ```
 
 A checksum alone only proves the file was not damaged in transit. The signature proves the checksum list
 was produced with our release key. Compare the key fingerprint with the one published in the GitHub
 repository (README), not only with the one on this page.
+
+> **Note on GPG Warnings:** Seeing `[unknown]` and a warning about *"not certified with a trusted signature"* 
+> is completely normal when verifying software with a newly imported developer key. As long as GPG reports 
+> **`Good signature`**, the file is authentic. You establish trust by confirming that the 40-character 
+> fingerprint matches the one published on our official website and GitHub repository.
 
 Windows and macOS installers are additionally code-signed (Windows: SignPath Foundation; macOS: Apple
 Developer ID, notarized); the operating system checks those automatically.
