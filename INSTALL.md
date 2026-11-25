@@ -17,9 +17,7 @@ system requirements and installation steps for each platform.
 *   **Architecture:** Apple Silicon (M1, M2, M3, M4) or Intel x86-64.
 
 ### Linux
-*   **Operating System:** Modern 64-bit distribution (Ubuntu 22.04 LTS or newer recommended).
-*   **Dependencies:** `glibc` 2.17 or later (Check your version by running `ldd --version` in a 
-terminal).
+*   **Operating System:** 64-bit Linux. Linux packages are built on Ubuntu 24.04; older distributions may require newer system libraries.
 *   **Display:** X11 or Wayland.
 
 ### Hardware Recommendations
@@ -49,13 +47,23 @@ terminal).
 (or Control-click) the app in your Applications folder and select **Open**.
 
 ### Linux (.deb)
-1.  Download the `Photo Uploader Beta 1-1.0.0.deb` package.
+For Debian and Ubuntu:
+1.  Download the `.deb` package from the [Linux download guide](docs/DOWNLOAD_ON_LINUX.md).
 2.  Open a terminal in the download folder.
 3.  Install using `apt` (this will also resolve any system dependencies):
     ```bash
-    sudo apt install "./Photo Uploader Beta 1-1.0.0.deb"
+    sudo apt install ./PhotoUploader-*-linux-amd64.deb
     ```
-4.  Launch the app from your application menu or by typing `PhotoUploader` in the terminal.
+4.  Launch the app from your application menu.
+
+### Linux (.rpm)
+For Fedora, RHEL, and openSUSE:
+1. Download the `.rpm` package using the [RPM download guide](docs/DOWNLOAD_ON_LINUX_RPM.md).
+2. Install it with your package manager, for example `sudo dnf install ./PhotoUploader-*-linux-amd64.rpm`.
+3. Launch Photo Uploader from your application menu.
+
+### Linux (AppImage)
+For compatible x86-64 Linux distributions, use the portable [AppImage download guide](docs/DOWNLOAD_ON_LINUX_APPIMAGE.md). The AppImage bundles the Java runtime but still requires compatible system libraries. After downloading, enable **Allow executing file as a program** in the file's Properties, then double-click it; alternatively, use `chmod +x` and run it from a terminal as shown in the guide. It is a single portable file and does not require installation or root privileges.
 
 ---
 
@@ -88,4 +96,9 @@ your password is never seen or stored by this application.
    ```bash
    sudo apt purge photo-uploader-beta
    ```
+### Linux (RPM-based distributions)
+Remove the package using your package manager, for example:
+```bash
+sudo dnf remove photo-uploader-beta
+```
 *Disclaimer: This application is not officially affiliated with or endorsed by Google LLC. Google Photos is a trademark of Google LLC.*

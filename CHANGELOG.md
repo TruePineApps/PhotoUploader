@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ...
+- Support additional Linux distribution packaging formats (`.rpm` for Fedora/RHEL/openSUSE and a portable x86-64 `AppImage`) alongside `.deb`.
 
 ### Fixed
 

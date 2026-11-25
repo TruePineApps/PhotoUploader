@@ -24,11 +24,11 @@ runs:
       with:
         cache-disabled: ${{ inputs.cache-disabled }}
 
-    # jpackage needs fakeroot to build .deb files.
+    # jpackage needs fakeroot and rpm to build .deb and .rpm files; AppImage uses mksquashfs.
     - name: Linux prerequisites
       if: runner.os == 'Linux'
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fakeroot
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fakeroot rpm squashfs-tools
 
     # JDK 21's jpackage needs WiX Toolset 3.x to build .msi files.
     # Install it only if the runner image does not already provide it.

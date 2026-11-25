@@ -83,7 +83,7 @@ jobs:
   # Linux and Windows are built UNSIGNED here and signed in separate small jobs
   # (so signing credentials never share a job with the Gradle build).
   build-linux:
-    name: Build Linux (.deb)
+    name: Build Linux (Debian, RPM, AppImage)
     needs: [verify, test]
     runs-on: ubuntu-24.04
     environment: release
@@ -102,11 +102,17 @@ jobs:
           printf '%s' "$GOOGLE_CLIENT_SECRETS_JSON" > composeApp/src/desktopMain/resources/client_secrets.json
           [ -s composeApp/src/desktopMain/resources/client_secrets.json ] \
             || { echo "::error::Secret GOOGLE_CLIENT_SECRETS_JSON is missing or empty"; exit 1; }
-      - run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
+      - run: ./gradlew :desktopApp:packageReleaseDistributionForCurrentOS --no-parallel --stacktrace
+      - name: Collect Linux binaries
+        run: |
+          mkdir -p linux-artifacts
+          find desktopApp/build/compose/binaries/main-release -name "*.deb" -exec cp {} linux-artifacts/ \;
+          find desktopApp/build/compose/binaries/main-release -name "*.rpm" -exec cp {} linux-artifacts/ \;
+          find desktopApp/build/compose/binaries/main-release -name "*.AppImage" -exec cp {} linux-artifacts/ \;
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-linux
-          path: desktopApp/build/compose/binaries/main-release/deb/*.deb
+          path: linux-artifacts/*
           if-no-files-found: error
           retention-days: 3
 
@@ -190,7 +196,8 @@ jobs:
           security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" \
             -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KC_PW" "$KEYCHAIN" >/dev/null
-          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          mapfile -t EXISTING_KEYCHAINS < <(security list-keychains -d user | sed -E 's/^[[:space:]]*"([^"]+)"[[:space:]]*$/\1/')
+          security list-keychains -d user -s "$KEYCHAIN" "${EXISTING_KEYCHAINS[@]}"
           rm -f "$RUNNER_TEMP/cert.p12"
           security find-identity -v -p codesigning "$KEYCHAIN"
 
@@ -211,7 +218,13 @@ jobs:
           NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
         run: |
           set -euo pipefail
-          DMG="$(ls desktopApp/build/compose/binaries/main-release/dmg/*.dmg | head -n1)"
+          DMG_DIR="desktopApp/build/compose/binaries/main-release/dmg"
+          mapfile -t DMGS < <(find "$DMG_DIR" -maxdepth 1 -type f -name '*.dmg' -print)
+          if [[ "${#DMGS[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one DMG, found ${#DMGS[@]}"
+            exit 1
+          fi
+          DMG="${DMGS[0]}"
           echo "DMG=$DMG"
 
           codesign --force --timestamp --sign "Developer ID Application: $MACOS_SIGNING_IDENTITY" \
@@ -304,7 +317,7 @@ jobs:
           retention-days: 3
 
   sign-linux:
-    name: Sign Linux (.deb, GPG)
+    name: Sign Linux packages and AppImage (GPG)
     needs: build-linux
     runs-on: ubuntu-24.04
     environment: release
@@ -319,9 +332,13 @@ jobs:
           GPG_KEY_FINGERPRINT: ${{ secrets.GPG_KEY_FINGERPRINT }}
         run: |
           set -euo pipefail
-          export GNUPGHOME="$(mktemp -d)"; chmod 700 "$GNUPGHOME"
+          GNUPGHOME="$(mktemp -d)"
+          export GNUPGHOME
+          chmod 700 "$GNUPGHOME"
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-          for f in out/*.deb; do
+          for f in out/*; do
+            [ -f "$f" ] || continue
+            [[ "$f" == *.asc ]] && continue
             printf '%s' "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
               --local-user "$GPG_KEY_FINGERPRINT" --armor --detach-sign --output "$f.asc" "$f"
             gpg --verify "$f.asc" "$f"
@@ -354,11 +371,15 @@ jobs:
           set -euo pipefail
           mkdir dist
           P="$APP_FILE_PREFIX-$VERSION"
-          cp incoming/signed-linux/*.deb        "dist/$P-linux-amd64.deb"
-          cp incoming/signed-linux/*.deb.asc    "dist/$P-linux-amd64.deb.asc"
-          cp incoming/signed-windows/*.msi      "dist/$P-windows-x64.msi"
-          cp incoming/signed-macos-arm64/*.dmg  "dist/$P-macos-arm64.dmg"
-          cp incoming/signed-macos-x64/*.dmg    "dist/$P-macos-x64.dmg"
+          cp incoming/signed-linux/*.deb          "dist/$P-linux-amd64.deb"
+          cp incoming/signed-linux/*.deb.asc      "dist/$P-linux-amd64.deb.asc"
+          cp incoming/signed-linux/*.rpm          "dist/$P-linux-amd64.rpm"
+          cp incoming/signed-linux/*.rpm.asc      "dist/$P-linux-amd64.rpm.asc"
+          cp incoming/signed-linux/*.AppImage     "dist/$P-linux-amd64.AppImage"
+          cp incoming/signed-linux/*.AppImage.asc "dist/$P-linux-amd64.AppImage.asc"
+          cp incoming/signed-windows/*.msi        "dist/$P-windows-x64.msi"
+          cp incoming/signed-macos-arm64/*.dmg    "dist/$P-macos-arm64.dmg"
+          cp incoming/signed-macos-x64/*.dmg      "dist/$P-macos-x64.dmg"
 
       - name: Write and sign SHA256SUMS.txt
         env:
@@ -370,7 +391,9 @@ jobs:
           # Hashes of the FINAL bytes (after SignPath, notarization and GPG), relative file names only.
           (cd dist && sha256sum -- * | sort -k2 > SHA256SUMS.txt && cat SHA256SUMS.txt)
 
-          export GNUPGHOME="$(mktemp -d)"; chmod 700 "$GNUPGHOME"
+          GNUPGHOME="$(mktemp -d)"
+          export GNUPGHOME
+          chmod 700 "$GNUPGHOME"
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           printf '%s' "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
             --local-user "$GPG_KEY_FINGERPRINT" --armor --detach-sign \
@@ -409,6 +432,8 @@ jobs:
         with:
           subject-path: |
             dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
             dist/*.msi
             dist/*.dmg
 
@@ -437,8 +462,9 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           trap 'rm -f ~/.ssh/deploy_key' EXIT
           SSH_OPTS=(-i ~/.ssh/deploy_key -p "${PORT:-22}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes)
+          printf -v REMOTE_RELEASE_DIR_Q '%q' "$REMOTE_DIR/$VERSION"
 
-          ssh "${SSH_OPTS[@]}" "$USER_NAME@$HOST" "mkdir -p '$REMOTE_DIR/$VERSION'"
+          printf 'mkdir -p -- %s\n' "$REMOTE_RELEASE_DIR_Q" | ssh "${SSH_OPTS[@]}" "$USER_NAME@$HOST" bash -s
           scp -P "${PORT:-22}" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
               dist/* "$USER_NAME@$HOST:$REMOTE_DIR/$VERSION/"
 

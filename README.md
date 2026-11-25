@@ -49,7 +49,7 @@ For full details, see the [Installation Guide](INSTALL.md).
 
 *   **Windows:** Windows 10 or later (.msi)
 *   **macOS:** macOS 12 (Monterey) or later (.dmg)
-*   **Linux:** Modern 64-bit distributions (.deb)
+*   **Linux:** 64-bit Debian/Ubuntu ([.deb](docs/DOWNLOAD_ON_LINUX.md)), Fedora/RHEL/openSUSE ([.rpm](docs/DOWNLOAD_ON_LINUX_RPM.md)), or x86-64 AppImage ([portable download guide](docs/DOWNLOAD_ON_LINUX_APPIMAGE.md))
 *   **Java:** Runtime is bundled with the installer; no separate installation is required.
 
 ---

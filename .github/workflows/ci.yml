@@ -29,30 +29,48 @@ jobs:
     outputs:
       desktop: ${{ steps.filter.outputs.desktop }}
       code: ${{ steps.filter.outputs.code }}
+      linux_formats: ${{ steps.filter.outputs.linux_formats }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Check file paths
         id: filter
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            git fetch origin "${{ github.base_ref }}" --depth=2
-            CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}" HEAD)
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git fetch origin "$BASE_REF" --depth=2
+            CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF" HEAD)
+          elif ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            # A new branch or force-push may not have a usable before-SHA; conservatively inspect the full tree.
+            EMPTY_TREE=$(git hash-object -t tree /dev/null)
+            CHANGED_FILES=$(git diff --name-only "$EMPTY_TREE" "$HEAD_SHA")
           else
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+            CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "$HEAD_SHA")
           fi
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          if echo "$CHANGED_FILES" | grep -qE '^(buildSrc/|desktopApp/|composeApp/src/desktopMain/|.*\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|gradle/libs\.versions\.toml|\.github/workflows/ci\.yml)'; then
+          if echo "$CHANGED_FILES" | grep -qE '^(buildSrc/|desktopApp/|composeApp/src/desktopMain/|gradle/|gradlew(\.bat)?$|.*\.gradle(\.kts)?$|settings\.gradle(\.kts)?$|gradle\.properties$|.*\.lockfile$|\.github/actions/setup-build/action\.yml$|scripts/package-appimage\.sh$|\.github/workflows/ci\.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
             echo "Desktop changes detected."
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
             echo "No desktop changes detected."
+          fi
+
+          if echo "$CHANGED_FILES" | grep -qE '^(buildSrc/|desktopApp/build\.gradle(\.kts)?$|desktopApp/proguard-rules\.pro$|desktopApp/src/main/resources/|composeApp/build\.gradle(\.kts)?$|gradle/|gradlew(\.bat)?$|.*\.gradle(\.kts)?$|settings\.gradle(\.kts)?$|gradle\.properties$|.*\.lockfile$|\.github/actions/setup-build/action\.yml$|\.github/workflows/ci\.yml$|scripts/package-appimage\.sh$)'; then
+            echo "linux_formats=true" >> "$GITHUB_OUTPUT"
+            echo "Linux packaging or dependency configuration changed."
+          else
+            echo "linux_formats=false" >> "$GITHUB_OUTPUT"
+            echo "No Linux packaging or dependency configuration changes."
           fi
 
           if echo "$CHANGED_FILES" | grep -vE '^(docs/|scripts/|signpath/|\.github/workflows/release\.yml|\.github/workflows/dco\.yml|\.github/dependabot\.yml|.*\.md)$' | grep -q .; then
@@ -80,7 +98,14 @@ jobs:
         run: echo "No code changes requiring tests."
       - name: Package Linux
         if: needs.changes.outputs.desktop == 'true'
-        run: ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
+        env:
+          BUILD_LINUX_FORMATS: ${{ needs.changes.outputs.linux_formats }}
+        run: |
+          if [[ "$BUILD_LINUX_FORMATS" == "true" ]]; then
+            ./gradlew :desktopApp:packageReleaseDistributionForCurrentOS --no-parallel --stacktrace
+          else
+            ./gradlew :desktopApp:packageReleaseDeb --no-parallel --stacktrace
+          fi
       - name: Skip packaging if no desktop changes
         if: needs.changes.outputs.desktop != 'true'
         run: echo "No desktop changes requiring packaging."
@@ -91,15 +116,25 @@ jobs:
           name: test-reports-linux
           path: "**/build/reports/tests/"
           retention-days: 7
-      - name: Upload unsigned package
+      - name: Upload unsigned Debian package
         if: needs.changes.outputs.desktop == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: unsigned-linux
+          name: unsigned-linux-deb
           path: desktopApp/build/compose/binaries/main-release/deb/*.deb
           if-no-files-found: error
           retention-days: 7
 
+      - name: Upload unsigned Linux formats
+        if: needs.changes.outputs.linux_formats == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: unsigned-linux-formats
+          path: |
+            desktopApp/build/compose/binaries/main-release/rpm/*.rpm
+            desktopApp/build/compose/binaries/main-release/appimage/*.AppImage
+          if-no-files-found: error
+          retention-days: 7
   # Windows and macOS packages run only when config/desktop files change (or on push to main)
   build-desktop:
     name: Package (${{ matrix.name }})

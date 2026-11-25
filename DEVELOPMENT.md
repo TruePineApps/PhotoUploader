@@ -15,13 +15,32 @@ This document contains information on how to build and run **Photo Uploader** fr
 > **Android & iOS are Work In Progress:** Support for mobile platforms is currently experimental. While the UI is shared, **Google Authentication is not yet implemented** for Android and iOS. These targets are currently for development and UI preview only.
 
 ### Desktop (JVM) Application
-Run these commands from the project root:
+Run these commands from the project root. For Linux packaging on Ubuntu/Debian, install the same native tools used by the CI and release workflows first:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends fakeroot rpm squashfs-tools
+```
+
+The `rpm` package provides `rpmbuild`, which `jpackage` needs for RPM output. `squashfs-tools` provides `mksquashfs` for creating the AppImage. The AppImage task downloads pinned, SHA-256-verified AppImage tooling. Verify the local tools are available before packaging:
+
+```bash
+command -v fakeroot
+command -v rpmbuild
+command -v mksquashfs
+```
 
 - **Run:**
   - Unix: `./gradlew :desktopApp:run`
   - Windows: `gradlew.bat :desktopApp:run`
-- **Package (Debian/Linux):**
+- **Package Linux formats (Debian, RPM, AppImage):**
+  - `./gradlew :desktopApp:packageReleaseDistributionForCurrentOS`
+- **Package Debian only:**
   - `./gradlew :desktopApp:packageReleaseDeb`
+- **Package RPM only:**
+  - `./gradlew :desktopApp:packageReleaseRpm`
+- **Package AppImage only:**
+  - `./gradlew :desktopApp:packageReleaseAppImage`
 - **Package (MSI/Windows):**
   - `gradlew.bat :desktopApp:packageReleaseMsi`
 - **Package (DMG/macOS):**
@@ -39,11 +58,11 @@ Run these commands from the project root:
 
 ### Testing Unsigned CI Builds & Injecting Client Secrets
 
-Every push or Pull Request triggers GitHub Actions CI builds that upload unsigned installer artifacts (`unsigned-linux`, `unsigned-windows`, `unsigned-macos-arm`, `unsigned-macos-intel`) under the **Artifacts** section at the bottom of any CI workflow run on GitHub.
+Every push or Pull Request triggers GitHub Actions CI. When desktop packaging runs, Linux uploads the unsigned Debian package as `unsigned-linux-deb`; changes to Linux packaging/build/dependency configuration also build and upload RPM and AppImage as `unsigned-linux-formats`. Windows and macOS upload `unsigned-windows`, `unsigned-macos-arm`, and `unsigned-macos-intel`. Find these under the **Artifacts** section of the workflow run on GitHub.
 
 To download and test a CI build locally:
 
-1. **Download & Install**: Download the `.zip` artifact from the GitHub Actions run summary page, extract it, and install the package.
+1. **Download & Install**: Download the relevant `.zip` artifact from the GitHub Actions run summary page, extract it, and install or launch the package. Linux packaging-configuration changes produce separate Debian and additional-format artifacts; the AppImage can be marked executable and launched directly.
 2. **Bypass macOS Gatekeeper (macOS only)**: For unsigned CI test builds on macOS, right-click `photo-uploader-beta.app` in Finder → select **Open** to allow Gatekeeper to launch the application.
 3. **Inject Google OAuth Credentials**: For security reasons, CI test builds omit production secrets (`client_secrets.json`). To test Google Sign-In on an installed CI test build, run the helper script from the project root:
     - **macOS:** `sudo ./scripts/inject-client-secrets.sh /Applications/photo-uploader-beta.app`
@@ -107,7 +126,7 @@ Tags are protected and cannot be moved or deleted. If a job fails, use **Re-run 
 1. **Verification gate**: tag format `vX.Y.Z`, commit is on `main`, tag matches `libs.versions.toml`, MAJOR ≥ 1.
 2. **Tests**: `allTests` on Linux (`ubuntu-24.04`).
 3. **Build** (parallel):
-    - **Linux**: `:desktopApp:packageReleaseDeb`, then a GPG detached signature (`.deb.asc`) from the release subkey.
+    - **Linux**: `:desktopApp:packageReleaseDistributionForCurrentOS` builds `.deb`, `.rpm`, and x86-64 `.AppImage` packages; each receives a GPG detached signature from the release subkey.
     - **Windows**: `:desktopApp:packageReleaseMsi`, then SignPath Foundation signing. When `WINDOWS_SIGNING` = `signpath`, the job submits the MSI and **waits up to 3 h for manual approval**. To approve: click the link in your notification email or log into [signpath.org](https://signpath.org) → **Signing Requests** → click **Approve**. (While `WINDOWS_SIGNING` remains unset, the MSI is published unsigned immediately).
     - **macOS** (both Apple Silicon (arm64) and Intel (x64)): `:desktopApp:packageReleaseDmg` with Developer ID signing, then notarization with `xcrun notarytool` (App Store Connect API key) and stapling.
 4. **Checksums**: `SHA256SUMS.txt` over the final files, signed with the GPG release key (`SHA256SUMS.txt.asc`).

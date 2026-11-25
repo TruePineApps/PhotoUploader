@@ -11,6 +11,7 @@ plugins {
 
 val sharedResourceFiles = project(":composeApp").layout.projectDirectory.dir("src/commonMain/composeResources/files")
 val noticesName = "NOTICES"
+val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
 
 kotlin {
     dependencies {
@@ -22,31 +23,10 @@ compose.desktop {
     application {
         mainClass = "com.truepineapps.photouploader.MainKt"
 
-        // javaHome must be set here at the application level to be recognized.
-        // On CI (GitHub Actions), setup-java provides JAVA_HOME.
-        // On local development machines, use explicit local JDK paths.
-        val isCi = System.getenv("GITHUB_ACTIONS") == "true"
-        val envJavaHome = System.getenv("JAVA_HOME")
-        val osName = System.getProperty("os.name").lowercase()
-
-        when {
-            isCi && !envJavaHome.isNullOrEmpty() && File(envJavaHome).exists() -> {
-                javaHome = envJavaHome
-            }
-
-            osName.contains("linux") -> {
-                javaHome = "/usr/lib/jvm/java-21-openjdk-amd64"
-            }
-
-            osName.contains("windows") -> {
-                javaHome = System.getenv("JAVA_HOME")
-                    ?: "C:\\Program Files\\Microsoft\\jdk-21.0.10.7-hotspot"
-            }
-
-            osName.contains("mac") -> {
-                javaHome = "/Library/Java/JavaVirtualMachines/jdk-23.0.1.jdk/Contents/Home"
-            }
-        }
+        // Use the configured JDK toolchain so packaging uses the same complete JDK as compilation.
+        javaHome = javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }.get().metadata.installationPath.asFile.absolutePath
 
         description = "Upload a photo collection organized in folders to Google Photo"
 
@@ -56,14 +36,18 @@ compose.desktop {
         }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(
+                TargetFormat.Dmg,      // macOS disk image (ARM64 & Intel)
+                TargetFormat.Msi,      // Windows installer package
+                TargetFormat.Deb,      // Debian / Ubuntu installer package (.deb)
+                TargetFormat.Rpm       // Red Hat / Fedora / openSUSE installer package (.rpm)
+            )
 
             // Module httpServer is used by Google API. Explicitly include it to prevent being
             // stripped in the release version
             modules("jdk.httpserver")
 
             // Get PlatformVersion object for app name and version based on libs.versions.toml
-            val versionInfo = rootProject.extensions.getByType<ProjectVersion>()
             // User facing name: Title Case with spaces
             packageName = versionInfo.appLabel
             packageVersion = versionInfo.numericVersion
@@ -78,7 +62,7 @@ compose.desktop {
                 packageName = versionInfo.packageName
                 iconFile.set(project.file("src/main/resources/desktopicon.png"))
                 appCategory = "Utility"
-                rpmLicenseType = "Apache 2.0"
+                rpmLicenseType = "Apache 2.0" // Mandatory for .rpm packaging
                 shortcut = true
                 debMaintainer = "True Pine Apps <photouploader@truepineapps.com>"
             }
@@ -94,6 +78,35 @@ compose.desktop {
                 upgradeUuid = "0D40844D-0D36-4889-A1D4-5BF995A9B471"
             }
         }
+    }
+}
+
+val appImageOutput = layout.buildDirectory.file(
+    "compose/binaries/main-release/appimage/${versionInfo.packageName}-${versionInfo.numericVersion}-linux-x86_64.AppImage"
+)
+
+val packageReleaseAppImage = tasks.register<Exec>("packageReleaseAppImage") {
+    description = "Package the release application image as a standalone Linux AppImage."
+    group = "distribution"
+    dependsOn("createReleaseDistributable")
+    inputs.dir(layout.buildDirectory.dir("compose/binaries/main-release/app/${versionInfo.appLabel}"))
+    inputs.file(layout.projectDirectory.file("src/main/resources/desktopicon.png"))
+    inputs.file(rootProject.file("scripts/package-appimage.sh"))
+    outputs.file(appImageOutput)
+
+    commandLine(
+        "bash",
+        rootProject.file("scripts/package-appimage.sh").absolutePath,
+        layout.buildDirectory.dir("compose/binaries/main-release/app/${versionInfo.appLabel}").get().asFile.absolutePath,
+        layout.projectDirectory.file("src/main/resources/desktopicon.png").asFile.absolutePath,
+        versionInfo.appLabel,
+        appImageOutput.get().asFile.absolutePath
+    )
+}
+
+if (System.getProperty("os.name").lowercase().contains("linux")) {
+    tasks.matching { it.name == "packageReleaseDistributionForCurrentOS" }.configureEach {
+        dependsOn(packageReleaseAppImage)
     }
 }
 
@@ -123,7 +136,7 @@ compose.desktop {
  * appropriate.
  */
 afterEvaluate {
-    // Find all realized package tasks (e.g., packageDeb, packageReleaseDeb)
+    // Find all realized Debian package tasks (e.g., packageDeb, packageReleaseDeb)
     tasks.names.filter { it.matches(Regex("package.*Deb")) }.forEach { packageTaskName ->
         // Determine the folder name based on the package type
         val folderName = if (packageTaskName.contains("Release")) "main-release" else "main"
@@ -146,7 +159,11 @@ afterEvaluate {
             appVersion.set(versionInfo.numericVersion)
             packageName.set(versionInfo.packageName)
             appLabel.set(versionInfo.appLabel)
+            onlyIf("Deb package output was not generated") {
+                packageFileDir.get().asFile.exists()
+            }
         }
+
         tasks.named(packageTaskName) { finalizedBy(fixTask) }
     }
 }
