@@ -37,4 +37,6 @@ Verify that your downloaded `.msi` file was not corrupted or modified in transit
 
 ## Installation Instructions
 
-Double-click the downloaded `<actual PhotoUploader-*-windows-*.msi>` file and follow the setup wizard.
+Double-click the downloaded `<actual PhotoUploader-*-windows-*.msi>` file.
+The operating system may prompt you to grant  administrator permissions. If this happens, click Yes when prompted to continue the installation process.
+Follow the setup wizard

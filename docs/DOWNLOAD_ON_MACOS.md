@@ -37,4 +37,5 @@ Verify that your downloaded `.dmg` file was not corrupted or modified in transit
 
 ## Installation Instructions
 
-Open `<actual PhotoUploader-*-macos-*.dmg>` and drag **Photo Uploader** into your **Applications** folder.
+1. Open `<actual PhotoUploader-*-macos-*.dmg>` and drag the **Photo Uploader** app icon, on the left side of the window, onto the **Applications** folder on the right side. Doing so will install **Photo Uploader** on your computer.
+2. Double click on the **Photo Uploader** app icon and wait for your mac to verify **Photo Uploader**.

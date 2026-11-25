@@ -63,4 +63,4 @@ gpg --verify <actual PhotoUploader-*-linux-*.deb.asc> <actual PhotoUploader-*-li
 
 ### Installation Instructions
 
-Install the `.deb` package using your package manager (e.g., `sudo apt install ./<actual PhotoUploader-*-linux-*.deb>`).
+Install the `.deb` package using your package manager (e.g., `sudo apt install ./<actual PhotoUploader-*-linux-*.deb>`).  When you are asked this question: "Do you want to continue? [y/n]" type in y (short form for "yes").
