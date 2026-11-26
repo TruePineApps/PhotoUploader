@@ -102,7 +102,7 @@ Details, secrets and runbooks:
 
 ### 1. Versioning
 - **Major / Minor**: `cfg-appMajor`, `cfg-appMinor` in [`gradle/libs.versions.toml`](gradle/libs.versions.toml); must match the tag. MAJOR must be ≥ 1 (macOS packaging).
-- **Patch / build number**: the tag's PATCH (`v1.0.3` → `BUILD_NUMBER=3`), read by [`buildSrc/ProjectVersion.kt`](buildSrc/src/main/kotlin/ProjectVersion.kt). It must increase with every release and be ≤ 65535 (MSI limit). CI builds use the run number instead and are never distributed.
+- **Patch / build number**: the tag's PATCH (`v1.0.3` → `BUILD_NUMBER=3`), read by [`buildSrc/ProjectVersion.kt`](buildSrc/src/main/kotlin/ProjectVersion.kt). It must increase with every release and be ≤ 65535 (MSI limit). CI builds use the run number to distinguish artifact names; it is not included in installer or app versions, and CI builds are never distributed.
 - **Stage**: `cfg-appStage` (`"Beta 1"`, or `""` for stable). A non-empty stage marks the GitHub Release as a pre-release.
 
 ### 2. Pre-Release Checklist

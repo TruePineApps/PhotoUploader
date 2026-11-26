@@ -10,7 +10,8 @@ cfg-jvmversion = "11"
 # 3. The 'buildNumber' is automated. In CI (GitHub Actions), it uses the run number. Locally, it defaults to 1.
 #
 # These parts are combined with 'buildSrc/ProjectVersion.kt' to generate:
-# - Technical Numeric Version (major.minor.build): Used by Windows/macOS installers and Android versionCode.
+# - Technical Numeric Version (major.minor.patch): Used by installers and app metadata.
+# - CI artifact version (major.minor.patch.build): Used only to distinguish CI artifacts.
 # - Application Label: User-facing name including the stage (e.g., "PhotoUploader Beta 1").
 # - Unique Application ID: Suffixed with the stage (lowercase) to allow side-by-side installation.
 cfg-appId = "com.truepineapps.photouploader"

@@ -10,9 +10,10 @@ import org.gradle.kotlin.dsl.getByType
  * at the start of the build and then accessed as fixed metadata by all subprojects.
  *
  * This utility ensures a "Build-Driven" strategy:
- * 1. Technical fields (Windows MSI, macOS DMG, Android versionCode) use a strictly numeric version.
- * 2. User-facing labels (App Name, About Screen) include the release stage (e.g., "Beta 01").
- * 3. Side-by-side installation is supported by suffixing the Application ID based on the stage.
+ * 1. Installer and app metadata versions remain strictly `major.minor.patch`.
+ * 2. CI artifact names include the build number to distinguish separate runs.
+ * 3. User-facing labels (App Name, About Screen) include the release stage (e.g., "Beta 01").
+ * 4. Side-by-side installation is supported by suffixing the Application ID based on the stage.
  */
 open class ProjectVersion(project: Project) {
     private val catalog: VersionCatalog = project.extensions
@@ -28,6 +29,8 @@ open class ProjectVersion(project: Project) {
      * The release workflow on GitHub sets environment variable "RELEASE_BUILD" to "true"
      */
     val isRelease = System.getenv("RELEASE_BUILD") == "true"
+    private val isCiBuild = !isRelease &&
+        (System.getenv("BUILD_NUMBER") != null || System.getenv("GITHUB_RUN_NUMBER") != null)
 
     /**
      * The internal build number, incremented automatically by the CI system.
@@ -58,15 +61,19 @@ open class ProjectVersion(project: Project) {
     val appStage: String = catalog.findVersion("cfg-appStage").get().requiredVersion
 
     /**
-     * The technical version name, in the format `major.minor.patch` for releases and local builds,
-     * or `major.minor.patch.build` for CI builds.
+     * The technical version name used by installers and app metadata, in `major.minor.patch` format.
      */
-    val numericVersion: String = if (isRelease || (buildNumber == appPatch))
-        "$appMajor.$appMinor.$appPatch"
-    else
-        "$appMajor.$appMinor.$appPatch.$buildNumber"
+    val numericVersion: String = "$appMajor.$appMinor.$appPatch"
 
-     /**
+    /**
+     * CI artifact version, including the build number to distinguish artifacts from separate runs.
+     */
+    val artifactVersion: String = if (isRelease || !isCiBuild)
+        numericVersion
+    else
+        "$numericVersion.$buildNumber"
+
+    /**
      * Slug representation of stage (e.g., "beta" from "Beta 1").
      */
     val stageSlug: String = run {

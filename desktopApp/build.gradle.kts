@@ -82,7 +82,7 @@ compose.desktop {
 }
 
 val appImageOutput = layout.buildDirectory.file(
-    "compose/binaries/main-release/appimage/${versionInfo.packageName}-${versionInfo.numericVersion}-linux-x86_64.AppImage"
+    "compose/binaries/main-release/appimage/${versionInfo.packageName}-${versionInfo.artifactVersion}-linux-x86_64.AppImage"
 )
 
 val packageReleaseAppImage = tasks.register<Exec>("packageReleaseAppImage") {
