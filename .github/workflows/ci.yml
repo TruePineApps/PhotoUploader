@@ -125,14 +125,20 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload unsigned Linux formats
+      - name: Upload unsigned RPM package
         if: needs.changes.outputs.linux_formats == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: unsigned-linux-formats-${{ github.run_number }}
-          path: |
-            desktopApp/build/compose/binaries/main-release/rpm/*.rpm
-            desktopApp/build/compose/binaries/main-release/appimage/*.AppImage
+          name: unsigned-linux-rpm-${{ github.run_number }}
+          path: desktopApp/build/compose/binaries/main-release/rpm/*.rpm
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unsigned AppImage
+        if: needs.changes.outputs.linux_formats == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: unsigned-linux-appimage-${{ github.run_number }}
+          path: desktopApp/build/compose/binaries/main-release/appimage/*.AppImage
           if-no-files-found: error
           retention-days: 7
   # Windows and macOS packages run only when config/desktop files change (or on push to main)
